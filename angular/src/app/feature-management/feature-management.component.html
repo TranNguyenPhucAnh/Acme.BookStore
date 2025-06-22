@@ -1,0 +1,46 @@
+<div class="card">
+      <div class="card-header">
+    <div class="row">
+      <div class="col col-md-6">
+        <h5 class="card-title">
+          {{ '::Menu:FeatureManagement' | abpLocalization }}
+        </h5>
+      </div>
+      <div class="text-end col col-md-6">
+        <div class="text-lg-end pt-2">
+          <button id="save" class="btn btn-primary" type="button" (click)="save()">
+            <i class="fa fa-plus me-1"></i>
+            <span>{{ '::Save' | abpLocalization }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card-body">
+    <ngx-datatable [rows]="organizationUnits" default>
+        <ngx-datatable-column [name]="'::OrganizationUnits' | abpLocalization" prop="organizationUnit">
+                <ng-template let-row="row" ngx-datatable-cell-template>
+                    {{ row.displayName }}
+                </ng-template>
+        </ngx-datatable-column>
+
+        @for (feature of featureDefinitions; track $index) {
+            <ngx-datatable-column [name]="feature.name | abpLocalization" prop="feature">
+                <ng-template let-row="row" ngx-datatable-cell-template>
+                    <div class="form-check">
+                        <input
+                        class="form-check-input"
+                        id="checkbox"
+                        type="checkbox"
+                        (click)="onClick(row, $index, $event)"
+                        [checked]="isChecked(feature.name, row.id)"
+                        >
+                        <label class="form-check-label" for="checkbox"></label>
+                    </div>
+                    <span class="checkmark"></span>
+                </ng-template>
+            </ngx-datatable-column>
+        }
+    </ngx-datatable>
+  </div>
+</div>

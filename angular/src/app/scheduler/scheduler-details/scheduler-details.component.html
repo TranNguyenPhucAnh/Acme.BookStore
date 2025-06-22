@@ -1,0 +1,65 @@
+<abp-modal [(visible)]="isVisible" [options]="option" (disappear)="onClose()">
+
+  <ng-template #abpHeader>
+    <h3>{{ (selectedSchedule.id ? '::Edit' : '::NewSchedule' ) | abpLocalization }}</h3>
+  </ng-template>
+
+  <ng-template #abpBody>
+    <form [formGroup]="form" (ngSubmit)="save()" class="container">
+        <div class="row">
+            <div class="col-md-6 form-group">
+            <label class="mb-1">Cron Expression</label>
+                <cron-jobs
+                    [formControl]="cronExpressionControl"
+                    [config]="cronConfig"
+                    [validate]="cronValidate">
+                </cron-jobs>
+            </div>
+        </div>
+
+    <div class="form-group">
+        <label for="recipientType" class="mb-1">Recipient Type</label>
+        <select class="form-control" id="recipientType" formControlName="recipientType">
+        <option [ngValue]="null">Select</option>
+        <option *ngFor="let type of recipientType" [ngValue]="type.value">
+            {{ '::Enum:RecipientType.' + type.value | abpLocalization }}
+        </option>
+        </select>
+    </div>
+    
+    @if(recipientTypeControl.value !== null) {
+        <div class="form-group">
+            <label for="recipientEntityId" class="mb-1">Recipient Entity</label>
+            <select class="form-control" id="recipientEntityId" formControlName="recipientEntityId">
+                <option [ngValue]="null">Select</option>
+                <option *ngFor="let entity of recipientEntities" [ngValue]="entity.id">
+                    {{ entity.displayName }}
+                </option>
+            </select>
+        </div>
+    }
+
+    <div class="form-group">
+        <label for="workerOutputType" class="mb-1">Output Type</label>
+        <select class="form-control" id="workerOutputType" formControlName="workerOutputType">
+            <option [ngValue]="null">Select</option>
+            <option *ngFor="let type of workerOutputType" [ngValue]="type.value">
+                {{ '::Enum:WorkerOutputType.' + type.value | abpLocalization }}
+            </option>
+        </select>
+    </div>
+    
+    </form>
+  </ng-template>
+
+  <ng-template #abpFooter>
+    <button type="button" class="btn btn-secondary" abpClose>
+      {{ '::Close' | abpLocalization }}
+    </button>
+    <button class="btn btn-primary" (click)="save()" [disabled]="form.invalid">
+      <i class="fa fa-check mr-1"></i>
+      {{ '::Save' | abpLocalization }}
+    </button>
+  </ng-template>
+
+</abp-modal>

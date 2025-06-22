@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Volo.Abp.BackgroundWorkers.Quartz" Version="9.2.0" />
+		<PackageReference Include="NCrontab" Version="3.3.3" />
+	</ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Acme.BookStore.Application.Contracts\Acme.BookStore.Application.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

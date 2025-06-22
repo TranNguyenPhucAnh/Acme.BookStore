@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Acme.BookStore.BackgroundWorker": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}
