@@ -9,10 +9,10 @@ export class RoleService {
   apiName = 'Default';
   
 
-  getRoles = (config?: Partial<Rest.Config>) =>
+  getAll = (config?: Partial<Rest.Config>) =>
     this.restService.request<any, IdentityRoleDto[]>({
       method: 'GET',
-      url: '/api/app/role/roles',
+      url: '/api/app/role',
     },
     { apiName: this.apiName,...config });
 

@@ -8,7 +8,7 @@ namespace Acme.BookStore.OrganizationUnits
 {
     public interface IOrganizationUnitAppService : IApplicationService
     {
-        Task<List<OrganizationUnitEto>> GetOrganizationUnitsAsync();
-        Task<List<Guid>> GetUserOrganizationUnitIdsAsync(Guid userId);
+        Task<List<OrganizationUnitEto>> GetAllAsync();
+        Task<List<Guid>> GetUserOrganizationUnitIdsAsync(Guid userId); // to do: fix it to receive a list of user IDs
     }
 }

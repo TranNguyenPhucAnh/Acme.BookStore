@@ -1,5 +1,6 @@
-﻿using Acme.BookStore.Authors;
+using Acme.BookStore.Authors;
 using Acme.BookStore.Books;
+using Acme.BookStore.Notifications;
 using Acme.BookStore.Schedulers;
 using Microsoft.EntityFrameworkCore;
 using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
@@ -17,7 +18,6 @@ using Volo.Abp.Users.EntityFrameworkCore;
 namespace Acme.BookStore.EntityFrameworkCore;
 [ConnectionStringName("Default")]
 public class BookStoreDbContext : AbpDbContext<BookStoreDbContext>
-    
 {
     /* Add DbSet properties for your Aggregate Roots / Entities here. */
 
@@ -44,6 +44,8 @@ public class BookStoreDbContext : AbpDbContext<BookStoreDbContext>
     public DbSet<Book> Books { get; set; }
     public DbSet<Author> Authors { get; set; }
     public DbSet<Scheduler> Schedulers { get; set; }
+    public DbSet<BookMedias> BookMedias { get; set; }
+    public DbSet<Notification> Notifications { get; set; }
 
     #endregion
 
@@ -76,7 +78,11 @@ public class BookStoreDbContext : AbpDbContext<BookStoreDbContext>
             b.Ignore(x => x.ExtraProperties);
 
             // ADD THE MAPPING FOR THE RELATION
-            b.HasOne<Author>().WithMany().HasForeignKey(x => x.AuthorId).IsRequired();
+            b.HasOne<Author>()
+            .WithMany()
+            .HasForeignKey(x => x.AuthorId)
+            .IsRequired()
+            .OnDelete(DeleteBehavior.Restrict);
         });
 
         builder.Entity<Author>(b =>
@@ -93,7 +99,27 @@ public class BookStoreDbContext : AbpDbContext<BookStoreDbContext>
                 .HasMaxLength(AuthorConsts.MaxNameLength);
 
             b.HasIndex(x => x.Name);
+        });
 
+        builder.Entity<BookMedias>(b =>
+        {
+            b.ToTable(BookStoreConsts.DbTablePrefix + "BookMedias", BookStoreConsts.DbSchema);
+            b.ConfigureByConvention();
+
+            b.HasOne<Book>()
+            .WithMany()
+            .HasForeignKey(x => x.BookId)
+            .IsRequired()
+            .OnDelete(DeleteBehavior.NoAction);
+        });
+
+        builder.Entity<Notification>(b =>
+        {
+            b.ToTable(BookStoreConsts.DbTablePrefix + "Notifications", BookStoreConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.LocalizationKey).IsRequired(false);
+            b.Property(x => x.LocalizationArguments).IsRequired(false);
+            b.Property(x => x.RedirectUrl).IsRequired(false);
         });
 
         builder.Entity<Scheduler>(b =>
@@ -109,7 +135,7 @@ public class BookStoreDbContext : AbpDbContext<BookStoreDbContext>
             b.ConfigureAbpUser();
             b.HasOne<OrganizationUnit>()
                 .WithMany()
-                .HasForeignKey("OrganizationUnitId")
+                .HasForeignKey("EntityId")
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.SetNull);
         });

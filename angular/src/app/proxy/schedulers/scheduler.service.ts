@@ -20,7 +20,7 @@ export class SchedulerService {
   
 
   delete = (id: string, config?: Partial<Rest.Config>) =>
-    this.restService.request<any, void>({
+    this.restService.request<any, any>({
       method: 'DELETE',
       url: `/api/app/scheduler/${id}`,
     },

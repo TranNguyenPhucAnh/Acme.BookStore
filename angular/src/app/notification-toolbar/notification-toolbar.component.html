@@ -1,0 +1,57 @@
+<button
+    mat-icon-button
+    #trigger="matMenuTrigger"
+    [matMenuTriggerFor]="menu"
+    [matBadge]="(hasUnread$ | async) ? '•' : ''"     
+    [matBadgeHidden]="!hasUnread$ | async"
+    matBadgeColor="warn"
+    matBadgeOverlap="true"
+    matBadgeSize="small"
+    (menuClosed)="onClose()"
+    class="notification-button">
+    <i class="bi {{ trigger.menuOpen ? 'bi-bell-fill' : 'bi-bell' }}"></i>
+</button>
+
+<mat-menu #menu="matMenu" class="notification-menu">
+    <ng-template matMenuContent>
+        @if (data.items.length > 0) {
+            <ng-container>
+                <div
+                #scrollContainer
+                class="scroll-container"
+                infiniteScroll
+                [infiniteScrollDistance]="1"
+                [infiniteScrollThrottle]="100"
+                [infiniteScrollContainer]="scrollContainer"
+                (scrolled)="loadMore()"
+                >
+                    <ng-container *ngFor="let item of data.items">
+                        <button mat-menu-item (click)="handleItemClick(item, $event)">
+                            <div class="card" [class.unread]="!item.isRead">
+                                <span [innerHTML]="item.localizationKey | localize: item.localizationArguments"></span>
+                            </div>
+                        </button>
+                    </ng-container>
+                    @if (isEndOfList) {
+                        <div class="end-of-list">End of list</div>
+                    }
+                @if (isLoading) {
+                    <button mat-menu-item>
+                        <div [abpLoading]="isLoading" class="card"></div>
+                    </button>
+                }
+                </div>
+            </ng-container>
+        }
+        @else {
+            <button mat-menu-item disabled>No notifications</button>
+        }
+        <div class="menu-footer">
+            <span class="footer-count">Total unread: {{ totalUnread }}</span>
+            <button mat-button (click)="markAllAsRead($event)" matTooltip="Mark all as read">
+                <i class="bi bi-check2-all footer-icon"></i>
+                <span class="footer-text">Mark all as read</span>
+            </button>
+        </div>
+    </ng-template>
+</mat-menu>

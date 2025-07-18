@@ -18,7 +18,7 @@
   </div>
   <div class="card-body">
     <ngx-datatable [rows]="organizationUnits" default>
-        <ngx-datatable-column [name]="'::OrganizationUnits' | abpLocalization" prop="organizationUnit">
+        <ngx-datatable-column [name]="'Organization Units'" prop="organizationUnit">
                 <ng-template let-row="row" ngx-datatable-cell-template>
                     {{ row.displayName }}
                 </ng-template>

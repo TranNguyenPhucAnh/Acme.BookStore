@@ -1,0 +1,14 @@
+::ng-deep cron-jobs .form-inline {
+  display: flex;
+  padding-bottom: 0.75rem;
+}
+
+::ng-deep cron-jobs label {
+    padding-right: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+::ng-deep cron-jobs select#selectBase {
+  max-width: 250px;
+}
+

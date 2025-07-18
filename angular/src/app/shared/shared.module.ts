@@ -12,6 +12,7 @@ import { FeatureDirective } from '../feature.directive';
     ThemeSharedModule,
     NgbDropdownModule,
     NgxValidateCoreModule
+
   ],
   exports: [
     CoreModule,

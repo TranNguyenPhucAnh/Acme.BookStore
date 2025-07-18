@@ -1,9 +1,8 @@
-﻿using System;
+﻿using Acme.BookStore.Authors;
+using Shouldly;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Acme.BookStore.Authors;
-using Shouldly;
-using Volo.Abp.Application.Dtos;
 using Volo.Abp.Modularity;
 using Volo.Abp.Validation;
 using Xunit;
@@ -27,7 +26,7 @@ public abstract class BookAppService_Tests<TStartupModule> : BookStoreApplicatio
     {
         //Act
         var result = await _bookAppService.GetListAsync(
-            new PagedAndSortedResultRequestDto()
+            new BookGetListInput()
         );
 
         //Assert

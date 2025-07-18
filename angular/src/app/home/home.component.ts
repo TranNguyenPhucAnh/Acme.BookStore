@@ -1,5 +1,8 @@
-import { AuthService } from '@abp/ng.core';
-import { Component } from '@angular/core';
+import { AbpWindowService, AuthService } from '@abp/ng.core';
+import { ToasterService } from '@abp/ng.theme.shared';
+import { Component, OnInit } from '@angular/core';
+import { BookService } from '@proxy/books';
+import { DateHelper } from '../shared/helpers/dates.utility';
 
 @Component({
   standalone: false,
@@ -7,12 +10,30 @@ import { Component } from '@angular/core';
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss'],
 })
-export class HomeComponent {
+export class HomeComponent implements OnInit {
+  sampleUrl: string;
+
   get hasLoggedIn(): boolean {
     return this.authService.isAuthenticated
   }
 
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private bookService: BookService,
+    private toasterService: ToasterService,
+    private abpWindowService: AbpWindowService
+  ) {}
+
+  ngOnInit(): void {
+
+  }
+
+  download() : void {
+    this.bookService.downloadSample().subscribe((val) => {
+        this.abpWindowService.downloadBlob(val.body, DateHelper.toFileName(val.headers.get('Content-Disposition')));
+        this.toasterService.success('File is ready for download')
+    })
+  }
 
   login() {
     this.authService.navigateToLogin();
