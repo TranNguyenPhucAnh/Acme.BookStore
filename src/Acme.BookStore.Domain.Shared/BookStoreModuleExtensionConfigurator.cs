@@ -1,4 +1,5 @@
-﻿using Volo.Abp.ObjectExtending;
+﻿using System.Collections.Generic;
+using Volo.Abp.ObjectExtending;
 using Volo.Abp.Threading;
 
 namespace Acme.BookStore;
@@ -35,6 +36,13 @@ public static class BookStoreModuleExtensionConfigurator
 
     private static void ConfigureExtraProperties()
     {
+        /* You can add extra properties to the entities defined in the modules used by your application.
+         * These properties will be stored in the ExtraProperties dictionary of the entity.
+         *
+         * Example: Add Age and OrganizationUnit properties to IdentityUser
+         */
+        //extra properties are automapped as entity props & form props on UI
+        //handle create & update identity user APIs
         ObjectExtensionManager.Instance.Modules()
            .ConfigureIdentity(identity =>
            {
@@ -42,6 +50,14 @@ public static class BookStoreModuleExtensionConfigurator
                {
                    user.AddOrUpdateProperty<int?>(
                        "Age"
+                   );
+
+                   user.AddOrUpdateProperty<string>(
+                       "Entity"
+                   );
+
+                   user.AddOrUpdateProperty<string>(
+                       "Roles"
                    );
                });
            });

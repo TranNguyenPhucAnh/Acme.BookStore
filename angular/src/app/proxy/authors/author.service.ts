@@ -8,7 +8,9 @@ import { Injectable } from '@angular/core';
 })
 export class AuthorService {
   apiName = 'Default';
-  
+
+//this service calls backend APIs via HttpClient returning a cold observable, executed only if subscribed
+//each subscription creates a new request to backend, can make use of share/shareReplay operators
 
   create = (input: CreateAuthorDto, config?: Partial<Rest.Config>) =>
     this.restService.request<any, AuthorDto>({
@@ -20,7 +22,7 @@ export class AuthorService {
   
 
   delete = (id: string, config?: Partial<Rest.Config>) =>
-    this.restService.request<any, void>({
+    this.restService.request<any, any>({
       method: 'DELETE',
       url: `/api/app/author/${id}`,
     },
@@ -39,13 +41,22 @@ export class AuthorService {
     this.restService.request<any, PagedResultDto<AuthorDto>>({
       method: 'GET',
       url: '/api/app/author',
-      params: { filter: input.filter, sorting: input.sorting, skipCount: input.skipCount, maxResultCount: input.maxResultCount },
+      params: { filter: input.filter, ["BirthDate.Min"]: input.birthDate.min, ["BirthDate.Max"]: input.birthDate.max, skipCount: input.skipCount, maxResultCount: input.maxResultCount, sorting: input.sorting, combineWith: input.combineWith },
+    },
+    { apiName: this.apiName,...config });
+
+    
+  getMinDateTime = (config?: Partial<Rest.Config>) =>
+    this.restService.request<any, string>({
+      method: 'GET',
+      url: `/api/app/author/min-date-time`,
+      responseType: 'json'
     },
     { apiName: this.apiName,...config });
   
 
   update = (id: string, input: UpdateAuthorDto, config?: Partial<Rest.Config>) =>
-    this.restService.request<any, void>({
+    this.restService.request<any, AuthorDto>({
       method: 'PUT',
       url: `/api/app/author/${id}`,
       body: input,

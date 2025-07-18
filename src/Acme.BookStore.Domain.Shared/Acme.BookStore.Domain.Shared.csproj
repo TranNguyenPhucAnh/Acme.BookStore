@@ -15,7 +15,6 @@
     <PackageReference Include="Volo.Abp.FeatureManagement.Domain.Shared" Version="9.1.0" />
     <PackageReference Include="Volo.Abp.PermissionManagement.Domain.Shared" Version="9.1.0" />
     <PackageReference Include="Volo.Abp.SettingManagement.Domain.Shared" Version="9.1.0" />
-    <PackageReference Include="Volo.Abp.BlobStoring.Database.Domain.Shared" Version="9.1.0" />
     <PackageReference Include="Volo.Abp.GlobalFeatures" Version="9.1.0" />
   </ItemGroup>
 
@@ -31,7 +30,16 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Localization\BookStore\*.json" />
+    <Compile Remove="Emails\**" />
     <Content Remove="Localization\BookStore\*.json" />
+    <EmbeddedResource Remove="Emails\**" />
+    <None Remove="Emails\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Remove="Localization\BookStore\jp.json" />
+    <EmbeddedResource Remove="Localization\BookStore\kr.json" />
+    <EmbeddedResource Remove="Localization\BookStore\zh-Hant.json" />
   </ItemGroup>
 
 </Project>

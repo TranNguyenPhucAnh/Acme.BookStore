@@ -24,6 +24,7 @@ using Volo.Abp.AspNetCore.Mvc.UI.Theme.LeptonXLite;
 using Volo.Abp.AspNetCore.Mvc.UI.Theme.LeptonXLite.Bundling;
 using Volo.Abp.AspNetCore.Mvc.UI.Theme.Shared;
 using Volo.Abp.AspNetCore.Serilog;
+using Volo.Abp.AspNetCore.SignalR;
 using Volo.Abp.Autofac;
 using Volo.Abp.Modularity;
 using Volo.Abp.OpenIddict;
@@ -43,8 +44,10 @@ namespace Acme.BookStore;
     typeof(AbpAccountWebOpenIddictModule),
     typeof(AbpSwashbuckleModule),
     typeof(AbpAspNetCoreSerilogModule),
-    typeof(BookStoreBackgroundWorkerModule)
+    typeof(BookStoreBackgroundWorkerModule),
+    typeof(AbpAspNetCoreSignalRModule)
     )]
+
 public class BookStoreHttpApiHostModule : AbpModule
 {
     public override void PreConfigureServices(ServiceConfigurationContext context)
@@ -71,8 +74,14 @@ public class BookStoreHttpApiHostModule : AbpModule
 
             PreConfigure<OpenIddictServerBuilder>(serverBuilder =>
             {
+                // In production, it is recommended to use two RSA certificates, one for encryption, one for signing.
                 serverBuilder.AddProductionEncryptionAndSigningCertificate("openiddict.pfx", configuration["AuthServer:CertificatePassPhrase"]!);
                 serverBuilder.SetIssuer(new Uri(configuration["AuthServer:Authority"]!));
+                // Increased the lifetime of authorization code and access token
+                serverBuilder.SetAccessTokenLifetime(TimeSpan.FromDays(365));
+                serverBuilder.SetAuthorizationCodeLifetime(TimeSpan.FromDays(365));
+                //serverBuilder.SetIdentityTokenLifetime(TimeSpan.FromDays(365));
+                //serverBuilder.SetRefreshTokenLifetime(TimeSpan.FromDays(365));
             });
         }
     }
@@ -146,7 +155,6 @@ public class BookStoreHttpApiHostModule : AbpModule
         });
     }
 
-
     private void ConfigureVirtualFileSystem(ServiceConfigurationContext context)
     {
         var hostingEnvironment = context.Services.GetHostingEnvironment();
@@ -185,7 +193,7 @@ public class BookStoreHttpApiHostModule : AbpModule
                 options.CustomSchemaIds(type => type.FullName);
             });
     }
-
+    //N?u frontend và backend ch?y trên các c?ng khác nhau (http://localhost:4200 và https://localhost:44374), l?i CORS có th? ng?n yêu c?u ??ng xu?t
     private void ConfigureCors(ServiceConfigurationContext context, IConfiguration configuration)
     {
         context.Services.AddCors(options =>
@@ -200,6 +208,7 @@ public class BookStoreHttpApiHostModule : AbpModule
                             .ToArray() ?? Array.Empty<string>()
                     )
                     .WithAbpExposedHeaders()
+                    .WithExposedHeaders("Content-Disposition")
                     .SetIsOriginAllowedToAllowWildcardSubdomains()
                     .AllowAnyHeader()
                     .AllowAnyMethod()

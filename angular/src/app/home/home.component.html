@@ -14,40 +14,24 @@
           </a>
           }
 
-          <h4>Getting Started</h4>
-          <p class="lead text-muted mb-2">
-            Learn how to create and run a new web application using the application startup
-            template.
+          <h4>README</h4>
+          <p class="lead text-muted mb-3">
+            Books & Authors show paginated data, can do basic CRUD.
           </p>
-          <a
-            href="https://abp.io/docs/latest/getting-started"
-            class="btn btn-brand mb-4"
-            target="_blank"
-          >
-            Getting Started
-          </a>
+          <p>Any CRUD action will notify user via email & notification.</p>
+          <a href="http://localhost:4200/books" class="btn btn-brand mb-4" target="_blank">Go to "Books"</a>
+          <a href="http://localhost:4200/authors" class="btn btn-brand mb-4 home-buttons" target="_blank">Go to "Authors"</a>
 
-          <h4>Web Application Development Tutorial</h4>
-          <p class="lead text-muted mb-2">
-            Learn how to build an ABP based web application named Acme.BookStore.
-          </p>
-          <a
-            href="https://abp.io/docs/latest/tutorials/book-store/part-01?UI=NG&DB=EF"
-            class="btn btn-brand mb-4"
-            target="_blank"
-          >
-            Explore Tutorial
-          </a>
+          <h4>Feature Management is used to toggle content by country.</h4>
+          <a href="http://localhost:4200/feature-managements" class="btn btn-brand mb-4" target="_blank">Go to "Feature Management"</a>
 
-          <h4>Customize Lepton Theme</h4>
-          <p class="text-muted mb-2">Learn how to customize LeptonX Theme as you wish.</p>
-          <a
-            href="https://abp.io/docs/commercial/latest/themes/lepton-x/index"
-            class="btn btn-primary soft mb-5 mb-xl-0"
-            target="_blank"
-          >
-            Customize Lepton
-          </a>
+          <h4>Schedulers</h4>
+          <p class="text-muted mb-2">A cron-based quartz that CC email with attachment to users.</p>
+          <a href="http://localhost:4200/schedulers" class="btn btn-primary soft mb-4" target="_blank">Go to "Schedulers"</a>
+
+          <h4>Notification</h4>
+          <p class="text-muted mb-2">Navbar has an icon showing notification list.</p>
+
         </div>
         <img class="card-bg-image" src="assets/images/getting-started/bg-01.png" />
       </div>
@@ -55,48 +39,92 @@
   </div>
   <div class="col-xl-3 col-md-6 d-flex">
     <div class="row">
-      <div class="col-12 d-flex">
+      <div>
         <div class="card overflow-hidden mb-3">
           <div class="card-body d-flex flex-column">
-            <div class="abp-support abp-logo mb-2"></div>
             <p class="text-muted mb-2">
-              You can check for similar problems and solutions, or open a new topic to discuss your
-              specific issue.
+              <strong>Smart Behaviors</strong>
             </p>
-            <a
-              class="btn btn-brand soft w-50"
-              href="https://abp.io/support/questions"
-              target="_blank"
-            >
-              Visit Support
-            </a>
-            <img
-              style="margin-bottom: -24px"
-              class="w-100 mt-auto"
-              src="assets/images/getting-started/img-support.png"
-            />
+            <tr>
+              <br>
+              <td class="ps-0 d-flex">
+                <div
+                  class="rounded-circle me-2 flex-center bg-brand soft"
+                  style="width: 20px; height: 20px">
+                  <i class="bi bi-check fs-4"></i>
+                </div>
+                <div>Auto-adjusts filters as data changes</div>
+              </td>
+              <br>
+              <td class="ps-0 d-flex">
+                <div
+                  class="rounded-circle me-2 flex-center bg-brand soft"
+                  style="width: 20px; height: 20px">
+                  <i class="bi bi-check fs-4"></i>
+                </div>
+                <div>Real-time UI updates via SignalR</div>
+              </td>
+              <br>
+              <td class="ps-0 d-flex">
+                <div
+                  class="rounded-circle me-2 flex-center bg-brand soft"
+                  style="width: 20px; height: 20px">
+                  <i class="bi bi-check fs-4"></i>
+                </div>
+                <div>Global spinner using interceptor</div>
+              </td>
+            </tr>
           </div>
         </div>
       </div>
       <div class="col-12 d-flex">
         <div class="card h-md-100 overflow-hidden">
           <div class="card-body d-flex flex-column">
-            <div class="abp-blog abp-logo mb-2"></div>
             <p class="text-muted mb-2">
-              You can find content on .NET development, cross-platform, ASP.NET application
-              templates, ABP-related news, and more.
+              <strong>Dev Notes</strong>
             </p>
-            <a
-              class="btn btn-brand soft w-50"              
-              href="https://abp.io/blog" 
-              target="_blank"
-            >
-              Visit Blog
-            </a>
+            <tr>
+              <br>
+              <td class="ps-0 d-flex">
+                <div
+                  class="rounded-circle me-2 flex-center bg-brand soft"
+                  style="width: 20px; height: 20px">
+                  <i class="bi bi-check fs-4"></i>
+                </div>
+                <div>Tried domain interface to return entity-specific localization data</div>
+              </td>
+              <br>
+              <td class="ps-0 d-flex">
+                <div
+                  class="rounded-circle me-2 flex-center bg-brand soft"
+                  style="width: 20px; height: 20px">
+                  <i class="bi bi-check fs-4"></i>
+                </div>
+                <div>Pass destructured, localized message to Scriban template as it only binds positional argument</div>
+              </td>
+              <br>
+              <td class="ps-0 d-flex">
+                <div
+                  class="rounded-circle me-2 flex-center bg-brand soft"
+                  style="width: 20px; height: 20px">
+                  <i class="bi bi-check fs-4"></i>
+                </div>
+                <div>Extra properties are very useful to quickly expand built-in module</div>
+              </td>
+              <br>
+              <td class="ps-0 d-flex">
+                <div
+                  class="rounded-circle me-2 flex-center bg-brand soft"
+                  style="width: 20px; height: 20px">
+                  <i class="bi bi-check fs-4"></i>
+                </div>
+                <div>Config State has an internal store, refresh it to get up-to-date state</div>
+              </td>
+            </tr>
             <img
               style="margin-bottom: -24px"
               class="w-100 mt-auto"
-              src="assets/images/getting-started/img-blog.png"
+              src="assets/images/getting-started/img-support.png"
             />
           </div>
         </div>
@@ -106,23 +134,77 @@
   <div class="col-xl-3 col-md-6 d-flex">
     <div class="card h-100 overflow-hidden">
       <div class="card-body">
-        <div class="abp-community abp-logo mb-2"></div>
         <p class="lead text-muted">
-          A unique community platform for <span class="fw-bold">ABP Lovers!</span>
+          <span class="fw-bold">TO DO:</span>
         </p>
-        <p class="text-muted mb-2">
-          Explore all ABP users' experiences with the ABP Framework, discover articles and videos on
-          how to use ABP, and join raffles for a chance to win surprise gifts!
-        </p>
-        <a 
-          class="btn btn-brand soft mb-3" 
-          href="https://abp.io/community/"
-          target="_blank"
-        >
-          Join ABP Community
-        </a>
+        <tr>
+
+          <br>
+          <td class="ps-0 d-flex">
+            <div
+              class="rounded-circle me-2 flex-center bg-brand soft"
+              style="width: 20px; height: 20px">
+              <i class="bi bi-check fs-4"></i>
+            </div>
+            <div>Research if abp proxy generator can be customized</div>
+          </td>
+          <br>
+          <td class="ps-0 d-flex">
+            <div
+              class="rounded-circle me-2 flex-center bg-brand soft"
+              style="width: 20px; height: 20px">
+              <i class="bi bi-check fs-4"></i>
+            </div>
+            <div>Implement factory pattern</div>
+          </td>
+          <br>
+          <td class="ps-0 d-flex">
+            <div
+              class="rounded-circle me-2 flex-center bg-brand soft"
+              style="width: 20px; height: 20px">
+              <i class="bi bi-check fs-4"></i>
+            </div>
+            <div>Re-implement hangfire (Current storage doesn't support specifying queues directly for a specific job. Please use the QueueAttribute instead)</div>
+          </td>
+          <br>
+          <td class="ps-0 d-flex">
+            <div
+              class="rounded-circle me-2 flex-center bg-brand soft"
+              style="width: 20px; height: 20px">
+              <i class="bi bi-check fs-4"></i>
+            </div>
+            <div>Localize the app</div>
+          </td>
+          <br>
+          <td class="ps-0 d-flex">
+            <div
+              class="rounded-circle me-2 flex-center bg-brand soft"
+              style="width: 20px; height: 20px">
+              <i class="bi bi-check fs-4"></i>
+            </div>
+            <div>Refactor code, add constants, permissions</div>
+          </td>
+          <br>
+          <td class="ps-0 d-flex">
+            <div
+              class="rounded-circle me-2 flex-center bg-brand soft"
+              style="width: 20px; height: 20px">
+              <i class="bi bi-check fs-4"></i>
+            </div>
+            <div>Upgrade framework</div>
+          </td>
+          <br>
+          <td class="ps-0 d-flex">
+            <div
+              class="rounded-circle me-2 flex-center bg-brand soft"
+              style="width: 20px; height: 20px">
+              <i class="bi bi-check fs-4"></i>
+            </div>
+            <div>Expand to an inventory, maybe link to a Shopify site to sell stuff</div>
+          </td>
+          <br>
+        </tr>
       </div>
-      <img class="mt-3 w-100" src="assets/images/getting-started/img-community.png" />
     </div>
   </div>
 </div>
@@ -131,7 +213,7 @@
   <div class="col-xl-3 col-lg-4">
     <div class="card">
       <div class="card-header">
-        <div class="card-title text-body">More from ABP.IO</div>
+        <div class="card-title text-body">Frontend libraries:</div>
       </div>
       <div class="card-body pt-0">
         <div>
@@ -141,14 +223,13 @@
                 <td class="ps-0 d-flex">
                   <div
                     class="rounded-circle me-2 flex-center bg-brand soft"
-                    style="width: 20px; height: 20px"
-                  >
+                    style="width: 20px; height: 20px">
                     <i class="bi bi-check fs-4"></i>
                   </div>
-                  <div>Latest Release Logs</div>
+                  <div>angular/material</div>
                 </td>
                 <td class="text-end pe-0 opacity-25">
-                  <a href="https://github.com/abpframework/abp/releases" target="_blank">
+                  <a href="https://www.npmjs.com/package/@angular/material" target="_blank">
                     <i class="bi bi-box-arrow-up-right text-dark"></i>
                   </a>
                 </td>
@@ -161,10 +242,10 @@
                   >
                     <i class="bi bi-check fs-4"></i>
                   </div>
-                  <div>Video Courses</div>
+                  <div>rxjs</div>
                 </td>
                 <td class="text-end pe-0 opacity-25">
-                  <a href="https://abp.io/video-courses/essentials" target="_blank">
+                  <a href="https://www.npmjs.com/package/rxjs" target="_blank">
                     <i class="bi bi-box-arrow-up-right text-dark"></i>
                   </a>
                 </td>
@@ -177,10 +258,10 @@
                   >
                     <i class="bi bi-check fs-4"></i>
                   </div>
-                  <div>Samples</div>
+                  <div>ngx-cron-jobs</div>
                 </td>
                 <td class="text-end pe-0 opacity-25">
-                  <a href="https://abp.io/docs/latest/Samples/Index" target="_blank">
+                  <a href="https://www.npmjs.com/package/ngx-cron-jobs" target="_blank">
                     <i class="bi bi-box-arrow-up-right text-dark"></i>
                   </a>
                 </td>
@@ -193,10 +274,10 @@
                   >
                     <i class="bi bi-check fs-4"></i>
                   </div>
-                  <div>Books</div>
+                  <div>ngx-infinite-scroll</div>
                 </td>
                 <td class="text-end pe-0 opacity-25">
-                  <a href="https://abp.io/books" target="_blank">
+                  <a href="https://www.npmjs.com/package/ngx-infinite-scroll" target="_blank">
                     <i class="bi bi-box-arrow-up-right text-dark"></i>
                   </a>
                 </td>
@@ -209,10 +290,10 @@
                   >
                     <i class="bi bi-check fs-4"></i>
                   </div>
-                  <div>FAQ</div>
+                  <div>Service Proxies</div>
                 </td>
                 <td class="text-end pe-0 opacity-25 border-bottom-0">
-                  <a href="https://abp.io/faq" target="_blank">
+                  <a href="https://abp.io/docs/latest/framework/ui/angular/service-proxies" target="_blank">
                     <i class="bi bi-box-arrow-up-right text-dark"></i>
                   </a>
                 </td>
@@ -228,31 +309,22 @@
       <div class="card-body d-flex">
         <div class="row align-items-center">
           <div class="col-md-8">
-            <p class="text-muted mb-0">THE OFFICIAL GUIDE</p>
-            <h3>Mastering ABP Framework</h3>
+            <h3><strong>About</strong></h3>
             <p class="text-muted">
-              Written by the creator of the ABP Framework, this book will help you gain a complete
-              understanding of the framework and modern web application development techniques.
+              This project was built upon the <strong>Acme.BookStore <a href="https://abp.io/docs/latest/tutorials/book-store?UI=NG&DB=EF" target="_blank">tutorial</a></strong> from ABP Framework.
             </p>
             <div class="d-md-flex mb-2 mb-md-0">
               <a
-                href="https://www.amazon.com/gp/product/B097Z2DM8Q"
+                (click)="download()"
                 target="_blank"
                 class="btn btn-primary soft me-md-2 mb-2 mb-md-0"
               >
-                Buy on Amazon US
-              </a>
-              <a
-                href="https://www.packtpub.com/product/mastering-abp-framework/9781801079242"
-                target="_blank"
-                class="btn btn-primary soft mb-2 mb-md-0"
-              >
-                Buy on PACKT
+                Click to download the book
               </a>
             </div>
           </div>
           <div class="col">
-            <img class="w-100" src="assets/images/getting-started/book.png" />
+            <img class="w-100" src="assets/images/getting-started/book.png"/>
           </div>
         </div>
       </div>
@@ -261,7 +333,7 @@
   <div class="col-xl-3 col-lg-4">
     <div class="card">
       <div class="card-header">
-        <div class="card-title text-body">Follow us on Social Media</div>
+        <div class="card-title text-body">Backend libraries:</div>
       </div>
       <div class="card-body pt-0">
         <div>
@@ -269,55 +341,80 @@
             <tbody>
               <tr>
                 <td class="ps-0 d-flex">
-                  <div class="logo-x me-2"></div>
-                  <div>X.com</div>
+                  <div
+                    class="rounded-circle me-2 flex-center bg-brand soft"
+                    style="width: 20px; height: 20px"
+                  >
+                    <i class="bi bi-check fs-4"></i>
+                  </div>
+                  <div>SignalR</div>
                 </td>
                 <td class="text-end pe-0 opacity-25">
-                  <a href="https://twitter.com/abpframework" target="_blank">
+                  <a href="https://dotnet.microsoft.com/en-us/apps/aspnet/signalr" target="_blank">
                     <i class="bi bi-box-arrow-up-right text-dark"></i>
                   </a>
                 </td>
               </tr>
               <tr>
                 <td class="ps-0 d-flex">
-                  <img src="assets/images/getting-started/discord.svg" class="me-2" />
-                  <div>Discord</div>
+                  <div
+                    class="rounded-circle me-2 flex-center bg-brand soft"
+                    style="width: 20px; height: 20px"
+                  >
+                    <i class="bi bi-check fs-4"></i>
+                  </div>
+                  <div>AutoFilterer</div>
                 </td>
                 <td class="text-end pe-0 opacity-25">
-                  <a href="https://abp.io/community/discord" target="_blank">
+                  <a href="https://abp.io/community/articles/using-autofilterer-with-abp-framework-uuqv81jm#gsc.tab=0" target="_blank">
                     <i class="bi bi-box-arrow-up-right text-dark"></i>
                   </a>
                 </td>
               </tr>
               <tr>
                 <td class="ps-0 d-flex">
-                  <img src="assets/images/getting-started/stack-overflow.svg" class="me-2" />
-                  <div>Stack Overflow</div>
+                  <div
+                    class="rounded-circle me-2 flex-center bg-brand soft"
+                    style="width: 20px; height: 20px"
+                  >
+                    <i class="bi bi-check fs-4"></i>
+                  </div>
+                  <div>ClosedXML</div>
                 </td>
                 <td class="text-end pe-0 opacity-25">
-                  <a href="https://stackoverflow.com/questions/tagged/abp" target="_blank">
+                  <a href="https://docs.closedxml.io/en/latest/" target="_blank">
                     <i class="bi bi-box-arrow-up-right text-dark"></i>
                   </a>
                 </td>
               </tr>
               <tr>
                 <td class="ps-0 d-flex">
-                  <img src="assets/images/getting-started/youtube.svg" class="me-2" />
-                  <div>YouTube</div>
+                  <div
+                    class="rounded-circle me-2 flex-center bg-brand soft"
+                    style="width: 20px; height: 20px"
+                  >
+                    <i class="bi bi-check fs-4"></i>
+                  </div>
+                  <div>FluentValidation</div>
                 </td>
                 <td class="text-end pe-0 opacity-25">
-                  <a href="https://www.youtube.com/@Volosoft" target="_blank">
+                  <a href="https://docs.fluentvalidation.net/en/latest/" target="_blank">
                     <i class="bi bi-box-arrow-up-right text-dark"></i>
                   </a>
                 </td>
               </tr>
               <tr>
-                <td class="ps-0 d-flex border-bottom-0">
-                  <img src="assets/images/getting-started/instagram.svg" class="me-2" />
-                  <div>Instagram</div>
+                <td class="ps-0 d-flex">
+                  <div
+                    class="rounded-circle me-2 flex-center bg-brand soft"
+                    style="width: 20px; height: 20px"
+                  >
+                    <i class="bi bi-check fs-4"></i>
+                  </div>
+                  <div>AWSSDK.S3</div>
                 </td>
                 <td class="text-end pe-0 opacity-25 border-bottom-0">
-                  <a href="https://www.instagram.com/abpframework/" target="_blank">
+                  <a href="https://www.nuget.org/packages/AWSSDK.S3" target="_blank">
                     <i class="bi bi-box-arrow-up-right text-dark"></i>                    
                   </a>
                 </td>

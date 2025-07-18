@@ -11,7 +11,7 @@ export class FeatureManagementService {
   
 
   createFeatureValues = (input: FeatureProviderDto[], config?: Partial<Rest.Config>) =>
-    this.restService.request<any, void>({
+    this.restService.request<any, any>({
       method: 'POST',
       url: '/api/app/feature-management/feature-values',
       body: input,

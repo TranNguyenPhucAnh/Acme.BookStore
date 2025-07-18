@@ -6,6 +6,7 @@ using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
 using CronExpressionDescriptor;
 using System.Collections.Generic;
+using Volo.Abp;
 
 namespace Acme.BookStore.Schedulers
 {
@@ -27,20 +28,7 @@ namespace Acme.BookStore.Schedulers
             DeletePolicyName = BookStorePermissions.Schedulers.Delete;
         }
 
-        public override Task<SchedulerDto> CreateAsync(CreateUpdateSchedulerDto input)
-        {
-            input.Description = ExpressionDescriptor.GetDescription(input.CronExpression);
-            
-            return base.CreateAsync(input);
-        }
-
-
-        public override Task<SchedulerDto> UpdateAsync(Guid id, CreateUpdateSchedulerDto input)
-        {
-            input.Description = ExpressionDescriptor.GetDescription(input.CronExpression);
-
-            return base.UpdateAsync(id, input);
-        }
+        [RemoteService(IsEnabled = false)]
         public async Task<ListResultDto<SchedulerDto>> GetAllAsync()
         {
             return await Repository.GetListAsync().ContinueWith(task =>
@@ -49,5 +37,21 @@ namespace Acme.BookStore.Schedulers
                     ObjectMapper.Map<List<Scheduler>, List<SchedulerDto>>(task.Result));
             });
         }
+
+        public override Task<SchedulerDto> CreateAsync(CreateUpdateSchedulerDto input)
+        {
+            input.Description = ExpressionDescriptor.GetDescription(input.CronExpression);
+
+            return base.CreateAsync(input);
+        }
+
+        public override Task<SchedulerDto> UpdateAsync(Guid id, CreateUpdateSchedulerDto input)
+        {
+            input.Description = ExpressionDescriptor.GetDescription(input.CronExpression);
+
+            return base.UpdateAsync(id, input);
+        }
+
+        
     }
 }

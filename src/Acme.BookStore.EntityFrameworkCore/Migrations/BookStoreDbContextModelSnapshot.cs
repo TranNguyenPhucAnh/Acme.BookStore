@@ -138,6 +138,79 @@ namespace Acme.BookStore.Migrations
                     b.ToTable("AppBooks", (string)null);
                 });
 
+            modelBuilder.Entity("Acme.BookStore.Books.BookMedias", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("BookId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("ObjectKey")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<long>("Size")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookId");
+
+                    b.ToTable("AppBookMedias", (string)null);
+                });
+
+            modelBuilder.Entity("Acme.BookStore.Notifications.Notification", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("CreationTime");
+
+                    b.Property<Guid?>("CreatorId")
+                        .HasColumnType("char(36)")
+                        .HasColumnName("CreatorId");
+
+                    b.Property<Guid>("FromUserId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime?>("LastModificationTime")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("LastModificationTime");
+
+                    b.Property<Guid?>("LastModifierId")
+                        .HasColumnType("char(36)")
+                        .HasColumnName("LastModifierId");
+
+                    b.PrimitiveCollection<string>("LocalizationArguments")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("LocalizationKey")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("RedirectUrl")
+                        .HasColumnType("longtext");
+
+                    b.Property<Guid>("ToUserId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AppNotifications", (string)null);
+                });
+
             modelBuilder.Entity("Acme.BookStore.Schedulers.Scheduler", b =>
                 {
                     b.Property<Guid>("Id")
@@ -693,6 +766,9 @@ namespace Acme.BookStore.Migrations
                         .HasDefaultValue(false)
                         .HasColumnName("EmailConfirmed");
 
+                    b.Property<Guid?>("EntityId")
+                        .HasColumnType("char(36)");
+
                     b.Property<int>("EntityVersion")
                         .HasColumnType("int");
 
@@ -754,9 +830,6 @@ namespace Acme.BookStore.Migrations
                         .HasColumnType("varchar(256)")
                         .HasColumnName("NormalizedUserName");
 
-                    b.Property<Guid?>("OrganizationUnitId")
-                        .HasColumnType("char(36)");
-
                     b.Property<string>("PasswordHash")
                         .HasMaxLength(256)
                         .HasColumnType("varchar(256)")
@@ -807,11 +880,11 @@ namespace Acme.BookStore.Migrations
 
                     b.HasIndex("Email");
 
+                    b.HasIndex("EntityId");
+
                     b.HasIndex("NormalizedEmail");
 
                     b.HasIndex("NormalizedUserName");
-
-                    b.HasIndex("OrganizationUnitId");
 
                     b.HasIndex("UserName");
 
@@ -1577,7 +1650,16 @@ namespace Acme.BookStore.Migrations
                     b.HasOne("Acme.BookStore.Authors.Author", null)
                         .WithMany()
                         .HasForeignKey("AuthorId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Acme.BookStore.Books.BookMedias", b =>
+                {
+                    b.HasOne("Acme.BookStore.Books.Book", null)
+                        .WithMany()
+                        .HasForeignKey("BookId")
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });
 
@@ -1594,7 +1676,7 @@ namespace Acme.BookStore.Migrations
                 {
                     b.HasOne("Volo.Abp.Identity.OrganizationUnit", null)
                         .WithMany()
-                        .HasForeignKey("OrganizationUnitId")
+                        .HasForeignKey("EntityId")
                         .OnDelete(DeleteBehavior.SetNull);
                 });
 

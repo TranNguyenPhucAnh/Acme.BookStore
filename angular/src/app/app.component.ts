@@ -1,11 +1,45 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { NotificationToolbarComponent } from './notification-toolbar/notification-toolbar.component';
+import { NavItemsService } from '@abp/ng.theme.shared';
+import { SignalRService } from './signalR.service';
+import { LoadingService } from './shared/services/loading.service';
+import { AuthService } from '@abp/ng.core';
 
 @Component({
   standalone: false,
   selector: 'app-root',
-  template: `
-    <abp-loader-bar></abp-loader-bar>
-    <abp-dynamic-layout></abp-dynamic-layout>
-  `,
+  template: `<abp-loader-bar></abp-loader-bar>
+      <div *ngIf="loadingService.loading$ | async" class="global-spinner-overlay">
+        <mat-spinner></mat-spinner>
+      </div>
+    <abp-dynamic-layout></abp-dynamic-layout>`
 })
-export class AppComponent {}
+
+export class AppComponent implements OnInit {
+  constructor(
+    private navItems: NavItemsService,
+    private signalR: SignalRService,
+    public loadingService: LoadingService,
+    private oAuthService: AuthService,
+  ) {
+    navItems.addItems([
+      {
+        id: 'Notification',
+        order: 1,
+        component: NotificationToolbarComponent,
+      },
+      {
+        id: 'SignOutIcon',
+        html: '<i class="fas fa-sign-out-alt fa-lg m-2 sign-out-icon"></i>',
+        action: () => this.oAuthService.logout().subscribe(),
+        order: 101, // puts as last element
+      },
+    ]);
+  }
+
+  ngOnInit(): void {
+    this.signalR.initializeConnection();
+    //change document title in environment.ts & index.html
+    //here using Title service setTitle() with optionally ngAfterViewInit
+  }
+}

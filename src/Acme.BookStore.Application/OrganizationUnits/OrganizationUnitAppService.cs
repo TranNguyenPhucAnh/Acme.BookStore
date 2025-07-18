@@ -2,19 +2,18 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Volo.Abp.Application.Services;
 using Volo.Abp.Identity;
 
 namespace Acme.BookStore.OrganizationUnits
 {
     public class OrganizationUnitAppService(
         IOrganizationUnitRepository organizationUnitRepository,
-        IdentityUserManager identityUserManager) : ApplicationService, IOrganizationUnitAppService
+        IdentityUserManager identityUserManager) : BookStoreAppService, IOrganizationUnitAppService
     {
         private readonly IOrganizationUnitRepository _organizationUnitRepository = organizationUnitRepository;
         private readonly IdentityUserManager _identityUserManager = identityUserManager;
 
-        public async Task<List<OrganizationUnitEto>> GetOrganizationUnitsAsync()
+        public async Task<List<OrganizationUnitEto>> GetAllAsync()
         {
             return [.. await _organizationUnitRepository.GetListAsync()
                 .ContinueWith(x => x.Result.Select(s => new OrganizationUnitEto
@@ -24,7 +23,7 @@ namespace Acme.BookStore.OrganizationUnits
                 }))];
         }
 
-        public async Task<List<Guid>> GetUserOrganizationUnitIdsAsync(Guid userId)
+        public async Task<List<Guid>> GetUserOrganizationUnitIdsAsync(Guid userId) // to do: fix it to receive a list of user IDs
         {
             if (userId == Guid.Empty)
             {

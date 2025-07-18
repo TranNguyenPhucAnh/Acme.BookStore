@@ -15,5 +15,10 @@ public class Book : AuditedAggregateRoot<Guid>
 
     public string Publisher { get; set; } = default!;
 
-    public Guid AuthorId { get; set; }
+    public  Guid AuthorId { get; set; }
+
+    public Book()
+    {
+
+    }
 }

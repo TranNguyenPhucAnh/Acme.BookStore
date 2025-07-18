@@ -1,20 +1,103 @@
 <div class="card">
   <div class="card-header">
     <div class="row">
-      <div class="col col-md-6">
-        <h5 class="card-title">
-          {{ '::Menu:Books' | abpLocalization }}
-        </h5>
+      <h5 class="card-title">
+        {{ '::Menu:Books' | abpLocalization }}
+        <p *appFeature="'BookStore.Books.Enable'">(You can show/hide this text in Feature Management tab)</p>
+      </h5>
+      <div class="col col-md-8">
+        <div class="row">
+          
+          <div class="col col-md-3 filter-field">
+            <div class="form-group">
+              <input
+                type="text"
+                name="search"
+                class="form-control"
+                placeholder="Find a book here..."
+                [(ngModel)]="list.filter"
+                (ngModelChange)="list.get()"
+              />
+            </div>
+          </div>
+
+          <div class="col col-md-3">
+            <div class="form-group">
+              <label for="book-type-filter"></label>
+              <select class="form-control" id="book-type-filter"
+                [(ngModel)]="booksSearchParams.type"
+                (ngModelChange)="list.get()">
+                  <option [ngValue]="null">Find a type here...</option>
+                  <option [ngValue]="type.value" *ngFor="let type of bookTypes">
+                    {{ '::Enum:BookType:' + type.value | abpLocalization }}
+                  </option>
+              </select>
+            </div>
+          </div>
+
+          <div class="col col-md-3">
+            <div class="form-group">
+              <label for="from">From</label>
+              <input
+                id="from"
+                class="form-control"
+                name="fromDate"
+                [minDate]="dates.min"
+                [maxDate]="dates.max"
+                [readOnly]="true"
+                (click)="fromPicker.toggle()"
+                (navigate)="onNavigate($event, 'from')"
+                (closed)="onClosed()"
+                [(ngModel)]="dates.from" 
+                (ngModelChange)="list.get()"
+                #fromPicker="ngbDatepicker"
+                ngbDatepicker
+              />
+            </div>
+          </div>  
+
+          <div class="col col-md-3">
+            <div class="form-group">
+              <label for="to">To</label>
+              <input
+                id="to"
+                #toPicker="ngbDatepicker"
+                class="form-control"
+                name="toDate"
+                [minDate]="dates.min"
+                [maxDate]="dates.max"
+                (click)="toPicker.toggle()"
+                (navigate)="onNavigate($event, 'to')"
+                (closed)="onClosed()"
+                [(ngModel)]="dates.to"
+                (ngModelChange)="list.get()"
+                ngbDatepicker
+                [readOnly]="true"
+              />
+            </div>
+          </div>
+          
+        </div>
       </div>
-      <div class="text-end col col-md-6">
-        <div class="text-lg-end pt-2">
+
+      <div class="col col-md-4">
+        <div class="text-lg-end pt-3">
+          <button id="export" class="btn btn-primary me-2" type="button" (click)="export()">
+            <i class="fa fa-plus me-1"></i>
+            <span>{{ '::Export' | abpLocalization }}</span>
+          </button>
+          <input style="display:none;" type="file" #file (change)="import(file.files, file)">
+          <button id="import" class="btn btn-primary me-2" (click)="file.click()">
+            <i class="fa fa-plus me-1"></i>
+            <span>{{ '::Import' | abpLocalization }}</span>
+          </button>
           <button *abpPermission="'BookStore.Books.Create'" id="create" class="btn btn-primary" type="button" (click)="createBook()">
             <i class="fa fa-plus me-1"></i>
             <span>{{ '::NewBook' | abpLocalization }}</span>
           </button>
         </div>
-        <p *appFeature="'BookStore.Books.Enable'">BookStore.Books.Enable feature is enabled!</p>
       </div>
+
     </div>
   </div>
   <div class="card-body">
@@ -47,6 +130,22 @@
               <button *abpPermission="'BookStore.Books.Delete'" ngbDropdownItem (click)="delete(row.id)">
                 {{ '::Delete' | abpLocalization }}
               </button>
+              <input style="display:none;"
+              multiple
+              accept=".pdf, .epub, .mobi"
+              type="file"
+              #uploads
+              (change)="upload(uploads.files, row.id)"
+              >
+              <button ngbDropdownItem #uploadFiles (click)="uploads.click()">
+                {{ '::Upload' | abpLocalization }}
+              </button>
+              <button ngbDropdownItem (click)="preview(row.id)">
+                {{ '::Preview' | abpLocalization }}
+              </button>
+              <button ngbDropdownItem (click)="download(row.id)">
+                {{ '::Download' | abpLocalization }}
+              </button>
             </div>
           </div>
         </ng-template>
@@ -61,7 +160,7 @@
 
       <ngx-datatable-column [name]="'::Type' | abpLocalization" prop="type">
         <ng-template let-row="row" ngx-datatable-cell-template>
-          {{ '::Enum:BookType.' + row.type | abpLocalization }}
+          {{ '::Enum:BookType:' + row.type | abpLocalization }}
         </ng-template>
       </ngx-datatable-column>
       <ngx-datatable-column [name]="'::Publisher' | abpLocalization" prop="publisher">
@@ -95,10 +194,13 @@
   <form [formGroup]="form" (ngSubmit)="save()">
     <div class="form-group">
       <label for="author-id">Author</label><span> * </span>
-      <select class="form-control" id="author-id" formControlName="authorId">
+      <select
+      class="form-control"
+      id="author-id"
+      formControlName="authorId">
         <option [ngValue]="null">Select author</option>
         <option [ngValue]="author.id" *ngFor="let author of authors$ | async">
-          {{ author.name }}
+          {{ author.name }} 
         </option>
       </select>
     </div>
@@ -113,7 +215,7 @@
       <select class="form-control" id="book-type" formControlName="type">
         <option [ngValue]="null">Select a book type</option>
         <option [ngValue]="type.value" *ngFor="let type of bookTypes">
-          {{ '::Enum:BookType.' + type.value | abpLocalization }}
+          {{ '::Enum:BookType:' + type.value | abpLocalization }}
         </option>
       </select>
     </div>
@@ -127,6 +229,7 @@
         formControlName="publishDate"
         ngbDatepicker
         (click)="datepicker.toggle()"
+        [readOnly]="true"
       />
     </div>
 

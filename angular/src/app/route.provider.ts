@@ -13,25 +13,19 @@ export const APP_ROUTE_PROVIDER = [
         layout: eLayoutType.application,
       },
       {
-        path: '/book-store',
-        name: '::Menu:BookStore',
-        iconClass: 'fas fa-book',
-        order: 2,
-        layout: eLayoutType.application,
-        requiredPolicy: 'BookStore.Books || BookStore.Authors',
-      },
-      {
         path: '/books',
         name: '::Menu:Books',
-        parentName: '::Menu:BookStore',
+        iconClass: 'fas fa-book-open',
         layout: eLayoutType.application,
+        order: 2,
         requiredPolicy: 'BookStore.Books'
       },
       {
         path: '/authors',
         name: '::Menu:Authors',
-        parentName: '::Menu:BookStore',
+        iconClass: 'fas fa-pen',
         layout: eLayoutType.application,
+        order: 3,
         requiredPolicy: 'BookStore.Authors',
       },
       {
@@ -44,7 +38,7 @@ export const APP_ROUTE_PROVIDER = [
       },
       {
         path: '/schedulers',
-        name: '::Menu:Schedulers',
+        name: 'Schedulers',
         iconClass: 'fa fa-clock',
         parentName: eThemeSharedRouteNames.Administration,
         layout: eLayoutType.application,

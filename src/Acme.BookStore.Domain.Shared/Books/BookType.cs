@@ -2,7 +2,7 @@
 
 public enum BookType
 {
-    Undefined,
+    UNDEFINED,
     MYTHOLOGY,          // Classical Mythology
     FICTION,           // General fiction, including novels and contemporary fiction
     HISTORICAL_FICTION,// Fiction set in historical contexts
