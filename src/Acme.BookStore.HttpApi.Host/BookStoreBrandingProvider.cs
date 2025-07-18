@@ -15,5 +15,6 @@ public class BookStoreBrandingProvider : DefaultBrandingProvider
         _localizer = localizer;
     }
 
-    public override string AppName => _localizer["AppName"];
+    //change document title in BrandingProvider & localization files added "AppName" key
+    public override string AppName => "Anh's Demo App"; //_localizer["Anh's Demo App"];
 }

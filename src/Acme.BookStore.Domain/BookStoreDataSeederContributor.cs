@@ -141,15 +141,20 @@ public class BookStoreDataSeederContributor(
                     $"{username}@yopmail.com");
 
                 user.SetProperty("Age", age);
+
                 var orgId = orgs[new Random().Next(orgs.Count)].Id;
-                user.SetProperty("OrganizationUnitId", orgId);
+                user.SetProperty("EntityId", orgId);
+                user.SetProperty("Entity", orgs.FirstOrDefault(o => o.Id == orgId)?.DisplayName ?? "Unknown");
+
+                var roleName = roles[new Random().Next(roles.Count)].Name;
+                user.SetProperty("Roles", roleName);
 
                 var userObj = await _identityUserManager.CreateAsync(user, "123456");
 
                 await _identityUserManager.AddToOrganizationUnitAsync(user.Id, orgId);
 
-                await _identityUserManager.AddToRoleAsync(user, roles[new Random().Next(roles.Count)].Name);      
-                
+                await _identityUserManager.AddToRoleAsync(user, roleName);
+  
                 if (userObj.Errors.Any())
                 {
                     throw new AbpException(userObj.Errors.First().Description);

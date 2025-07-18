@@ -1,7 +1,7 @@
 import { mapEnumToOptions } from '@abp/ng.core';
 
 export enum BookType {
-  Undefined = 0,
+  UNDEFINED = 0,
   MYTHOLOGY = 1,
   FICTION = 2,
   HISTORICAL_FICTION = 3,

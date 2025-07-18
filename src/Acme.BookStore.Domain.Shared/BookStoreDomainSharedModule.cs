@@ -40,8 +40,9 @@ public class BookStoreDomainSharedModule : AbpModule
         {
             options.Resources
                 .Add<BookStoreResource>("en")
-                .AddBaseTypes(typeof(AbpValidationResource))
-                .AddVirtualJson("/Localization/BookStore");
+                .AddBaseTypes(typeof(AbpValidationResource)) //inherit
+                .AddVirtualJson("/Localization/BookStore"); //extend
+                //.AddVirtualJson("/Localization/AbpEmailing"); // {{ L "Key" }} in the email layout/message template
 
             options.DefaultResourceType = typeof(BookStoreResource);
         });

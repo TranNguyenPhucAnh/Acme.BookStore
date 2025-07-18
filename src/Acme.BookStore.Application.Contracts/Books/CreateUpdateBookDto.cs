@@ -7,16 +7,15 @@ public class CreateUpdateBookDto
 {
     public Guid AuthorId { get; set; }
 
-    [Required]
+    public string AuthorName { get; set; }
+
     [StringLength(128)]
     public string Name { get; set; } = string.Empty;
 
-    [Required]
-    public BookType Type { get; set; } = BookType.Undefined;
+    public BookType Type { get; set; } = BookType.UNDEFINED;
 
     public string ISBN { get; set; } = default!;
 
-    [Required]
     public DateTime PublishDate { get; set; }
 
     public string Publisher { get; set; } = default!;

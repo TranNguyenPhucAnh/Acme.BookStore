@@ -14,10 +14,11 @@ public static class BookStoreEfCoreEntityExtensionMappings
         BookStoreGlobalFeatureConfigurator.Configure();
         BookStoreModuleExtensionConfigurator.Configure();
 
+        //this class is used to configure EF Core specific entity extension mappings
         OneTimeRunner.Run(() =>
         {
             ObjectExtensionManager.Instance
-                .MapEfCoreProperty<IdentityUser, Guid?>("OrganizationUnitId",
+                .MapEfCoreProperty<IdentityUser, Guid?>("EntityId",
                     (entityBuilder, propertyBuilder) =>
                     {
                         propertyBuilder.IsRequired(false); // Foreign key có thể null

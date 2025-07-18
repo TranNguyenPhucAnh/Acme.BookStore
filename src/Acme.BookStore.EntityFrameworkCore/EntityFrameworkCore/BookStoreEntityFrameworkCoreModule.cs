@@ -8,6 +8,7 @@ using Volo.Abp.OpenIddict.EntityFrameworkCore;
 using Volo.Abp.Modularity;
 using Volo.Abp.PermissionManagement.EntityFrameworkCore;
 using Volo.Abp.SettingManagement.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
 namespace Acme.BookStore.EntityFrameworkCore;
 

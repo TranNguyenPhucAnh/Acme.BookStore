@@ -1,0 +1,92 @@
+/* Đảm bảo cuộn đúng và vừa khít 5 items */
+.scroll-container {
+  max-height: 300px; /* ví dụ: 5 items × 60px */
+  overflow-y: auto;
+  background-color: #f9f9f9; /* màu nhẹ giúp dễ đọc */
+}
+
+.notification-button {
+  outline: none;
+  background: transparent;
+  border: none;
+  z-index: 1100;
+  cursor: pointer;
+  .bi-bell {
+    font-size: 18px; /* Larger icon size */
+    color: #333; /* Darker color for visibility */
+  }
+  .bi-bell-fill {
+    font-size: 18px; /* Larger icon size */
+    color: #333; /* Darker color for visibility */
+  }
+}
+
+.mat-badge-content {
+  background-color: orange; /* Màu cam */
+  color: transparent; /* Ẩn ký tự • để chỉ hiển thị hình dạng badge */
+  width: 10px !important;
+  height: 10px !important;
+}
+
+.card {
+  background-color: whitesmoke;
+  border-radius: 8px;
+  padding: 12px;
+  width: 100%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: small;
+}
+
+.card.unread {
+  background-color: lightgray;
+  border-left: 4px solid #929292;
+}
+
+.footer-icon {
+  font-size: 18px;
+  margin-right: 6px;
+  color: #555;
+}
+
+.end-of-list {
+  display: flex;
+  justify-content: center;
+  font-size: 14px;
+  color: gray;
+}
+
+::ng-deep .mat-mdc-menu-panel {
+  min-width: 200px !important;
+  max-width: 300px !important;
+}
+
+.footer-count {
+  font-size: smaller;
+}
+
+.menu-footer {
+  display: flex;
+  justify-content: space-between; /* đẩy phần tử 2 bên ra xa */
+  align-items: center;
+  padding: 8px 12px;
+  border-top: 1px solid #eee;
+  background-color: #fff;
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+}
+
+.menu-footer button {
+  font-size: 14px;
+  font-style: italic;
+  color: #555;
+  display: flex;
+  align-items: center;
+}
+
+.menu-footer button:hover {
+  color: #000;
+}

@@ -9,7 +9,7 @@ public class Author : FullAuditedAggregateRoot<Guid>
     public string Name { get; private set; }
     public DateTime BirthDate { get; set; }
 
-    private Author()
+    public Author()
     {
         /* This constructor is for deserialization / ORM purpose */
     }

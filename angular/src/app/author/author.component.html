@@ -1,25 +1,80 @@
 <div class="card">
   <div class="card-header">
     <div class="row">
-      <div class="col col-md-6">
-        <h5 class="card-title">
-          {{ '::Menu:Authors' | abpLocalization }}
-        </h5>
+      <h5 class="card-title">
+        {{ '::Menu:Authors' | abpLocalization }}
+        <p *appFeature="'BookStore.Authors.Enable'">(You can show/hide this text in the Feature Management tab)</p>
+      </h5>
+      <div class="col col-md-8">
+        <div class="row">
+          <div class="col col-md-3">
+            <div class="form-group">
+              <input
+                type="text"
+                name="search"
+                class="form-control filter-field"
+                placeholder="Find an author here..."
+                [(ngModel)]="list.filter"
+                (ngModelChange)="list.get()"/>
+            </div>
+          </div>
+
+          <div class="col col-md-3">
+            <div class="form-group">
+              <label for="from">From</label>
+              <input
+                id="from"
+                class="form-control"
+                name="fromDate"
+                [minDate]="dates.min"
+                [maxDate]="dates.max"
+                [readOnly]="true"
+                (click)="fromPicker.toggle()"
+                (navigate)="onNavigate($event, 'from')"
+                (closed)="onClosed()"
+                [(ngModel)]="dates.from"
+                (ngModelChange)="list.get()"
+                #fromPicker="ngbDatepicker"
+                ngbDatepicker
+              />
+            </div>
+          </div>  
+
+          <div class="col col-md-3">
+            <div class="form-group">
+              <label for="to">To</label>
+              <input
+                id="to"
+                name="toDate"
+                #toPicker="ngbDatepicker"
+                class="form-control"
+                [minDate]="dates.min"
+                [maxDate]="dates.max"
+                (navigate)="onNavigate($event, 'to')"
+                (closed)="onClosed()"
+                [(ngModel)]="dates.to"
+                (ngModelChange)="list.get()"
+                ngbDatepicker
+                [readOnly]="true"
+                (click)="toPicker.toggle()"
+              />
+            </div>
+          </div>
+
+        </div>
       </div>
-      <div class="text-end col col-md-6">
-        <div class="text-lg-end pt-2">
+
+      <div class="text-end col col-md-4">
+        <div class="text-lg-end pt-3">
           <button *abpPermission="'BookStore.Authors.Create'" id="create" class="btn btn-primary" type="button" (click)="createAuthor()">
             <i class="fa fa-plus me-1"></i>
             <span>{{ '::NewAuthor' | abpLocalization }}</span>
           </button>
         </div>
-        <p *appFeature="'BookStore.Authors.Enable'">BookStore.Authors.Enable feature is enabled!</p>
       </div>
     </div>
   </div>
   <div class="card-body">
-    <div *abpPermission="'BookStore.Authors.Edit'">
-    </div>
     <ngx-datatable
     [rows]="author.items"
     [count]="author.totalCount"
@@ -61,7 +116,7 @@
         </ng-template>
       </ngx-datatable-column>
       
-        <ngx-datatable-column [name]="'::Name' | abpLocalization" prop="name"></ngx-datatable-column>
+      <ngx-datatable-column [name]="'::Name' | abpLocalization" prop="name"></ngx-datatable-column>
 
     </ngx-datatable>
     <div class="page-size-selector"> 

@@ -1,9 +1,8 @@
 /* You can add global styles to this file, and also import other style files */
 
-
 :root .lpx-brand-logo {
-  --lpx-logo: url('/assets/images/logo/logo-light.svg');
-  --lpx-logo-icon: url('/assets/images/logo/icon.svg');
+  --lpx-logo: url('/assets/images/logo/logo-light.png');
+  --lpx-logo-icon: url('/assets/images/logo/icon.png');
 }
 
 :root {
@@ -59,5 +58,26 @@
 
   .page-size-selector select:hover {
     border-color: #888;
+  }
+
+  .global-spinner-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(255, 255, 255, 0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000; // cao hơn layout
+  }
+
+  .filter-field {
+    margin-top: 1.25rem;
+  }
+
+  .sign-out-icon {
+    cursor: pointer;
   }
 }

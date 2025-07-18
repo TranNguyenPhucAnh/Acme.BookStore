@@ -1,5 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
+import { identityEntityPropContributors } from './entity/entity-prop-contributors';
+import { identityCreateFormPropContributors, identityEditFormPropContributors } from './entity/form-prop-contributors';
 
 const routes: Routes = [
   {
@@ -9,11 +11,15 @@ const routes: Routes = [
   },
   {
     path: 'account',
-    loadChildren: () => import('@abp/ng.account').then(m => m.AccountModule.forLazy()),
+    loadChildren: () => import('@abp/ng.account').then(m => m.AccountModule.forLazy()), 
   },
   {
     path: 'identity',
-    loadChildren: () => import('@abp/ng.identity').then(m => m.IdentityModule.forLazy()),
+    loadChildren: () => import('@abp/ng.identity').then(m => m.IdentityModule.forLazy({
+      entityPropContributors: identityEntityPropContributors,
+      createFormPropContributors: identityCreateFormPropContributors,
+      editFormPropContributors: identityEditFormPropContributors,
+    })),
   },
   {
     path: 'tenant-management',
@@ -41,7 +47,10 @@ const routes: Routes = [
   { path: 'schedulers',
     loadChildren: () =>
       import('./scheduler/scheduler.module').then(m => m.SchedulerModule)
-  }
+  },
+  { path: 'notifications-toolbar',
+    loadChildren: () =>
+      import('./notification-toolbar/notification-toolbar.module').then(m => m.NotificationToolbarModule) }
 ];
 
 @NgModule({

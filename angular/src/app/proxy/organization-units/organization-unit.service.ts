@@ -9,10 +9,10 @@ export class OrganizationUnitService {
   apiName = 'Default';
   
 
-  getOrganizationUnits = (config?: Partial<Rest.Config>) =>
+  getAll = (config?: Partial<Rest.Config>) =>
     this.restService.request<any, OrganizationUnitEto[]>({
       method: 'GET',
-      url: '/api/app/organization-unit/organization-units',
+      url: '/api/app/organization-unit',
     },
     { apiName: this.apiName,...config });
   
