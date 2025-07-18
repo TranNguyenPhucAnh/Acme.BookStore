@@ -118,6 +118,11 @@
                 "inject": true,
                 "bundleName": "bootstrap-icons"
               },
+              {
+                "input": "node_modules/@angular/material/prebuilt-themes/indigo-pink.css",
+                "inject": true,
+                "bundleName": "external-module"
+              },
               "src/styles.scss"
             ],
             "scripts": []
@@ -182,7 +187,9 @@
             "karmaConfig": "karma.conf.js",
             "inlineStyleLanguage": "scss",
             "assets": ["src/favicon.ico", "src/assets"],
-            "styles": ["src/styles.scss"],
+            "styles": [
+              "src/styles.scss"
+            ],
             "scripts": []
           }
         },

@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Acme.BookStore.Permissions;
+using Microsoft.AspNetCore.Authorization;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,6 +10,7 @@ using Volo.Abp.Features;
 
 namespace Acme.BookStore.FeatureManagements
 {
+    //[Authorize(BookStorePermissions.FeatureManagement.Default)]
     public class FeatureManagementAppService(
         IFeatureValueRepository featureValueRepository,
         IFeatureDefinitionManager featureDefinitionManager,

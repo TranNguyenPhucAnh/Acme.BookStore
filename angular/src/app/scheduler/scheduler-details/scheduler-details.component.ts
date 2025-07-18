@@ -5,7 +5,7 @@ import { RoleService } from '@proxy/roles';
 import { RecipientTypeEnum, recipientTypeEnumOptions, SchedulerDto, workerOutputTypeEnumOptions } from '@proxy/schedulers';
 import { UserService } from '@proxy/users';
 import { CronJobsConfig, CronJobsValidationConfig } from 'ngx-cron-jobs/src/app/lib/contracts/contracts';
-import { catchError, finalize, of, startWith, Subject, switchMap, takeUntil } from 'rxjs';
+import { catchError, finalize, Observer, of, startWith, Subject, switchMap, takeUntil } from 'rxjs';
 import { NgbActiveModal, NgbModalOptions } from '@ng-bootstrap/ng-bootstrap';
 import { ToasterService } from '@abp/ng.theme.shared';
 
@@ -16,7 +16,7 @@ import { ToasterService } from '@abp/ng.theme.shared';
   standalone: false
 })
 export class SchedulerDetailsComponent implements OnInit, OnDestroy {
-  unsubscribe$ = new Subject<void>();
+  private unsubscribe$ = new Subject<void>();
 
   @Input() selectedSchedule: SchedulerDto;
 
@@ -59,16 +59,11 @@ export class SchedulerDetailsComponent implements OnInit, OnDestroy {
     this.form.get('recipientType').valueChanges
     .pipe(
       startWith(this.selectedSchedule),
-      takeUntil(this.unsubscribe$),
-      finalize(() => (this.isVisible = false)),
-      catchError(() => {
-        return of(null);
-      }),
       switchMap(value => {
         if (typeof value !== 'object' || value === null) {
           this.recipientEntities = [];
           this.form.get('recipientEntityId').reset();
-          this.form.get('workerOutputType').reset();    
+          this.form.get('workerOutputType').reset();
           if (value === null) {
             return of([]);
           }
@@ -78,24 +73,35 @@ export class SchedulerDetailsComponent implements OnInit, OnDestroy {
           : value;
         switch(type) {
           case RecipientTypeEnum.Individual:
-            return this.userService.getUsers();
+            return this.userService.getAll();
           case RecipientTypeEnum.OrganizationBased:
-            return this.organizationService.getOrganizationUnits();
+            return this.organizationService.getAll();
           case RecipientTypeEnum.RoleBased:
-            return this.roleService.getRoles();
+            return this.roleService.getAll();
           default:
             return of([]);
-        }
-      })
-    )
-    .subscribe(res => {
-        this.recipientEntities = res.map(e => ({
-          id: e.id,
-          displayName:'userName' in e ? e.userName :
-                      'displayName' in e ? e.displayName :
-                      'name' in e ? e.name : ''
-                    }));
-      }
+          }
+        }),
+        catchError((error) => {
+          //console.log('Fetch failed: ', error);
+          this.toaster.error('Failed to fetch');
+          return of([]);
+        }),
+        finalize(() => (this.isVisible = false)), //clean up
+        takeUntil(this.unsubscribe$), //unsubscribe/destroy component
+      )
+      .subscribe({
+        next: (val) => {
+          this.recipientEntities = val.map(e => ({
+            id: e.id,
+            displayName:'userName' in e ? e.userName :
+                        'displayName' in e ? e.displayName :
+                        'name' in e ? e.name : ''
+                      }));
+        },
+        error: (err) => console.log(err),
+        complete: () => console.log('fetch dropdown completed')
+      } as Observer<any>
     )
   }
   
@@ -115,7 +121,7 @@ export class SchedulerDetailsComponent implements OnInit, OnDestroy {
       const recipientEntity = this.recipientEntities.find(e => e.id === this.form.get('recipientEntityId')?.value).displayName;
       this.form.get('recipientEntity').setValue(recipientEntity);
       this.activeModal.close(this.form.value);
-      this.toaster.success("::SavedSuccessfully");
+      this.toaster.success("Saved Successfully");
     }
   }
 

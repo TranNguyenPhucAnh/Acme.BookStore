@@ -7,6 +7,6 @@ namespace Acme.BookStore.Roles
 {
     public interface IRoleAppService : IApplicationService
     {
-        Task<List<IdentityRoleDto>> GetRolesAsync();
+        Task<List<IdentityRoleDto>> GetAllAsync();
     }
 }
