@@ -1,0 +1,6 @@
+services:
+  acme.bookstore.httpapi.host:
+    image: ${DOCKER_REGISTRY-}acmebookstorehttpapihost
+    build:
+      context: .
+      dockerfile: src/Acme.BookStore.HttpApi.Host/Dockerfile

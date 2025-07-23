@@ -31,11 +31,9 @@ namespace Acme.BookStore.Schedulers
         [RemoteService(IsEnabled = false)]
         public async Task<ListResultDto<SchedulerDto>> GetAllAsync()
         {
-            return await Repository.GetListAsync().ContinueWith(task =>
-            {
-                return new ListResultDto<SchedulerDto>(
-                    ObjectMapper.Map<List<Scheduler>, List<SchedulerDto>>(task.Result));
-            });
+            var list = await Repository.GetListAsync();
+            return new ListResultDto<SchedulerDto>(
+                ObjectMapper.Map<List<Scheduler>, List<SchedulerDto>>(list));
         }
 
         public override Task<SchedulerDto> CreateAsync(CreateUpdateSchedulerDto input)
@@ -51,7 +49,5 @@ namespace Acme.BookStore.Schedulers
 
             return base.UpdateAsync(id, input);
         }
-
-        
     }
 }

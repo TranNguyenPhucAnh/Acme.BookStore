@@ -367,9 +367,9 @@ public class BookAppService :
             _logger.LogError("Book ID is empty.");
             throw new UserFriendlyException("Invalid book ID. Please try again.");
         }
-        
-        var bookMedias = (await _bookMediaRepository.GetQueryableAsync()
-            .ContinueWith(x => x.Result.Where(b => b.BookId == bookId).ToList()));
+
+        var bookMediaQuery = await _bookMediaRepository.GetQueryableAsync();
+        var bookMedias = bookMediaQuery.Where(b => b.BookId == bookId).ToList();
 
         if (bookMedias.Count == 0)
         {
@@ -421,7 +421,7 @@ public class BookAppService :
 
         zipStream.Position = 0;
 
-        var bookName = await Repository.GetAsync(bookId).ContinueWith(x => x.Result.Name);
+        var bookName = (await Repository.GetAsync(bookId)).Name;
 
         //optional:
         //Caching file .zip trong Redis hoặc local nếu đã tạo

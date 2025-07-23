@@ -12,12 +12,12 @@ namespace Acme.BookStore.Roles
 
         public async Task<List<IdentityRoleDto>> GetAllAsync()
         {
-            return await _identityRoleRepository.GetListAsync()
-                .ContinueWith(task => task.Result.Select(role => new IdentityRoleDto
+            return [.. (await _identityRoleRepository.GetListAsync())
+                .Select(role => new IdentityRoleDto
                 {
                     Id = role.Id,
                     Name = role.Name
-                }).ToList());
+                })];
         }
     }
 }

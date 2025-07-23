@@ -12,34 +12,42 @@ public static class HealthChecksBuilderExtensions
 {
     public static void AddBookStoreHealthChecks(this IServiceCollection services)
     {
-        // Add your health checks here
-        var healthChecksBuilder = services.AddHealthChecks();
-        healthChecksBuilder.AddCheck<BookStoreDatabaseCheck>("BookStore DbContext Check", tags: new string[] { "database" });
-
-        services.ConfigureHealthCheckEndpoint("/health-status");
-
-        // If you don't want to add HealthChecksUI, remove following configurations.
-        var configuration = services.GetConfiguration();
-        var healthCheckUrl = configuration["App:HealthCheckUrl"];
-
-        if (string.IsNullOrEmpty(healthCheckUrl))
+        try
         {
-            healthCheckUrl = "/health-status";
+            // Add your health checks here
+            var healthChecksBuilder = services.AddHealthChecks();
+            healthChecksBuilder.AddCheck<BookStoreDatabaseCheck>("BookStore DbContext Check", tags: new string[] { "database" });
+
+            services.ConfigureHealthCheckEndpoint("/health-status");
+
+            // If you don't want to add HealthChecksUI, remove following configurations.
+            var configuration = services.GetConfiguration();
+            var healthCheckUrl = configuration["App:HealthCheckUrl"];
+
+            if (string.IsNullOrEmpty(healthCheckUrl))
+            {
+                healthCheckUrl = "http://localhost:44374/health-status"; 
+            }
+
+            var healthChecksUiBuilder = services.AddHealthChecksUI(settings =>
+            {
+                settings.AddHealthCheckEndpoint("BookStore Health Status", healthCheckUrl);
+            });
+
+            // Set your HealthCheck UI Storage here
+            healthChecksUiBuilder.AddInMemoryStorage();
+
+            services.MapHealthChecksUiEndpoints(options =>
+            {
+                options.UIPath = "/health-ui";
+                options.ApiPath = "/health-api";
+            });
         }
-
-        var healthChecksUiBuilder = services.AddHealthChecksUI(settings =>
+        catch (Exception ex)
         {
-            settings.AddHealthCheckEndpoint("BookStore Health Status", healthCheckUrl);
-        });
-
-        // Set your HealthCheck UI Storage here
-        healthChecksUiBuilder.AddInMemoryStorage();
-
-        services.MapHealthChecksUiEndpoints(options =>
-        {
-            options.UIPath = "/health-ui";
-            options.ApiPath = "/health-api";
-        });
+            // Log the exception or handle it as needed
+            Console.WriteLine($"An error occurred while adding health checks: {ex.Message}");
+        }
     }
 
     private static IServiceCollection ConfigureHealthCheckEndpoint(this IServiceCollection services, string path)
