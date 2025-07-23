@@ -15,12 +15,12 @@ namespace Acme.BookStore.OrganizationUnits
 
         public async Task<List<OrganizationUnitEto>> GetAllAsync()
         {
-            return [.. await _organizationUnitRepository.GetListAsync()
-                .ContinueWith(x => x.Result.Select(s => new OrganizationUnitEto
+            return [.. (await _organizationUnitRepository.GetListAsync())
+                .Select(s => new OrganizationUnitEto
                 {
                     Id = s.Id,
                     DisplayName = s.DisplayName,
-                }))];
+                })];
         }
 
         public async Task<List<Guid>> GetUserOrganizationUnitIdsAsync(Guid userId) // to do: fix it to receive a list of user IDs
@@ -34,8 +34,8 @@ namespace Acme.BookStore.OrganizationUnits
             {
                 throw new ArgumentException($"User with ID {userId} not found.", nameof(userId));
             }
-            return [.. await _identityUserManager.GetOrganizationUnitsAsync(user)
-                .ContinueWith(x => x.Result.Select(s => s.Id))];
+            return [.. (await _identityUserManager.GetOrganizationUnitsAsync(user))
+                .Select(s => s.Id)];
         }
     }
 }

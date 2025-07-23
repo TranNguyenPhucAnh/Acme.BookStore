@@ -1,7 +1,7 @@
-﻿using System.IO;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
+using System.IO;
 
 namespace Acme.BookStore.EntityFrameworkCore;
 
@@ -25,7 +25,8 @@ public class BookStoreDbContextFactory : IDesignTimeDbContextFactory<BookStoreDb
     {
         var builder = new ConfigurationBuilder()
             .SetBasePath(Path.Combine(Directory.GetCurrentDirectory(), "../Acme.BookStore.DbMigrator/"))
-            .AddJsonFile("appsettings.json", optional: false);
+            .AddJsonFile("appsettings.json", optional: false, true)
+            .AddJsonFile("appsettings.Development.json", optional: true, true);
 
         return builder.Build();
     }

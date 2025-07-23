@@ -56,15 +56,15 @@ namespace Acme.BookStore.Users
 
         public async Task<List<IdentityUserDto>> GetUsersByNormalizedRoleNameAsync(string normalizedRoleName)
         {
-            return [.. await _identityUserRepository.GetListByNormalizedRoleNameAsync(normalizedRoleName)
-                .ContinueWith(x => x.Result.Select(user => new IdentityUserDto
+            return [.. (await _identityUserRepository.GetListByNormalizedRoleNameAsync(normalizedRoleName))
+                .Select(user => new IdentityUserDto
                 {
                     Id = user.Id,
                     UserName = user.UserName,
                     Email = user.Email,
                     Name = user.Name,
                     Surname = user.Surname,
-                }))];
+                })];
         }
 
         public async Task<List<IdentityUserDto>> GetUsersInOrganizationUnitsAsync(List<Guid> ids)
