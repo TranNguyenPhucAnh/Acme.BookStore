@@ -13,7 +13,8 @@ class Program
         using (var application = await AbpApplicationFactory.CreateAsync<BookStoreConsoleApiClientModule>(options =>
         {
            var builder = new ConfigurationBuilder();
-           builder.AddJsonFile("appsettings.json", false);
+           builder.AddJsonFile("appsettings.json", optional: false, true);
+           builder.AddJsonFile("appsettings.Development.json", true, true);
            builder.AddJsonFile("appsettings.secrets.json", true);
            options.Services.ReplaceConfiguration(builder.Build());
            options.UseAutofac();
