@@ -193,7 +193,6 @@ public class BookStoreHttpApiHostModule : AbpModule
                 options.CustomSchemaIds(type => type.FullName);
             });
     }
-    //N?u frontend và backend ch?y trên các c?ng khác nhau (http://localhost:4200 và https://localhost:44374), l?i CORS có th? ng?n yêu c?u ??ng xu?t
     private void ConfigureCors(ServiceConfigurationContext context, IConfiguration configuration)
     {
         context.Services.AddCors(options =>
