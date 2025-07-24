@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { LIST_QUERY_DEBOUNCE_TIME, ListService, PagedResultDto, PermissionService } from '@abp/ng.core';
+import { EnvironmentService, LIST_QUERY_DEBOUNCE_TIME, ListService, PagedResultDto, PermissionService } from '@abp/ng.core';
 import { AuthorService, AuthorDto, AuthorGetListInput } from '@proxy/authors';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { NgbDateNativeAdapter, NgbDateAdapter, NgbDateStruct, NgbDatepickerNavigateEvent } from '@ng-bootstrap/ng-bootstrap';
@@ -44,6 +44,7 @@ export class AuthorComponent implements OnInit, OnDestroy {
   form: FormGroup;
   selectedAuthor = {} as AuthorDto;
   pageSizes = Constants.PageSizeOption;
+  envUrl: string;
   private destroy$ = new Subject<void>(); // Để dọn dẹp listener
 
   constructor(
@@ -53,7 +54,8 @@ export class AuthorComponent implements OnInit, OnDestroy {
     private confirmation: ConfirmationService,
     private permissionService: PermissionService,
     private toasterService: ToasterService,
-    private signalRService: SignalRService
+    private signalRService: SignalRService,
+    private envService: EnvironmentService 
   ) {}
 
   ngOnInit(): void {
@@ -84,8 +86,9 @@ export class AuthorComponent implements OnInit, OnDestroy {
       complete: () => console.log('fetch authors completed')
     } as Observer<PagedResultDto<AuthorDto>>);
 
+    this.envUrl = this.envService.getEnvironment().apis.default.url;
     this.signalRService.addListener(
-      Constants.EnvironmentUrl.concat(Constants.EntityHubUrl),
+      this.envUrl + Constants.EntityHubUrl,
       "AuthorEventThatNeedReloadList",
       message => {
       console.log('Received SignalR message:', message);
@@ -109,7 +112,7 @@ export class AuthorComponent implements OnInit, OnDestroy {
   }
 
   sendMessage(hubUrl: string, method: string, data: any) : void {
-    this.signalRService.send(Constants.EnvironmentUrl.concat(hubUrl), method, data);
+    this.signalRService.send(this.envUrl + hubUrl, method, data);
   }
 
   isEditAndDelete() : boolean {

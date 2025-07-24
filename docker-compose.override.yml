@@ -16,3 +16,18 @@ services:
       - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
       - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
       - ./src/Acme.BookStore.HttpApi.Host/openiddict.pfx:/https/aspnetapp.pfx:ro
+    networks:
+      - net
+  angular:
+    environment:
+      - NODE_ENV=production
+    ports:
+      - "4200:80"
+    volumes:
+      - ./angular/dynamic-env.json:/usr/share/nginx/html/dynamic-env.json
+    depends_on:
+      - acme.bookstore.httpapi.host
+    networks:
+      - net
+networks:
+    net:

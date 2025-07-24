@@ -1,4 +1,4 @@
-import { LIST_QUERY_DEBOUNCE_TIME, ListService, PagedResultDto, PermissionService } from '@abp/ng.core';
+import { EnvironmentService, LIST_QUERY_DEBOUNCE_TIME, ListService, PagedResultDto, PermissionService } from '@abp/ng.core';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { BookService, BookDto, bookTypeOptions, AuthorLookupDto, BookGetListInput } from '@proxy/books';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
@@ -51,7 +51,7 @@ export class BookComponent implements OnInit, OnDestroy {
   pageSizes = Constants.PageSizeOption;
   file: File;
   uploads: FileList;
-
+  envUrl: string;
   private destroy$ = new Subject<void>(); // Để dọn dẹp listener
 
   //to do:
@@ -74,7 +74,8 @@ export class BookComponent implements OnInit, OnDestroy {
     private permissionService: PermissionService,
     private toasterService: ToasterService,
     private signalRService: SignalRService,
-    private abpWindowService: AbpWindowService
+    private abpWindowService: AbpWindowService,
+    private envService: EnvironmentService
   ) {
     //update dropdown whenever a CRUD event occurred on the lookup page
     this.authors$ = this.bookService.getAuthorLookup().pipe(map((r) => r.items));
@@ -107,8 +108,10 @@ export class BookComponent implements OnInit, OnDestroy {
       complete: () => console.log('fetch books completed')
     } as Observer<PagedResultDto<BookDto>>);
 
+    this.envUrl = this.envService.getEnvironment().apis.default.url;
+
     this.signalRService.addListener(
-      Constants.EnvironmentUrl.concat(Constants.EntityHubUrl),
+      this.envUrl.concat(Constants.EntityHubUrl),
       "BookEventThatNeedReloadList",
       message => {
       console.log('Received SignalR message:', message);
@@ -116,7 +119,7 @@ export class BookComponent implements OnInit, OnDestroy {
     });
 
     this.signalRService.addListener(
-      Constants.EnvironmentUrl.concat(Constants.EntityHubUrl),
+      this.envUrl.concat(Constants.EntityHubUrl),
       "AuthorEventThatNeedReloadList",
       message => {
       console.log('Received SignalR message:', message);
@@ -140,7 +143,7 @@ export class BookComponent implements OnInit, OnDestroy {
   }
 
   sendMessage(hubUrl: string, method: string, data: any) : void {
-    this.signalRService.send(Constants.EnvironmentUrl.concat(hubUrl), method, data);
+    this.signalRService.send(this.envUrl.concat(hubUrl), method, data);
   }
 
   isEditAndDelete() : boolean {
