@@ -1,6 +1,14 @@
 services:
   acme.bookstore.httpapi.host:
-    image: ${DOCKER_REGISTRY-}acmebookstorehttpapihost
+    container_name: bookstore-backend
+    image: ${DOCKER_REGISTRY-}backend
     build:
       context: .
       dockerfile: src/Acme.BookStore.HttpApi.Host/Dockerfile
+  angular:
+    container_name: bookstore-frontend
+    image: ${DOCKER_REGISTRY-}frontend
+    build:
+      context: ./angular
+      dockerfile: Dockerfile.local
+      

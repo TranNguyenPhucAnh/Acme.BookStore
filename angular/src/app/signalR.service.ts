@@ -1,6 +1,7 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { HubConnection, HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
+import { EnvironmentService } from '@abp/ng.core';
 import { Constants } from './shared/constants/constant';
 
 @Injectable({
@@ -10,18 +11,17 @@ export class SignalRService implements OnDestroy {
   private hubConnections: Map<string, HubConnection> = new Map();
   private connectionStates: Map<string, BehaviorSubject<boolean>> = new Map();
   private destroy$ = new Subject<void>();
-  private readonly hubUrls = [
-    Constants.EnvironmentUrl + Constants.NotificationHubUrl,
-    Constants.EnvironmentUrl + Constants.EntityHubUrl, 
-    //add more hub urls here
-  ];
-
-  constructor() {
-    // Có thể khởi tạo ở đây hoặc trong AppComponent
-  }
+  private hubUrls = [];
+  constructor(private envService: EnvironmentService) {}
 
   // Khởi tạo kết nối cho tất cả hub
   initializeConnection(): void {
+    this.hubUrls = [
+      this.envService.getEnvironment().apis.default.url + Constants.NotificationHubUrl,
+      this.envService.getEnvironment().apis.default.url + Constants.EntityHubUrl, 
+      //add more hub urls here
+    ];
+    console.log('signalR service hub urls:', this.hubUrls);
     this.hubUrls.forEach((hubUrl) => {
       if (this.hubConnections.has(hubUrl)) {
         return;
