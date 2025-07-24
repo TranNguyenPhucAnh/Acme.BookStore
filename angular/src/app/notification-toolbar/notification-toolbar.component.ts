@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ExtendedNotificationDto, NotificationDto } from '@proxy/notifications/model';
 import { NotificationService } from '@proxy/notifications/notification.service';
-import { PagedResultDto, PagedResultRequestDto } from '@abp/ng.core';
+import { EnvironmentService, PagedResultDto, PagedResultRequestDto } from '@abp/ng.core';
 import { Router } from '@angular/router';
 import { SignalRService } from '../signalR.service';
 import { BehaviorSubject, catchError, filter, finalize, Observer, of, Subject, switchMap, takeUntil, tap } from 'rxjs';
@@ -31,6 +31,8 @@ export class NotificationToolbarComponent implements OnInit, OnDestroy {
     maxResultCount: 5
   } as PagedResultRequestDto;
 
+  envUrl: string;
+
   private destroy$ = new Subject<void>(); // Để dọn dẹp listener
 
   constructor(
@@ -38,13 +40,16 @@ export class NotificationToolbarComponent implements OnInit, OnDestroy {
     private router: Router,
     private signalRService: SignalRService,
     private toasterService: ToasterService,
-    private confirmationService: ConfirmationService
+    private confirmationService: ConfirmationService,
+    private envService: EnvironmentService
   ) {}
 
   ngOnInit(): void {
     // Thiết lập listener cho ReloadNotification
+    this.envUrl = this.envService.getEnvironment().apis.default.url;
+    console.log('notification component:', this.envUrl);
     this.signalRService.addListener(
-      Constants.EnvironmentUrl.concat(Constants.NotificationHubUrl),
+      this.envUrl.concat(Constants.NotificationHubUrl),
       "NotificationListReload",
       message => {
       console.log('Received SignalR message:', message);
