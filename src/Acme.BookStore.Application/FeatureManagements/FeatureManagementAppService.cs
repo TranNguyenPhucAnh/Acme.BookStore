@@ -52,12 +52,13 @@ namespace Acme.BookStore.FeatureManagements
 
         public async Task<List<FeatureProviderDto>> GetFeatureValuesAsync()
         {
-            return [.. await _featureValueRepository.GetListAsync()
-                .ContinueWith(task => task.Result.Select(x => new FeatureProviderDto
+            var list = await _featureValueRepository.GetListAsync();
+            return [.. list
+                .Select(x => new FeatureProviderDto
                 {
                     Name = x.Name,
                     Key = x.ProviderKey
-                }))];
+                })];
         }   
 
         public async Task<IEnumerable<FeatureDefinition>> GetFeatureDefinitionsAsync()

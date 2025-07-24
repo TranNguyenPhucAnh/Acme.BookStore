@@ -86,7 +86,7 @@ namespace Acme.BookStore.BackgroundWorker
         {
             try
             {
-                var admin = await _userAppService.GetUsersByNormalizedRoleNameAsync("ADMIN").ContinueWith(u => u.Result.FirstOrDefault());
+                var admin = (await _userAppService.GetUsersByNormalizedRoleNameAsync("ADMIN")).FirstOrDefault();
 
                 var newPrincipal = new ClaimsPrincipal(
                 new ClaimsIdentity(
@@ -120,7 +120,7 @@ namespace Acme.BookStore.BackgroundWorker
                         switch (s.RecipientType)
                         {
                             case RecipientTypeEnum.Individual:
-                                var user = await _userAppService.GetUsersAsync(new List<Guid>() { s.RecipientEntityId }).ContinueWith(x => x.Result.FirstOrDefault());
+                                var user = (await _userAppService.GetUsersAsync(new List<Guid>() { s.RecipientEntityId })).FirstOrDefault();
 
                                 _logger.LogInformation($"Sending email attachment {file.FileDownloadName} to {user.Email} at {s.NextOccurrence} with body as {body}");
 

@@ -20,7 +20,8 @@ public abstract class BookStoreTestBase<TStartupModule> : AbpIntegratedTest<TSta
     protected override void BeforeAddApplication(IServiceCollection services)
     {
         var builder = new ConfigurationBuilder();
-        builder.AddJsonFile("appsettings.json", false);
+        builder.AddJsonFile("appsettings.json", false, true);
+        builder.AddJsonFile("appsettings.Development.json", true, true);
         builder.AddJsonFile("appsettings.secrets.json", true);
         services.ReplaceConfiguration(builder.Build());
     }
