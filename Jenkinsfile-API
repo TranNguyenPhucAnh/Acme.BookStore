@@ -1,6 +1,12 @@
 pipeline {
     agent any
 	
+	agent {
+	docker {
+		image 'mcr.microsoft.com/dotnet/sdk:9.0' // hoặc 8.0 nếu bạn xài net8
+		args '-u root:root' // nếu bạn gặp lỗi permission
+	}
+	
 	parameters {
         string(name: 'GIT_BRANCH', defaultValue: 'develop', description: 'Branch to build')
     }
