@@ -1,0 +1,42 @@
+pipeline {
+    agent any
+	
+	parameters {
+        string(name: 'GIT_BRANCH', defaultValue: 'develop', description: 'Branch to build')
+    }
+
+	
+    tools {
+        nodejs "Node_18" // Khai báo nếu bạn cài Node 18 qua plugin Jenkins
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: "${params.GIT_BRANCH}", credentialsId: 'ssh-git', url: 'git@github.com:TranNguyenPhucAnh/Acme.BookStore.git'
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                dir('angular') {
+                    sh 'npm install'
+                }
+            }
+        }
+
+        stage('Build') {
+            steps {
+                dir('angular') {
+                    sh 'npm run build -- --configuration=production'
+                }
+            }
+        }
+
+        stage('Archive') {
+            steps {
+                archiveArtifacts artifacts: 'angular/dist/**', fingerprint: true
+            }
+        }
+    }
+}
