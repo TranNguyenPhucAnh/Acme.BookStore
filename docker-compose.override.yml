@@ -29,5 +29,34 @@ services:
       - acme.bookstore.httpapi.host
     networks:
       - net
+  db-migrator:
+    environment:
+      - OpenIddict__Applications__BookStore_App__RootUrl=http://localhost:4200
+      - OpenIddict__Applications__BookStore_Swagger__RootUrl=https://localhost:8081
+      - ConnectionStrings__Default=Server=mysql;Port=3306;Database=BookStore;Uid=root;Pwd=root;
+    depends_on:
+      - mysql
+    networks:
+      - net
+  mysql:
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=BookStore
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - net
+  jenkins:
+    ports:
+      - "8082:8080"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+    networks:
+      - net
+volumes:
+  mysql_data:
+  jenkins_home:
 networks:
     net:

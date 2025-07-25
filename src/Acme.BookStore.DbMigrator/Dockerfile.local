@@ -1,4 +1,11 @@
-  FROM mcr.microsoft.com/dotnet/aspnet:9.0
-  COPY bin/Release/net9.0/publish/ app/
-  WORKDIR /app
-  ENTRYPOINT ["dotnet", "Acme.BookStore.DbMigrator.dll"]
+# Stage 1: Build
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+WORKDIR /src
+COPY . .
+RUN dotnet publish src/Acme.BookStore.DbMigrator/Acme.BookStore.DbMigrator.csproj -c Release -o /app/publish
+
+# Stage 2: Run
+FROM mcr.microsoft.com/dotnet/aspnet:9.0
+WORKDIR /app
+COPY --from=build /app/publish .
+ENTRYPOINT ["dotnet", "Acme.BookStore.DbMigrator.dll"]
