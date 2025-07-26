@@ -33,9 +33,7 @@ pipeline {
 
         stage('Publish') {
             steps {
-                dir('src') {
-                    sh 'dotnet publish src/Acme.BookStore.HttpApi.Host/Acme.BookStore.HttpApi.Host.csproj -c Release -o ../../publish/api'
-                }
+				sh 'dotnet publish src/Acme.BookStore.HttpApi.Host/Acme.BookStore.HttpApi.Host.csproj -c Release -o publish/api'
             }
         }
 
