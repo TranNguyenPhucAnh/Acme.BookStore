@@ -24,10 +24,10 @@ pipeline {
 
         stage('Restore & Build') {
             steps {
-                dir('src') {
-                    sh 'dotnet restore'
-                    sh 'dotnet build Acme.BookStore.sln -c Release'
-                }
+				dir("${env.WORKSPACE}") {
+				  sh 'dotnet restore Acme.BookStore.sln'
+				  sh 'dotnet build Acme.BookStore.sln -c Release --no-restore'
+				}
             }
         }
 
