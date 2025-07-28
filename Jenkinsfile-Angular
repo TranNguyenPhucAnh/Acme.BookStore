@@ -21,16 +21,14 @@ pipeline {
                 git branch: "${params.GIT_BRANCH}", credentialsId: "ssh-git", url: "git@github.com:TranNguyenPhucAnh/Acme.BookStore.git"
             }
         }
-
-        stage("Install Dependencies") {
-            steps {
-                dir("${ANGULAR_DIR}") {
-                    cache(path: "node_modules", key: "yarn-${env.GIT_COMMIT}") {
-                        sh "yarn install"
-                    }
-                }
-            }
-        }
+		
+		stage("Install Dependencies") {
+			steps {
+				dir("${ANGULAR_DIR}") {
+					sh "yarn install"
+				}
+			}
+		}
 
         stage("Build") {
             steps {
