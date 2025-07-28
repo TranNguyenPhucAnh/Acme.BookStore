@@ -1,54 +1,54 @@
 pipeline {
     agent {
         docker {
-            image 'node:18-alpine'
-            args '-u root'
+            image "node:18-alpine"
+            args "-u root"
         }
     }
 
     parameters {
-        string(name: 'GIT_BRANCH', defaultValue: 'develop', description: 'Branch to build')
-        choice(name: 'BUILD_ENV', choices: ['development', 'staging', 'production'], description: 'Build environment')
+        string(name: "GIT_BRANCH", defaultValue: "develop", description: "Branch to build")
+        choice(name: "BUILD_ENV", choices: ["development", "staging", "production"], description: "Build environment")
     }
 
     environment {
-        ANGULAR_DIR = 'angular'
+        ANGULAR_DIR = "angular"
     }
 
     stages {
-        stage('Checkout') {
+        stage("Checkout") {
             steps {
-                git branch: "${params.GIT_BRANCH}", credentialsId: 'ssh-git', url: 'git@github.com:TranNguyenPhucAnh/Acme.BookStore.git'
+                git branch: "${params.GIT_BRANCH}", credentialsId: "ssh-git", url: "git@github.com:TranNguyenPhucAnh/Acme.BookStore.git"
             }
         }
 
-        stage('Install Dependencies') {
+        stage("Install Dependencies") {
             steps {
                 dir("${ANGULAR_DIR}") {
-                    cache(path: 'node_modules', key: "yarn-${env.GIT_COMMIT}") {
-                        sh 'yarn install'
+                    cache(path: "node_modules", key: "yarn-${env.GIT_COMMIT}") {
+                        sh "yarn install"
                     }
                 }
             }
         }
 		
-		stage('Lint') {
+		stage("Lint") {
             steps {
                 dir("${ANGULAR_DIR}") {
-                    sh 'yarn run lint'
+                    sh "yarn run lint"
                 }
             }
         }
 
-        stage('Test') {
+        stage("Test") {
             steps {
                 dir("${ANGULAR_DIR}") {
-                    sh 'yarn run test --watch=false --code-coverage'
+                    sh "yarn run test --watch=false --code-coverage"
                 }
             }
         }
 
-        stage('Build') {
+        stage("Build") {
             steps {
                 dir("${ANGULAR_DIR}") {
                     sh "yarn run build -- --configuration=${params.BUILD_ENV}"
@@ -56,7 +56,7 @@ pipeline {
             }
         }
 
-        stage('Archive') {
+        stage("Archive") {
             steps {
                 archiveArtifacts artifacts: "${ANGULAR_DIR}/dist/**", fingerprint: true
             }
@@ -75,8 +75,8 @@ pipeline {
 					Branch: ${params.GIT_BRANCH}
 					Environment: ${params.BUILD_ENV}
 					View details: ${env.BUILD_URL}""",
-				to: 'phucanhatt@gmail.com',
-				from: 'support@mynginx.store'
+				to: "phucanhatt@gmail.com",
+				from: "support@mynginx.store"
 			)
 		}
 	}
