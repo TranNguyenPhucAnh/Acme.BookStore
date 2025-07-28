@@ -1,92 +1,92 @@
 pipeline {
     agent {
         docker {
-            image 'mcr.microsoft.com/dotnet/sdk:9.0'
-            args '-u root:root -v nuget-cache:/root/.nuget/packages'
+            image "mcr.microsoft.com/dotnet/sdk:9.0"
+            args "-u root:root -v nuget-cache:/root/.nuget/packages"
         }
     }
 
     parameters {
-        string(name: 'GIT_BRANCH', defaultValue: 'develop', description: 'Branch to build')
-        choice(name: 'BUILD_CONFIG', choices: ['Release', 'Debug'], description: 'Build configuration')
+        string(name: "GIT_BRANCH", defaultValue: "develop", description: "Branch to build")
+        choice(name: "BUILD_CONFIG", choices: ["Release", "Debug"], description: "Build configuration")
     }
 
     environment {
         DOTNET_CLI_TELEMETRY_OPTOUT = 1
         DOTNET_SKIP_FIRST_TIME_EXPERIENCE = 1
-        SOLUTION_FILE = 'Acme.BookStore.sln'
-        PUBLISH_DIR = 'publish/api'
+        SOLUTION_FILE = "Acme.BookStore.sln"
+        PUBLISH_DIR = "publish/api"
     }
 
     stages {
-        stage('Checkout') {
+        stage("Checkout") {
             steps {
-                git branch: "${params.GIT_BRANCH}", credentialsId: 'ssh-git', url: 'git@github.com:TranNguyenPhucAnh/Acme.BookStore.git'
+                git branch: "${params.GIT_BRANCH}", credentialsId: "ssh-git", url: "git@github.com:TranNguyenPhucAnh/Acme.BookStore.git"
             }
         }
 
-        stage('Restore') {
+        stage("Restore") {
             steps {
                 dir("${env.WORKSPACE}") {
-                    sh 'dotnet restore ${env.SOLUTION_FILE} || exit 1'
+                    sh "dotnet restore ${env.SOLUTION_FILE} || exit 1"
                 }
             }
         }
 
-        stage('Build') {
+        stage("Build") {
             steps {
                 dir("${env.WORKSPACE}") {
-                    sh 'dotnet build ${env.SOLUTION_FILE} -c ${params.BUILD_CONFIG} --no-restore'
+                    sh "dotnet build ${env.SOLUTION_FILE} -c ${params.BUILD_CONFIG} --no-restore"
                 }
             }
         }
 
-        stage('Test') {
+        stage("Test") {
             steps {
                 dir("${env.WORKSPACE}") {
-                    sh 'dotnet test ${env.SOLUTION_FILE} --no-restore --verbosity normal'
+                    sh "dotnet test ${env.SOLUTION_FILE} --no-restore --verbosity normal"
                 }
             }
         }
 
-        stage('Publish') {
+        stage("Publish") {
             steps {
-                sh 'dotnet publish src/Acme.BookStore.HttpApi.Host/Acme.BookStore.HttpApi.Host.csproj -c ${params.BUILD_CONFIG} -o ${env.PUBLISH_DIR}'
+                sh "dotnet publish src/Acme.BookStore.HttpApi.Host/Acme.BookStore.HttpApi.Host.csproj -c ${params.BUILD_CONFIG} -o ${env.PUBLISH_DIR}"
             }
         }
 
-        stage('Archive') {
+        stage("Archive") {
             steps {
-                sh 'mkdir -p ${env.PUBLISH_DIR}-${BUILD_NUMBER}'
-                sh 'mv ${env.PUBLISH_DIR}/* ${env.PUBLISH_DIR}-${BUILD_NUMBER}/'
+                sh "mkdir -p ${env.PUBLISH_DIR}-${BUILD_NUMBER}"
+                sh "mv ${env.PUBLISH_DIR}/* ${env.PUBLISH_DIR}-${BUILD_NUMBER}/"
                 archiveArtifacts artifacts: "${env.PUBLISH_DIR}-${BUILD_NUMBER}/**", fingerprint: true
             }
         }
 
-        stage('Build Docker Image') {
+        stage("Build Docker Image") {
             when {
-                branch 'main'
+                branch "main"
             }
             steps {
-                sh 'docker build -t acme-bookstore:${BUILD_NUMBER} -f src/Acme.BookStore.HttpApi.Host/Dockerfile .'
+                sh "docker build -t acme-bookstore:${BUILD_NUMBER} -f src/Acme.BookStore.HttpApi.Host/Dockerfile ."
             }
         }
     }
 
     post {
         success {
-            echo 'Build and publish succeeded!'
+            echo "Build and publish succeeded!"
         }
         failure {
-            echo 'Build failed!'
+            echo "Build failed!"
 			emailext (
 					subject: "Build ${env.JOB_NAME} #${env.BUILD_NUMBER} Succeeded",
 					body: """Build ${env.JOB_NAME} #${env.BUILD_NUMBER} completed successfully.
 						Branch: ${params.GIT_BRANCH}
 						Config: ${params.BUILD_CONFIG}
 						View details: ${env.BUILD_URL}""",
-					to: 'phucanhatt@gmail.com',
-					from: 'support@mynginx.store'
+					to: "phucanhatt@gmail.com",
+					from: "support@mynginx.store"
 				)
         }
         always {
