@@ -1,13 +1,18 @@
 pipeline {
-    agent any
-	
-	parameters {
-        string(name: 'GIT_BRANCH', defaultValue: 'develop', description: 'Branch to build')
+    agent {
+        docker {
+            image 'node:18-alpine'
+            args '-u root'
+        }
     }
 
-	
-    tools {
-        nodejs "Node_18" // Khai báo nếu bạn cài Node 18 qua plugin Jenkins
+    parameters {
+        string(name: 'GIT_BRANCH', defaultValue: 'develop', description: 'Branch to build')
+        choice(name: 'BUILD_ENV', choices: ['development', 'staging', 'production'], description: 'Build environment')
+    }
+
+    environment {
+        ANGULAR_DIR = 'angular'
     }
 
     stages {
@@ -19,24 +24,60 @@ pipeline {
 
         stage('Install Dependencies') {
             steps {
-                dir('angular') {
-                    sh 'npm install'
+                dir("${ANGULAR_DIR}") {
+                    cache(path: 'node_modules', key: "yarn-${env.GIT_COMMIT}") {
+                        sh 'yarn install'
+                    }
+                }
+            }
+        }
+		
+		stage('Lint') {
+            steps {
+                dir("${ANGULAR_DIR}") {
+                    sh 'yarn run lint'
+                }
+            }
+        }
+
+        stage('Test') {
+            steps {
+                dir("${ANGULAR_DIR}") {
+                    sh 'yarn run test --watch=false --code-coverage'
                 }
             }
         }
 
         stage('Build') {
             steps {
-                dir('angular') {
-                    sh 'npm run build -- --configuration=production'
+                dir("${ANGULAR_DIR}") {
+                    sh "yarn run build -- --configuration=${params.BUILD_ENV}"
                 }
             }
         }
 
         stage('Archive') {
             steps {
-                archiveArtifacts artifacts: 'angular/dist/**', fingerprint: true
+                archiveArtifacts artifacts: "${ANGULAR_DIR}/dist/**", fingerprint: true
             }
         }
     }
+
+	post {
+		success {
+			echo "Build succeeded!"
+		}
+		failure {
+			echo "Build failed!"
+			emailext (
+				subject: "Build ${env.JOB_NAME} #${env.BUILD_NUMBER} Failed",
+				body: """Build ${env.JOB_NAME} #${env.BUILD_NUMBER} failed.
+					Branch: ${params.GIT_BRANCH}
+					Environment: ${params.BUILD_ENV}
+					View details: ${env.BUILD_URL}""",
+				to: 'phucanhatt@gmail.com',
+				from: 'suppoprt@mynginx.store'
+			)
+		}
+	}
 }
