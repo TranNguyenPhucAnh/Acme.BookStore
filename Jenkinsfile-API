@@ -1,7 +1,12 @@
 pipeline {
-    agent any
-	
-	parameters {
+    agent {
+        docker {
+            image 'mcr.microsoft.com/dotnet/sdk:9.0'
+            args '-u root:root'
+        }
+    }
+
+    parameters {
         string(name: 'GIT_BRANCH', defaultValue: 'develop', description: 'Branch to build')
     }
 
@@ -19,18 +24,16 @@ pipeline {
 
         stage('Restore & Build') {
             steps {
-                dir('src') {
-                    sh 'dotnet restore'
-                    sh 'dotnet build Acme.BookStore.sln -c Release'
-                }
+				dir("${env.WORKSPACE}") {
+				  sh 'dotnet restore Acme.BookStore.sln'
+				  sh 'dotnet build Acme.BookStore.sln -c Release --no-restore'
+				}
             }
         }
 
         stage('Publish') {
             steps {
-                dir('src') {
-                    sh 'dotnet publish src/Acme.BookStore.HttpApi.Host/Acme.BookStore.HttpApi.Host.csproj -c Release -o ../../publish/api'
-                }
+				sh 'dotnet publish src/Acme.BookStore.HttpApi.Host/Acme.BookStore.HttpApi.Host.csproj -c Release -o publish/api'
             }
         }
 

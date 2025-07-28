@@ -1,0 +1,14 @@
+FROM jenkins/jenkins:lts
+
+USER root
+
+RUN apt-get update && \
+    apt-get install -y docker.io openssh-client && \
+    apt-get clean
+
+RUN usermod -aG docker jenkins
+
+RUN mkdir -p /var/jenkins_home/.ssh && \
+ssh-keyscan github.com > /var/jenkins_home/.ssh/known_hosts
+
+USER jenkins
