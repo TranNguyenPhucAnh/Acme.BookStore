@@ -86,7 +86,7 @@ pipeline {
 						Config: ${params.BUILD_CONFIG}
 						View details: ${env.BUILD_URL}""",
 					to: 'phucanhatt@gmail.com',
-					from: 'suppoprt@mynginx.store'
+					from: 'support@mynginx.store'
 				)
         }
         always {
