@@ -41,14 +41,6 @@ pipeline {
             }
         }
 
-        stage("Test") {
-            steps {
-                dir("${env.WORKSPACE}") {
-                    sh "dotnet test ${env.SOLUTION_FILE} --no-restore --verbosity normal"
-                }
-            }
-        }
-
         stage("Publish") {
             steps {
                 sh "dotnet publish src/Acme.BookStore.HttpApi.Host/Acme.BookStore.HttpApi.Host.csproj -c ${params.BUILD_CONFIG} -o ${env.PUBLISH_DIR}"

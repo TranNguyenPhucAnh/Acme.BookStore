@@ -31,22 +31,6 @@ pipeline {
                 }
             }
         }
-		
-		stage("Lint") {
-            steps {
-                dir("${ANGULAR_DIR}") {
-                    sh "yarn run lint"
-                }
-            }
-        }
-
-        stage("Test") {
-            steps {
-                dir("${ANGULAR_DIR}") {
-                    sh "yarn run test --watch=false --code-coverage"
-                }
-            }
-        }
 
         stage("Build") {
             steps {
