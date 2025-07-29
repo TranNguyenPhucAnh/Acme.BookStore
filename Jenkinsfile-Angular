@@ -14,8 +14,14 @@ pipeline {
     environment {
         ANGULAR_DIR = "angular"
     }
-
+	
     stages {
+		stage('Cleanup') {
+			steps {
+				cleanWs()
+			}
+		}
+		
         stage("Checkout") {
             steps {
                 git branch: "${params.GIT_BRANCH}", credentialsId: "ssh-git", url: "git@github.com:TranNguyenPhucAnh/Acme.BookStore.git"
