@@ -6,10 +6,6 @@ pipeline {
         }
     }
 	
-	options {
-		skipDefaultCheckout(true)
-	}
-
     parameters {
         string(name: "GIT_BRANCH", defaultValue: "develop", description: "Branch to build")
         choice(name: "BUILD_ENV", choices: ["development", "staging", "production"], description: "Build environment")
@@ -20,11 +16,6 @@ pipeline {
     }
 
     stages {
-		stage('Cleanup') {
-			steps {
-				cleanWs()
-			}
-		}
 		
         stage("Checkout") {
             steps {
