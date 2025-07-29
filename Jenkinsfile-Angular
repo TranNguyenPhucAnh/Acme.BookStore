@@ -5,6 +5,10 @@ pipeline {
             args "-u root"
         }
     }
+	
+	options {
+		skipDefaultCheckout(true)
+	}
 
     parameters {
         string(name: "GIT_BRANCH", defaultValue: "develop", description: "Branch to build")
@@ -16,6 +20,12 @@ pipeline {
     }
 
     stages {
+		stage('Cleanup') {
+			steps {
+				cleanWs()
+			}
+		}
+		
         stage("Checkout") {
             steps {
                 git branch: "${params.GIT_BRANCH}", credentialsId: "ssh-git", url: "git@github.com:TranNguyenPhucAnh/Acme.BookStore.git"
