@@ -1,4 +1,4 @@
-services:
+﻿services:
   acme.bookstore.httpapi.host:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
@@ -24,7 +24,9 @@ services:
     ports:
       - "4200:80"
     volumes:
-      - ./angular/dynamic-env.json:/usr/share/nginx/html/dynamic-env.json
+        - ./angular/dynamic-env.json:/usr/share/nginx/html/dynamic-env.json
+        # Mount absolute volume path with exact volume name to the root directory of Nginx 
+        - /var/lib/docker/volumes/dockercompose15746049385613790483_jenkins_home/_data/workspace/frontend/angular/dist/BookStore:/usr/share/nginx/html
     depends_on:
       - acme.bookstore.httpapi.host
     networks:
