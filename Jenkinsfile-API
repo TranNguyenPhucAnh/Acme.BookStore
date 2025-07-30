@@ -46,6 +46,12 @@ pipeline {
                 sh "dotnet publish src/Acme.BookStore.HttpApi.Host/Acme.BookStore.HttpApi.Host.csproj -c ${params.BUILD_CONFIG} -o ${env.PUBLISH_DIR}"
             }
         }
+		
+		stage("Verify Publish") {
+			steps {
+				sh "ls -la ${env.PUBLISH_DIR}"
+			}
+		}
 
         stage("Archive") {
             steps {
@@ -56,13 +62,18 @@ pipeline {
         }
 
         stage("Build Docker Image") {
-            when {
-                branch "main"
-            }
             steps {
                 sh "docker build -t acme-bookstore:${BUILD_NUMBER} -f src/Acme.BookStore.HttpApi.Host/Dockerfile ."
             }
         }
+		
+		stage("Deploy Docker Image") {
+			steps {
+				sh """
+				docker compose -f docker-compose.yml -f docker-compose.override.yml up -d --build acme.bookstore.httpapi.host
+				"""
+			}
+		}
     }
 
     post {
