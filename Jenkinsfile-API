@@ -61,17 +61,21 @@ pipeline {
             }
         }
 
-        stage("Build Docker Image") {
-            steps {
-                sh "docker build -t acme-bookstore:${BUILD_NUMBER} -f src/Acme.BookStore.HttpApi.Host/Dockerfile ."
-            }
-        }
-		
-		stage("Deploy Docker Image") {
+		stage("Build Docker Image") {
+			agent none
 			steps {
-				sh """
-				docker compose -f docker-compose.yml -f docker-compose.override.yml up -d --build acme.bookstore.httpapi.host
-				"""
+				node {
+					sh "docker build -t acme-bookstore:${BUILD_NUMBER} -f src/Acme.BookStore.HttpApi.Host/Dockerfile ."
+				}
+			}
+		}
+
+		stage("Deploy Docker Image") {
+			agent none
+			steps {
+				node {
+					sh "docker compose -f docker-compose.yml -f docker-compose.override.yml up -d --build acme.bookstore.httpapi.host"
+				}
 			}
 		}
     }
