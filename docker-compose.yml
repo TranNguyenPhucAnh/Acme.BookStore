@@ -1,7 +1,7 @@
 services:
   acme.bookstore.httpapi.host:
     container_name: bookstore-backend
-    image: acme-bookstore:${BUILD_NUMBER}
+    image: ${DOCKER_REGISTRY-}backend
     build:
       context: .
       dockerfile: src/Acme.BookStore.HttpApi.Host/Dockerfile
