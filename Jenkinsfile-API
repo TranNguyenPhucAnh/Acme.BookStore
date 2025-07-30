@@ -1,9 +1,9 @@
 pipeline {
     agent {
         docker {
-            image "mcr.microsoft.com/dotnet/sdk:9.0"
-            args "-u root:root -v nuget-cache:/root/.nuget/packages"
-        }
+			image "mcr.microsoft.com/dotnet/sdk:9.0"
+			args "-u root:root -v nuget-cache:/root/.nuget/packages"
+		}
     }
 
     parameters {
@@ -62,20 +62,14 @@ pipeline {
         }
 
 		stage("Build Docker Image") {
-			agent none
 			steps {
-				node {
-					sh "docker build -t acme-bookstore:${BUILD_NUMBER} -f src/Acme.BookStore.HttpApi.Host/Dockerfile ."
-				}
+				sh "docker build -t acme-bookstore:${BUILD_NUMBER} -f src/Acme.BookStore.HttpApi.Host/Dockerfile ."
 			}
 		}
 
 		stage("Deploy Docker Image") {
-			agent none
 			steps {
-				node {
-					sh "docker compose -f docker-compose.yml -f docker-compose.override.yml up -d --build acme.bookstore.httpapi.host"
-				}
+				sh "docker compose -f docker-compose.yml -f docker-compose.override.yml up -d --build acme.bookstore.httpapi.host"
 			}
 		}
     }
@@ -87,8 +81,8 @@ pipeline {
         failure {
             echo "Build failed!"
 			emailext (
-					subject: "Build ${env.JOB_NAME} #${env.BUILD_NUMBER} Succeeded",
-					body: """Build ${env.JOB_NAME} #${env.BUILD_NUMBER} completed successfully.
+					subject: "Build ${env.JOB_NAME} #${env.BUILD_NUMBER} Failed",
+					body: """Build ${env.JOB_NAME} #${env.BUILD_NUMBER} Failed.
 						Branch: ${params.GIT_BRANCH}
 						Config: ${params.BUILD_CONFIG}
 						View details: ${env.BUILD_URL}""",
