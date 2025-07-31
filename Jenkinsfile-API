@@ -1,7 +1,7 @@
 pipeline {
     agent {
         docker {
-			image "bourgeoisie/dotnet-docker"
+			image "bourgeoisie/dotnet-docker:v1"
             args "-u root:root -v nuget-cache:/root/.nuget/packages -v /var/run/docker.sock:/var/run/docker.sock"
 		}
     }
