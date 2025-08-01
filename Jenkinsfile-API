@@ -46,12 +46,6 @@ pipeline {
                 sh "dotnet publish src/Acme.BookStore.HttpApi.Host/Acme.BookStore.HttpApi.Host.csproj -c ${params.BUILD_CONFIG} -o ${env.PUBLISH_DIR}"
             }
         }
-		
-		stage("Verify Publish") {
-			steps {
-				sh "ls -la ${env.PUBLISH_DIR}"
-			}
-		}
 
         stage("Archive") {
             steps {
@@ -60,17 +54,15 @@ pipeline {
                 archiveArtifacts artifacts: "${env.PUBLISH_DIR}-${BUILD_NUMBER}/**", fingerprint: true
             }
         }
-
-		stage("Build Docker Image") {
+		
+		stage("Rebuild Docker Image") {
 			steps {
-				sh 'docker rm -f bookstore-backend || true' // Xóa container nếu tồn tại, bỏ qua lỗi nếu không có
-				sh "docker build -t acme-bookstore:${BUILD_NUMBER} -f src/Acme.BookStore.HttpApi.Host/Dockerfile ."
-			}
-		}
-
-		stage("Deploy Docker Image") {
-			steps {
-				sh "docker compose -f docker-compose.yml -f docker-compose.override.yml up -d --build acme.bookstore.httpapi.host"
+				sh '''
+					docker compose -f docker-compose.yml -f docker-compose.override.yml stop acme.bookstore.httpapi.host || true
+					docker compose -f docker-compose.yml -f docker-compose.override.yml rm -f acme.bookstore.httpapi.host || true
+					docker compose -f docker-compose.yml -f docker-compose.override.yml up -d --build acme.bookstore.httpapi.host
+				'''	
+				}
 			}
 		}
     }
