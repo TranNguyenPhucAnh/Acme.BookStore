@@ -63,6 +63,7 @@ pipeline {
 
 		stage("Build Docker Image") {
 			steps {
+				sh 'docker rm -f bookstore-backend || true' // Xóa container nếu tồn tại, bỏ qua lỗi nếu không có
 				sh "docker build -t acme-bookstore:${BUILD_NUMBER} -f src/Acme.BookStore.HttpApi.Host/Dockerfile ."
 			}
 		}
