@@ -1,8 +1,8 @@
 pipeline {
     agent {
         docker {
-			image "bourgeoisie/dotnet-docker:v1"
-            args "-u root:root -v nuget-cache:/root/.nuget/packages -v /var/run/docker.sock:/var/run/docker.sock"
+			image "mcr.microsoft.com/dotnet/sdk:9.0"
+            args "-u root:root -v nuget-cache:/root/.nuget/packages"
 		}
     }
 
@@ -54,18 +54,7 @@ pipeline {
                 archiveArtifacts artifacts: "${env.PUBLISH_DIR}-${BUILD_NUMBER}/**", fingerprint: true
             }
         }
-		
-		stage("Rebuild Docker Image") {
-			steps {
-				sh '''
-					docker compose -f docker-compose.yml -f docker-compose.override.yml stop acme.bookstore.httpapi.host || true
-					docker compose -f docker-compose.yml -f docker-compose.override.yml rm -f acme.bookstore.httpapi.host || true
-					docker compose -f docker-compose.yml -f docker-compose.override.yml up -d --build acme.bookstore.httpapi.host
-				'''	
-			}
-		}
 	}
-    
 
     post {
         success {
