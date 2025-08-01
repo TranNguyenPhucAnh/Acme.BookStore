@@ -35,5 +35,4 @@ RUN dotnet publish "./Acme.BookStore.HttpApi.Host.csproj" -c $BUILD_CONFIGURATIO
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-COPY ["src/Acme.BookStore.HttpApi.Host/openiddict.pfx", "/app/openiddict.pfx"]
 ENTRYPOINT ["dotnet", "Acme.BookStore.HttpApi.Host.dll"]
