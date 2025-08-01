@@ -62,10 +62,10 @@ pipeline {
 					docker compose -f docker-compose.yml -f docker-compose.override.yml rm -f acme.bookstore.httpapi.host || true
 					docker compose -f docker-compose.yml -f docker-compose.override.yml up -d --build acme.bookstore.httpapi.host
 				'''	
-				}
 			}
 		}
-    }
+	}
+    
 
     post {
         success {
