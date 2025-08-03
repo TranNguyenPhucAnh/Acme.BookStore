@@ -5,7 +5,7 @@
       - DOTNET_RUNNING_IN_CONTAINER=true
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_HTTPS_PORTS=8081
-      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/openiddict.pfx
       - ASPNETCORE_Kestrel__Certificates__Default__Password=6f58d05d-6b02-45f2-b5ed-320a4834901c
     ports:
       - "8080:8080"
@@ -15,7 +15,6 @@
       - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
       - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
       - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
-      - ./src/Acme.BookStore.HttpApi.Host/openiddict.pfx:/https/aspnetapp.pfx:ro
     networks:
       - net
   angular:
