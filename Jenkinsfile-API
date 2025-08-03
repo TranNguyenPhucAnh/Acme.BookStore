@@ -1,8 +1,8 @@
 pipeline {
     agent {
         docker {
-			image "mcr.microsoft.com/dotnet/sdk:9.0"
-            args "-u root:root -v nuget-cache:/root/.nuget/packages"
+			image "bourgeoisie/dotnet-docker:v1"
+            args "-u root:root -v nuget-cache:/root/.nuget/packages -v /var/jenkins_home:/https"
 		}
     }
 
@@ -22,6 +22,17 @@ pipeline {
         stage("Checkout") {
             steps {
                 git branch: "${params.GIT_BRANCH}", credentialsId: "ssh-git", url: "git@github.com:TranNguyenPhucAnh/Acme.BookStore.git"
+            }
+        }
+		
+		stage('Retrieve PFX') {
+            steps {
+                withCredentials([string(credentialsId: 'BOOK_STORE_PFX', variable: 'BOOK_STORE_PFX')]) {
+                    sh '''
+                        mkdir -p /https
+                        echo $BOOK_STORE_PFX | base64 -d > /https/openiddict.pfx
+                    '''
+                }
             }
         }
 
@@ -46,6 +57,16 @@ pipeline {
                 sh "dotnet publish src/Acme.BookStore.HttpApi.Host/Acme.BookStore.HttpApi.Host.csproj -c ${params.BUILD_CONFIG} -o ${env.PUBLISH_DIR}"
             }
         }
+		
+		stage('Run Container') {
+            steps {
+                sh '''
+					docker compose -f docker-compose.yml -f docker-compose.override.yml stop acme.bookstore.httpapi.host || true
+					docker compose -f docker-compose.yml -f docker-compose.override.yml rm -f acme.bookstore.httpapi.host || true
+					docker compose -f docker-compose.yml -f docker-compose.override.yml up -d --build acme.bookstore.httpapi.host
+				'''
+            }
+        }
 
         stage("Archive") {
             steps {
@@ -54,6 +75,12 @@ pipeline {
                 archiveArtifacts artifacts: "${env.PUBLISH_DIR}-${BUILD_NUMBER}/**", fingerprint: true
             }
         }
+		
+		stage("Cleanup") {
+			steps {
+				sh 'rm /https/openiddict.pfx'
+			}
+		}
 	}
 
     post {
