@@ -58,7 +58,15 @@ pipeline {
                 sh """
                     docker rm -f bookstore-backend || true
                     docker build -t acme-bookstore-httpapi-host:latest -f src/Acme.BookStore.HttpApi.Host/Dockerfile .
-                    docker run -d --name bookstore-backend -p 8080:8080 -p 8081:8081 -v "${env.WORKSPACE}/certs:/https" acme-bookstore-httpapi-host:latest
+                    echo WORKSPACE: ${env.WORKSPACE}
+                    ls -lh ${env.WORKSPACE}/certs
+                    docker run -d --name bookstore-backend -p 8080:8080 -p 8081:8081 -v "${env.WORKSPACE}/certs:/https" \
+                    -e ASPNETCORE_ENVIRONMENT=Production \
+                    -e ASPNETCORE_HTTP_PORTS=8080 \
+                    -e ASPNETCORE_HTTPS_PORTS=8081 \
+                    -e ASPNETCORE_Kestrel__Certificates__Default__Path=/https/mynginx.store.pfx \
+                    -e ASPNETCORE_Kestrel__Certificates__Default__Password=123456 \
+                    acme-bookstore-httpapi-host:latest 
                 """
             }
         }
