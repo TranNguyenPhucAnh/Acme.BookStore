@@ -55,7 +55,7 @@ pipeline {
             steps {
                 sh '''
                     docker rm -f bookstore-backend || true
-                    docker build -t acme-bookstore-httpapi-host:latest ./src/Acme.BookStore.HttpApi.Host/Dockerfile
+                    docker build -t acme-bookstore-httpapi-host:latest -f src/Acme.BookStore.HttpApi.Host/Dockerfile .
                     docker run -d --name bookstore-backend -p 8080:8080 -p 8081:8081 acme-bookstore-httpapi-host:latest
                 '''
             }
