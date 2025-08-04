@@ -13,7 +13,7 @@ ssh-keyscan github.com > /var/jenkins_home/.ssh/known_hosts
 
 RUN chown -R jenkins:jenkins /var/jenkins_home
 
-RUN apt-get install -y curl && \
+RUN apt-get install -y curl libicu-dev && \
     curl -sSL https://dot.net/v1/dotnet-install.sh -o dotnet-install.sh && \
     chmod +x dotnet-install.sh && \
     ./dotnet-install.sh --version latest --channel 9.0 --install-dir /usr/share/dotnet && \
