@@ -1,10 +1,5 @@
 pipeline {
-    agent {
-        docker {
-			image "bourgeoisie/dotnet-docker:v1"
-            args "-u root:root -v nuget-cache:/root/.nuget/packages"
-		}
-    }
+    agent any
 
     parameters {
         string(name: "GIT_BRANCH", defaultValue: "develop", description: "Branch to build")
