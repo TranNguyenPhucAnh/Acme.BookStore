@@ -20,3 +20,9 @@ services:
   mysql:
     image: mysql:8.0
     container_name: mysql
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: jenkins_server
+    build:
+      context: .
+      dockerfile: Dockerfile.jenkins
