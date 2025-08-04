@@ -1,13 +1,13 @@
 services:
   acme.bookstore.httpapi.host:
     container_name: bookstore-backend
-    image: ${DOCKER_REGISTRY-}backend
+    image: backend
     build:
       context: .
       dockerfile: src/Acme.BookStore.HttpApi.Host/Dockerfile
   angular:
     container_name: bookstore-frontend
-    image: ${DOCKER_REGISTRY-}frontend
+    image: frontend
     build:
       context: ./angular
       dockerfile: Dockerfile.local
@@ -20,9 +20,3 @@ services:
   mysql:
     image: mysql:8.0
     container_name: mysql
-  jenkins:
-    image: jenkins/jenkins:lts
-    container_name: jenkins_server
-    build:
-      context: .
-      dockerfile: Dockerfile.jenkins

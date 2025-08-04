@@ -11,4 +11,6 @@ RUN usermod -aG docker jenkins
 RUN mkdir -p /var/jenkins_home/.ssh && \
 ssh-keyscan github.com > /var/jenkins_home/.ssh/known_hosts
 
+RUN chown -R jenkins:jenkins /var/jenkins_home
+
 USER jenkins
