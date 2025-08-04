@@ -2,7 +2,7 @@ pipeline {
     agent {
         docker {
 			image "bourgeoisie/dotnet-docker:v1"
-            args "-u root:root -v nuget-cache:/root/.nuget/packages -v /var/jenkins_home:/https"
+            args "-u root:root -v nuget-cache:/root/.nuget/packages"
 		}
     }
 
@@ -28,7 +28,7 @@ pipeline {
         stage('Setup Certificate') {
             steps {
                 withCredentials([file(credentialsId: 'ssl-certificate', variable: 'PFX_FILE')]) {
-                    sh 'cp "$PFX_FILE" /https/mynginx.store.pfx'
+                    sh 'cp "$PFX_FILE" /root/certificate/mynginx.store.pfx'
                 }
             }
         }
