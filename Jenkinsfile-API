@@ -88,8 +88,5 @@ pipeline {
 					from: "support@mynginx.store"
 				)
         }
-        always {
-            cleanWs()
-        }
     }
 }
