@@ -25,13 +25,10 @@ pipeline {
             }
         }
 		
-		stage('Retrieve PFX') {
+        stage('Setup Certificate') {
             steps {
-                withCredentials([string(credentialsId: 'BOOK_STORE_PFX', variable: 'BOOK_STORE_PFX')]) {
-                    sh '''
-                        mkdir -p /https
-                        echo $BOOK_STORE_PFX | base64 -d > /https/openiddict.pfx
-                    '''
+                withCredentials([file(credentialsId: '9fed88bd-9238-4348-9ad8-339b036535e2', variable: 'PFX_FILE')]) {
+                    sh 'cp "$PFX_FILE" /https/openiddict.pfx'
                 }
             }
         }
@@ -61,10 +58,9 @@ pipeline {
 		stage('Run Container') {
             steps {
                 sh '''
-					docker compose -f docker-compose.yml -f docker-compose.override.yml stop acme.bookstore.httpapi.host || true
-					docker compose -f docker-compose.yml -f docker-compose.override.yml rm -f acme.bookstore.httpapi.host || true
-					docker compose -f docker-compose.yml -f docker-compose.override.yml up -d --build acme.bookstore.httpapi.host
-				'''
+                    docker compose -f docker-compose.yml -f docker-compose.override.yml build acme.bookstore.httpapi.host
+                    docker compose -f docker-compose.yml -f docker-compose.override.yml up -d --no-deps acme.bookstore.httpapi.host
+                '''
             }
         }
 
@@ -75,12 +71,6 @@ pipeline {
                 archiveArtifacts artifacts: "${env.PUBLISH_DIR}-${BUILD_NUMBER}/**", fingerprint: true
             }
         }
-		
-		stage("Cleanup") {
-			steps {
-				sh 'rm /https/openiddict.pfx'
-			}
-		}
 	}
 
     post {
