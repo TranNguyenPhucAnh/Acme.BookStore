@@ -24,7 +24,7 @@ pipeline {
             steps {
                 withCredentials([file(credentialsId: 'ssl-certificate', variable: 'PFX_FILE')]) {
                     sh 'mkdir -p $WORKSPACE/certs'
-                    sh 'cp "$PFX_FILE" "$WORKSPACE/certs/mynginx.store.pfx'
+                    sh 'cp "$PFX_FILE" "$WORKSPACE/certs/mynginx.store.pfx"'
                 }
             }
         }
