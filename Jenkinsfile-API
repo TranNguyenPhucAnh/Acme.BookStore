@@ -67,6 +67,7 @@ pipeline {
                     -e ASPNETCORE_Kestrel__Certificates__Default__Path=/https/mynginx.store.pfx \
                     -e ASPNETCORE_Kestrel__Certificates__Default__Password=123456 \
                     acme-bookstore-httpapi-host:latest 
+                    chmod 644 ${env.WORKSPACE}/certs/mynginx.store.pfx
                 """
             }
         }
