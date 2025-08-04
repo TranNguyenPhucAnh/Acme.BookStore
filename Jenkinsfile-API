@@ -28,8 +28,8 @@ pipeline {
         stage('Setup Certificate') {
             steps {
                 withCredentials([file(credentialsId: 'ssl-certificate', variable: 'PFX_FILE')]) {
-                    sh 'mkdir -p /root/certificate'
-                    sh 'cp "$PFX_FILE" /root/certificate/mynginx.store.pfx'
+                    sh 'mkdir -p certs'
+                    sh 'cp "$PFX_FILE" certs/mynginx.store.pfx'
                 }
             }
         }
