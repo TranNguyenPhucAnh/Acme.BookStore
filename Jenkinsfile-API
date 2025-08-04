@@ -58,9 +58,10 @@ pipeline {
 		stage('Run Container') {
             steps {
                 sh '''
-                    docker compose -f docker-compose.yml -f docker-compose.override.yml build acme.bookstore.httpapi.host
-                    docker compose -f docker-compose.yml -f docker-compose.override.yml up -d --no-deps acme.bookstore.httpapi.host
-                '''
+					docker compose -f docker-compose.yml -f docker-compose.override.yml stop acme.bookstore.httpapi.host || true
+					docker compose -f docker-compose.yml -f docker-compose.override.yml rm -f acme.bookstore.httpapi.host || true
+					docker compose -f docker-compose.yml -f docker-compose.override.yml up -d --build acme.bookstore.httpapi.host
+				'''
             }
         }
 
