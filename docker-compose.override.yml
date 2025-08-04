@@ -5,8 +5,8 @@
       - DOTNET_RUNNING_IN_CONTAINER=true
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_HTTPS_PORTS=8081
-      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/openiddict.pfx
-      - ASPNETCORE_Kestrel__Certificates__Default__Password=6f58d05d-6b02-45f2-b5ed-320a4834901c
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/mynginx.store.pfx
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=123456
     ports:
       - "8080:8080"
       - "8081:8081"

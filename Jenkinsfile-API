@@ -28,7 +28,7 @@ pipeline {
         stage('Setup Certificate') {
             steps {
                 withCredentials([file(credentialsId: 'ssl-certificate', variable: 'PFX_FILE')]) {
-                    sh 'cp "$PFX_FILE" /https/openiddict.pfx'
+                    sh 'cp "$PFX_FILE" /https/mynginx.store.pfx'
                 }
             }
         }
