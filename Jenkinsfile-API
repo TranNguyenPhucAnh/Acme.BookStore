@@ -26,7 +26,7 @@ pipeline {
                      sh """
                         mkdir -p "${env.WORKSPACE}/certs"
                         cp "$PFX_FILE" "${env.WORKSPACE}/certs/mynginx.store.pfx"
-                        chmod -R 644 ${env.WORKSPACE}/certs
+                        chmod 644 ${env.WORKSPACE}/certs
                     """
                 }
             }
