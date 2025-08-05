@@ -35,4 +35,7 @@ RUN dotnet publish "./Acme.BookStore.HttpApi.Host.csproj" -c $BUILD_CONFIGURATIO
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+
+# Ensure /app is accessible
+RUN chmod -R 755 /app
 ENTRYPOINT ["dotnet", "Acme.BookStore.HttpApi.Host.dll"]
