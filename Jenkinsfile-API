@@ -24,8 +24,15 @@ pipeline {
             steps {
                 withCredentials([file(credentialsId: 'ssl-certificate', variable: 'PFX_FILE')]) {
                      sh """
+                        echo "Creating certs directory in Jenkins container..."
                         mkdir -p "${env.WORKSPACE}/certs"
+                        echo "Copying certificate..."
                         cp "$PFX_FILE" "${env.WORKSPACE}/certs/mynginx.store.pfx"
+                        chmod 644 ${env.WORKSPACE}/certs/mynginx.store.pfx
+
+                        echo "Checking file in Jenkins container..."
+                        ls -l "${env.WORKSPACE}/certs"
+                        stat "${env.WORKSPACE}/certs/mynginx.store.pfx"
                     """
                 }
             }
@@ -57,11 +64,21 @@ pipeline {
             steps {
                 sh """
                     docker rm -f bookstore-backend || true
+
                     docker build -t acme-bookstore-httpapi-host:latest -f src/Acme.BookStore.HttpApi.Host/Dockerfile .
+
                     echo WORKSPACE: ${env.WORKSPACE}
                     ls -lh ${env.WORKSPACE}/certs
-                    docker run -d --name bookstore-backend -p 8080:8080 -p 8081:8081 -v "${env.WORKSPACE}/certs:/src/Acme.BookStore.HttpApi.Host" acme-bookstore-httpapi-host:latest
+
+                    docker run -d --name bookstore-backend -p 8080:8080 -p 8081:8081 -v "${env.WORKSPACE}/certs/mynginx.store.pfx:/app/src/Acme.BookStore.HttpApi.Host/mynginx.store.pfx" acme-bookstore-httpapi-host:latest
+                    
                     chmod 644 ${env.WORKSPACE}/certs/mynginx.store.pfx
+
+                    echo "Checking file in container..."
+                    sleep 5
+                    docker exec bookstore-backend ls -l /app/src/Acme.BookStore.HttpApi.Host
+                    docker exec bookstore-backend stat /app/src/Acme.BookStore.HttpApi.Host/mynginx.store.pfx
+                    docker logs bookstore-backend
                 """
             }
         }
