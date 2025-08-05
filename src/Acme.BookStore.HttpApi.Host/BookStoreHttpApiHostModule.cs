@@ -74,16 +74,7 @@ public class BookStoreHttpApiHostModule : AbpModule
 
             PreConfigure<OpenIddictServerBuilder>(serverBuilder =>
             {
-                var fileName = "mynginx.store.pfx";
-                Console.WriteLine($"Checking file: {fileName}");
-                Console.WriteLine($"File exists: {File.Exists(fileName)}");
-                Console.WriteLine($"Current directory: {Directory.GetCurrentDirectory()}");
-
-                // Trong HttpApiHostModule hoặc nơi cấu hình Kestrel
-                Console.WriteLine($"Kestrel Certificate Path: {configuration["Kestrel:Certificates:Default:Path"]}");
-                Console.WriteLine($"Kestrel File exists: {File.Exists(configuration["Kestrel:Certificates:Default:Path"])}");
-
-                Console.WriteLine($"App directory contents: {string.Join(", ", Directory.GetFiles("/app"))}");
+                Console.WriteLine($"directory exist exists: {Directory.Exists("mynginx.store.pfx")}");
                 
                 // In production, it is recommended to use two RSA certificates, one for encryption, one for signing.
                 serverBuilder.AddProductionEncryptionAndSigningCertificate("mynginx.store.pfx", configuration["AuthServer:CertificatePassPhrase"]!);
