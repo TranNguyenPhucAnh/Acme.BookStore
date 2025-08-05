@@ -70,7 +70,9 @@ pipeline {
                     echo WORKSPACE: ${env.WORKSPACE}
                     ls -lh ${env.WORKSPACE}/certs
 
-                    docker run -d --name bookstore-backend -p 8080:8080 -p 8081:8081 -v "${env.WORKSPACE}/certs/mynginx.store.pfx:/app/src/Acme.BookStore.HttpApi.Host/mynginx.store.pfx" acme-bookstore-httpapi-host:latest
+                    docker run -d --name bookstore-backend -p 8080:8080 -p 8081:8081 \
+                    -v "${env.WORKSPACE}/certs:app/src/Acme.BookStore.HttpApi.Host" \
+                    acme-bookstore-httpapi-host:latest
                 """
             }
         }
