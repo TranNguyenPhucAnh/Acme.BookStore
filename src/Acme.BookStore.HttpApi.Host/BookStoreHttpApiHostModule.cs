@@ -78,8 +78,6 @@ public class BookStoreHttpApiHostModule : AbpModule
                 Console.WriteLine($"Checking file: {fileName}");
                 Console.WriteLine($"File exists: {File.Exists(fileName)}");
                 Console.WriteLine($"Current directory: {Directory.GetCurrentDirectory()}");
-                Console.WriteLine($"App directory contents: {string.Join(", ", Directory.GetFiles("/app"))}");
-                Console.WriteLine($"Target directory contents: {string.Join(", ", Directory.GetFiles("/app/src/Acme.BookStore.HttpApi.Host"))}");
                 
                 // In production, it is recommended to use two RSA certificates, one for encryption, one for signing.
                 serverBuilder.AddProductionEncryptionAndSigningCertificate("mynginx.store.pfx", configuration["AuthServer:CertificatePassPhrase"]!);
