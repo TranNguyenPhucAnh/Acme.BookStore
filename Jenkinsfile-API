@@ -28,7 +28,7 @@ pipeline {
                         mkdir -p "${env.WORKSPACE}/certs"
                         echo "Copying certificate..."
                         cp "$PFX_FILE" "${env.WORKSPACE}/certs/mynginx.store.pfx"
-                        chmod 644 ${env.WORKSPACE}/certs/mynginx.store.pfx
+                        chmod 666 ${env.WORKSPACE}/certs/mynginx.store.pfx
 
                         echo "Checking file in Jenkins container..."
                         ls -l "${env.WORKSPACE}/certs"

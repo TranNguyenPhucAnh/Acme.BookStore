@@ -74,7 +74,7 @@ public class BookStoreHttpApiHostModule : AbpModule
 
             PreConfigure<OpenIddictServerBuilder>(serverBuilder =>
             {
-                // In production, it is recommended to use two RSA certificates, one for encryption, one for signing.
+                // In production, it is recommended to use two RSA certificates, one for encryption, one for signing
                 OpenIddictServerBuilderExtension.AddProductionEncryptionAndSigningCertificate(
                     serverBuilder, "mynginx.store.pfx", configuration["AuthServer:CertificatePassPhrase"]!);
                 
