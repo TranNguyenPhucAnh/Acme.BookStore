@@ -60,8 +60,7 @@ pipeline {
                     docker build -t acme-bookstore-httpapi-host:latest -f src/Acme.BookStore.HttpApi.Host/Dockerfile .
                     echo WORKSPACE: ${env.WORKSPACE}
                     ls -lh ${env.WORKSPACE}/certs
-                    docker run -d --name bookstore-backend -p 8080:8080 -p 8081:8081 -v "${env.WORKSPACE}/certs:/https"
-                    acme-bookstore-httpapi-host:latest
+                    docker run -d --name bookstore-backend -p 8080:8080 -p 8081:8081 -v "${env.WORKSPACE}/certs:/https" acme-bookstore-httpapi-host:latest
                     chmod 644 ${env.WORKSPACE}/certs/mynginx.store.pfx
                 """
             }
