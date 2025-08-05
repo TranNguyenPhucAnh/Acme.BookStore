@@ -24,15 +24,9 @@ pipeline {
             steps {
                 withCredentials([file(credentialsId: 'ssl-certificate', variable: 'PFX_FILE')]) {
                      sh """
-                        echo "Creating certs directory in Jenkins container..."
                         mkdir -p "${env.WORKSPACE}/certs"
-                        echo "Copying certificate..."
                         cp "$PFX_FILE" "${env.WORKSPACE}/certs/mynginx.store.pfx"
-                        chmod 644 ${env.WORKSPACE}/certs/mynginx.store.pfx
-
-                        echo "Checking file in Jenkins container..."
-                        ls -l "${env.WORKSPACE}/certs"
-                        stat "${env.WORKSPACE}/certs/mynginx.store.pfx"
+                        chmod -R 644 ${env.WORKSPACE}/certs
                     """
                 }
             }
@@ -67,12 +61,8 @@ pipeline {
 
                     docker build -t acme-bookstore-httpapi-host:latest -f src/Acme.BookStore.HttpApi.Host/Dockerfile .
 
-                    echo WORKSPACE: ${env.WORKSPACE}
-                    ls -lh ${env.WORKSPACE}/certs
-
                     docker run -d --name bookstore-backend -p 8080:8080 -p 8081:8081 \
-                    -v "${env.WORKSPACE}/certs/mynginx.store.pfx:/app/mynginx.store.pfx" \
-                    --user 0:0 \
+                    -v "${env.WORKSPACE}/certs:/app" \
                     acme-bookstore-httpapi-host:latest
                 """
             }
