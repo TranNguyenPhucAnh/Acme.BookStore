@@ -19,31 +19,21 @@ pipeline {
                 git branch: "${params.GIT_BRANCH}", credentialsId: "ssh-git", url: "git@github.com:TranNguyenPhucAnh/Acme.BookStore.git"
             }
         }
-
-        stage('Check Jenkins UID') {
-            steps {
-                sh 'id -u'
-            }
-        }
 		
         stage('Setup Certificate') {
             steps {
-                withCredentials([file(credentialsId: 'ssl-certificate', variable: 'PFX_FILE')]) {
-                     sh """
-                        echo "Creating certs directory in Jenkins container..."
+                withCredentials([
+                    certificate(
+                        credentialsId: 'pfx-certificate',
+                        keystoreVariable: 'PFX_FILE',
+                        passwordVariable: 'PFX_PASSWORD'
+                    )
+                ]) {
+                    sh """
                         mkdir -p "${env.WORKSPACE}/certs"
                         chmod 775 "${env.WORKSPACE}/certs"
-                        echo "Copying certificate..."
                         cp "$PFX_FILE" "${env.WORKSPACE}/certs/mynginx.store.pfx"
-                        # Try setting ownership, fall back to world-readable if chown fails
-                        chown 1654:1654 "${env.WORKSPACE}/certs/mynginx.store.pfx" || chmod 666 "${env.WORKSPACE}/certs/mynginx.store.pfx"
                         chmod 664 "${env.WORKSPACE}/certs/mynginx.store.pfx"
-
-                        echo "Checking file in Jenkins container..."
-                        ls -l "${env.WORKSPACE}/certs"
-                        stat "${env.WORKSPACE}/certs/mynginx.store.pfx"
-                        echo "Jenkins user ID:"
-                        id
                     """
                 }
             }
@@ -83,7 +73,6 @@ pipeline {
 
                     docker run -d --name bookstore-backend -p 8080:8080 -p 8081:8081 \
                     -v "${env.WORKSPACE}/certs/mynginx.store.pfx:/app/mynginx.store.pfx" \
-                    --user 0:0 \
                     acme-bookstore-httpapi-host:latest
                 """
             }
