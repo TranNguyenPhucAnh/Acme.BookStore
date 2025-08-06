@@ -66,7 +66,7 @@ pipeline {
                     ls -lh ${env.WORKSPACE}/certs
 
                     docker run -d --name bookstore-backend -p 8080:8080 -p 8081:8081 \
-                    -v "${env.WORKSPACE}/certs/mynginx.store.pfx:/app/certs/mynginx.store.pfx" \
+                    -v "${env.WORKSPACE}/certs/mynginx.store.pfx:/app/mynginx.store.pfx" \
                     acme-bookstore-httpapi-host:latest
                 """
             }
