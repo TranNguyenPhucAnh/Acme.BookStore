@@ -26,11 +26,9 @@ pipeline {
                      sh """
                         echo "Creating certs directory in Jenkins container..."
                         mkdir -p "${env.WORKSPACE}/certs"
-                        echo "Copying certificate..."
+                        chmod 775 "${env.WORKSPACE}/certs"
                         cp "$PFX_FILE" "${env.WORKSPACE}/certs/mynginx.store.pfx"
                         chmod 644 ${env.WORKSPACE}/certs/mynginx.store.pfx
-
-                        echo "Checking file in Jenkins container..."
                         ls -l "${env.WORKSPACE}/certs"
                         stat "${env.WORKSPACE}/certs/mynginx.store.pfx"
                     """
@@ -72,7 +70,6 @@ pipeline {
 
                     docker run -d --name bookstore-backend -p 8080:8080 -p 8081:8081 \
                     -v "${env.WORKSPACE}/certs/mynginx.store.pfx:/app/mynginx.store.pfx" \
-                    --user 0:0 \
                     acme-bookstore-httpapi-host:latest
                 """
             }
