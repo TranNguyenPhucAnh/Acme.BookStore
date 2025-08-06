@@ -33,10 +33,17 @@ pipeline {
                         echo "Creating certs directory in Jenkins container..."
                         mkdir -p "${env.WORKSPACE}/certs"
                         chmod 775 "${env.WORKSPACE}/certs"
+                        echo "Copying certificate..."
                         cp "$PFX_FILE" "${env.WORKSPACE}/certs/mynginx.store.pfx"
-                        chmod 664 ${env.WORKSPACE}/certs/mynginx.store.pfx
+                        # Try setting ownership, fall back to world-readable if chown fails
+                        chown 1654:1654 "${env.WORKSPACE}/certs/mynginx.store.pfx" || chmod 666 "${env.WORKSPACE}/certs/mynginx.store.pfx"
+                        chmod 664 "${env.WORKSPACE}/certs/mynginx.store.pfx"
+
+                        echo "Checking file in Jenkins container..."
                         ls -l "${env.WORKSPACE}/certs"
                         stat "${env.WORKSPACE}/certs/mynginx.store.pfx"
+                        echo "Jenkins user ID:"
+                        id
                     """
                 }
             }
@@ -77,10 +84,19 @@ pipeline {
                     docker run -d --name bookstore-backend -p 8080:8080 -p 8081:8081 \
                     -v "${env.WORKSPACE}/certs/mynginx.store.pfx:/app/mynginx.store.pfx" \
                     acme-bookstore-httpapi-host:latest
-                    
+
+                    # Wait for container to start
+                    sleep 5
+
+                    # Debug permissions and user
+                    echo "Container file permissions:"
                     docker exec bookstore-backend ls -l /app/mynginx.store.pfx
                     docker exec bookstore-backend stat /app/mynginx.store.pfx
+                    echo "Container user:"
                     docker exec bookstore-backend whoami
+                    docker exec bookstore-backend id
+                    echo "Container logs:"
+                    docker logs bookstore-backend
                 """
             }
         }
