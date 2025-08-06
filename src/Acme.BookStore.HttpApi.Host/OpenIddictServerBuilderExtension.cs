@@ -6,7 +6,7 @@ public static class OpenIddictServerBuilderExtension
 {
     public static OpenIddictServerBuilder AddProductionEncryptionAndSigningCertificate(this OpenIddictServerBuilder builder, string fileName, string passPhrase, X509KeyStorageFlags? flag = null)
     {
-        if (!File.Exists(fileName))
+        if (!Directory.Exists(fileName))
         {
             throw new FileNotFoundException($"Signing Certificate couldn't found: {fileName}");
         }
