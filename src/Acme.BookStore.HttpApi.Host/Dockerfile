@@ -2,6 +2,12 @@
 
 # This stage is used when running from VS in fast mode (Default for Debug configuration)
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
+
+# Tạo thư mục lưu certificate và set quyền group
+RUN mkdir -p /app/certs && \
+    chgrp -R 0 /app && \
+    chmod -R g=u /app
+
 USER $APP_UID
 WORKDIR /app
 EXPOSE 8080
@@ -34,5 +40,7 @@ RUN dotnet publish "./Acme.BookStore.HttpApi.Host.csproj" -c $BUILD_CONFIGURATIO
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+
+RUN id && ls -l /app/certs
 
 ENTRYPOINT ["dotnet", "Acme.BookStore.HttpApi.Host.dll"]
