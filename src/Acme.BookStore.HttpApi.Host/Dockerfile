@@ -6,7 +6,9 @@ FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
 # Tạo thư mục lưu certificate và set quyền cho group root
 RUN mkdir -p /app && \
     chgrp -R 0 /app && \
-    chmod -R g=u /app
+    chmod -R g=u /app \
+    ls -ld /app && \
+    id
 
 USER $APP_UID
 WORKDIR /app
