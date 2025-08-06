@@ -19,6 +19,12 @@ pipeline {
                 git branch: "${params.GIT_BRANCH}", credentialsId: "ssh-git", url: "git@github.com:TranNguyenPhucAnh/Acme.BookStore.git"
             }
         }
+
+        stage('Check Jenkins UID') {
+            steps {
+                sh 'id -u'
+            }
+        }
 		
         stage('Setup Certificate') {
             steps {
@@ -28,7 +34,7 @@ pipeline {
                         mkdir -p "${env.WORKSPACE}/certs"
                         chmod 775 "${env.WORKSPACE}/certs"
                         cp "$PFX_FILE" "${env.WORKSPACE}/certs/mynginx.store.pfx"
-                        chmod 644 ${env.WORKSPACE}/certs/mynginx.store.pfx
+                        chmod 664 ${env.WORKSPACE}/certs/mynginx.store.pfx
                         ls -l "${env.WORKSPACE}/certs"
                         stat "${env.WORKSPACE}/certs/mynginx.store.pfx"
                     """
