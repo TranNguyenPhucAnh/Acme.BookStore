@@ -2,8 +2,6 @@
 
 # Base stage for runtime
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
-# Set environment variable for non-root user (optional, as $APP_UID is typically 'app' with UID 1654)
-ENV APP_UID=1654
 WORKDIR /app
 # Create certs directory for volume-mounted PFX file
 RUN mkdir -p /app/certs && chmod 775 /app/certs
@@ -36,10 +34,10 @@ RUN dotnet publish "./Acme.BookStore.HttpApi.Host.csproj" -c $BUILD_CONFIGURATIO
 # Final stage for production
 FROM base AS final
 WORKDIR /app
-# Copy published files with correct ownership
-COPY --from=publish --chown=1654:1654 /app/publish .
-# Set permissions for /app
+# Copy published files (no chown needed since running as root)
+COPY --from=publish /app/publish .
+# Set permissions for /app (optional, ensures accessibility)
 RUN chmod -R 775 /app
-# Switch to non-root user
-USER $APP_UID
+# Explicitly set root user
+USER root
 ENTRYPOINT ["dotnet", "Acme.BookStore.HttpApi.Host.dll"]
