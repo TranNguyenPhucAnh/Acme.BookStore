@@ -26,7 +26,7 @@ pipeline {
                      sh """
                         mkdir -p "${env.WORKSPACE}/certs"
                         cp "$PFX_FILE" "${env.WORKSPACE}/certs/mynginx.store.pfx"
-                        chmod 644 ${env.WORKSPACE}/certs
+                        chmod 644 ${env.WORKSPACE}/certs/mynginx.store.pfx
                     """
                 }
             }
@@ -62,7 +62,7 @@ pipeline {
                     docker build -t acme-bookstore-httpapi-host:latest -f src/Acme.BookStore.HttpApi.Host/Dockerfile .
 
                     docker run -d --name bookstore-backend -p 8080:8080 -p 8081:8081 \
-                    -v "${env.WORKSPACE}/certs:/app" \
+                    -v "${env.WORKSPACE}/certs/mynginx.store.pfx:/app/mynginx.store.pfx" \
                     acme-bookstore-httpapi-host:latest
                 """
             }
