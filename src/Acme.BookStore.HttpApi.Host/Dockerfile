@@ -4,9 +4,10 @@
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
 
 # Tạo thư mục lưu certificate và set quyền cho group root
-RUN mkdir -p /app/certs && \
-    chgrp -R 0 /app && \
-    chmod -R g=u /app
+RUN mkdir -p /https && \
+    chown 777 /https \
+    chgrp -R 0 /https && \
+    chmod -R g=u /https
 
 USER $APP_UID
 WORKDIR /app
@@ -40,7 +41,5 @@ RUN dotnet publish "./Acme.BookStore.HttpApi.Host.csproj" -c $BUILD_CONFIGURATIO
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-
-RUN id && ls -l /app/certs
 
 ENTRYPOINT ["dotnet", "Acme.BookStore.HttpApi.Host.dll"]
