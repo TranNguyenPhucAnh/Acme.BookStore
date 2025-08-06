@@ -3,6 +3,13 @@
 # This stage is used when running from VS in fast mode (Default for Debug configuration)
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
 
+# Tạo thư mục lưu certificate và set quyền cho group root
+RUN mkdir -p /app && \
+    chgrp -R 0 /app && \
+    chmod -R g=u /app && \
+    ls -ld /app && \
+    id
+
 USER $APP_UID
 WORKDIR /app
 EXPOSE 8080
@@ -36,10 +43,6 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 
-RUN mkdir -p /app && \
-    chgrp -R 0 /app && \
-    chmod -R g=u /app && \
-    ls -ld /app && \
-    id
-
-ENTRYPOINT ["dotnet", "Acme.BookStore.HttpApi.Host.dll"]
+# ENTRYPOINT ["dotnet", "Acme.BookStore.HttpApi.Host.dll"]
+# Thay vì chạy app .NET, ta chạy lệnh `id` để log user và group
+ENTRYPOINT ["sh", "-c", "id && ls -l /app/mynginx.store.pfx && dotnet Acme.BookStore.HttpApi.Host.dll"]
