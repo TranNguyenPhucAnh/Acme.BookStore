@@ -25,9 +25,9 @@ pipeline {
                 withCredentials([file(credentialsId: 'ssl-certificate', variable: 'PFX_FILE')]) {
                      sh """
                         mkdir -p "${env.WORKSPACE}/certs"
-                        chmod 777 "${env.WORKSPACE}/certs"
+                        chmod 775 "${env.WORKSPACE}/certs"
                         cp "$PFX_FILE" "${env.WORKSPACE}/certs/mynginx.store.pfx"
-                        chmod 666 "${env.WORKSPACE}/certs/mynginx.store.pfx"
+                        chmod 664 "${env.WORKSPACE}/certs/mynginx.store.pfx"
                         ls -l "${env.WORKSPACE}/certs/mynginx.store.pfx"
                     """
                 }
@@ -67,8 +67,7 @@ pipeline {
                     ls -lh ${env.WORKSPACE}/certs
 
                     docker run -d --name bookstore-backend -p 8080:8080 -p 8081:8081 \
-                    -v "${env.WORKSPACE}/certs/mynginx.store.pfx:/app/mynginx.store.pfx" \
-                    --user root \
+                    -v "${env.WORKSPACE}/certs/mynginx.store.pfx:/mynginx.store.pfx" \
                     acme-bookstore-httpapi-host:latest
                 """
             }
