@@ -5,24 +5,80 @@ services:
     build:
       context: .
       dockerfile: src/Acme.BookStore.HttpApi.Host/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ASPNETCORE_HTTPS_PORTS=8081
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/app/mynginx.store.pfx
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=123456
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    volumes:
+      - ./certs:/app
+    networks:
+      - net
   angular:
     container_name: bookstore-frontend
     image: frontend
     build:
       context: ./angular
       dockerfile: Dockerfile.local
+    environment:
+      - NODE_ENV=production
+    ports:
+      - "4200:80"
+    volumes:
+        - ./angular/dynamic-env.json:/usr/share/nginx/html/dynamic-env.json
+        # Mount absolute volume path with exact volume name to the root directory of Nginx 
+        - /var/lib/docker/volumes/jenkins_home/_data/workspace/frontend/angular/dist/BookStore:/usr/share/nginx/html
+    depends_on:
+      - acme.bookstore.httpapi.host
+    networks:
+      - net
   db-migrator:
     image: acme/bookstore-db-migrator:latest
     container_name: db-migrator
     build:
       context: .
       dockerfile: src/Acme.BookStore.DbMigrator/Dockerfile.local
+    environment:
+      - OpenIddict__Applications__BookStore_App__RootUrl=http://localhost:4200
+      - OpenIddict__Applications__BookStore_Swagger__RootUrl=https://localhost:8081
+      - ConnectionStrings__Default=Server=mysql;Port=3306;Database=BookStore;Uid=root;Pwd=root;
+    depends_on:
+      - mysql
+    networks:
+      - net
   mysql:
     image: mysql:8.0
     container_name: mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=BookStore
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - net
   jenkins:
     image: jenkins/jenkins:lts
     container_name: jenkins_server
     build:
       context: .
       dockerfile: Dockerfile.jenkins
+    ports:
+      - "8082:8080"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock  # Mount Docker socket
+    networks:
+      - net
+volumes:
+  mysql_data:
+  jenkins_home:
+    name: jenkins_home
+networks:
+  net:
+    name: net
