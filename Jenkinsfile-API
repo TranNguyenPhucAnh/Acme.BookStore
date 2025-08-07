@@ -67,6 +67,12 @@ pipeline {
                     echo WORKSPACE: ${env.WORKSPACE}
                     ls -lh ${env.WORKSPACE}/certs
 
+                    echo "==> Docker socket permissions:"
+                    ls -l /var/run/docker.sock
+
+                    echo "==> Docker daemon process info:"
+                    ps aux | grep dockerd || true
+
                     ls -l /var/jenkins_home/workspace/api/certs/mynginx.store.pfx
                     if [ ! -f /var/jenkins_home/workspace/api/certs/mynginx.store.pfx ]; then
                         echo "Error: mynginx.store.pfx is not a file or does not exist"
