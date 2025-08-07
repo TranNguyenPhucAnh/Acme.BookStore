@@ -14,13 +14,19 @@ public static class OpenIddictServerBuilderExtension
 
         try
             {
-                Console.WriteLine($"Open the pfx file: {fileName}");
-                File.OpenRead(fileName).Dispose(); // Ensure the file exists
+                // Console.WriteLine($"Open the pfx file: {fileName}");
+                // File.OpenRead(fileName).Dispose(); // Ensure the file exists
 
                 Console.WriteLine($"Attempting to load PFX file: {fileName}");
-                var certificate = flag != null
-                    ? X509CertificateLoader.LoadPkcs12FromFile(fileName, passPhrase, flag.Value)
-                    : X509CertificateLoader.LoadPkcs12FromFile(fileName, passPhrase);
+                // var certificate = flag != null
+                //     ? X509CertificateLoader.LoadPkcs12FromFile(fileName, passPhrase, flag.Value)
+                //     : X509CertificateLoader.LoadPkcs12FromFile(fileName, passPhrase);
+
+                var certificate = new X509Certificate2(
+                    fileName,
+                    passPhrase,
+                    X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.EphemeralKeySet);
+
                 Console.WriteLine("PFX file loaded successfully");
 
                 Console.WriteLine("Adding signing certificate");
