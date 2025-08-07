@@ -18,14 +18,9 @@ public static class OpenIddictServerBuilderExtension
                 // File.OpenRead(fileName).Dispose(); // Ensure the file exists
 
                 Console.WriteLine($"Attempting to load PFX file: {fileName}");
-                // var certificate = flag != null
-                //     ? X509CertificateLoader.LoadPkcs12FromFile(fileName, passPhrase, flag.Value)
-                //     : X509CertificateLoader.LoadPkcs12FromFile(fileName, passPhrase);
-
-                var certificate = new X509Certificate2(
-                    fileName,
-                    passPhrase,
-                    X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.EphemeralKeySet);
+                var certificate = flag != null
+                    ? X509CertificateLoader.LoadPkcs12FromFile(fileName, passPhrase, flag.Value)
+                    : X509CertificateLoader.LoadPkcs12FromFile(fileName, passPhrase);
 
                 Console.WriteLine("PFX file loaded successfully");
 

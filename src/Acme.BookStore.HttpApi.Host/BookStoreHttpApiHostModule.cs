@@ -77,7 +77,9 @@ public class BookStoreHttpApiHostModule : AbpModule
             {
                 // In production, it is recommended to use two RSA certificates, one for encryption, one for signing
                 OpenIddictServerBuilderExtension.AddProductionEncryptionAndSigningCertificate(
-                    serverBuilder, "mynginx.store.pfx", configuration["AuthServer:CertificatePassPhrase"]!);
+                    serverBuilder, "mynginx.store.pfx",
+                    configuration["AuthServer:CertificatePassPhrase"]!, 
+                    X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.EphemeralKeySet);
                 
                 serverBuilder.SetIssuer(new Uri(configuration["AuthServer:Authority"]!));
                 // Increased the lifetime of authorization code and access token
