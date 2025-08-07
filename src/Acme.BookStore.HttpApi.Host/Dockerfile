@@ -22,8 +22,9 @@ COPY ["src/Acme.BookStore.BackgroundWorker/Acme.BookStore.BackgroundWorker.cspro
 COPY ["src/Acme.BookStore.HttpApi/Acme.BookStore.HttpApi.csproj", "src/Acme.BookStore.HttpApi/"]
 COPY ["src/Acme.BookStore.EntityFrameworkCore/Acme.BookStore.EntityFrameworkCore.csproj", "src/Acme.BookStore.EntityFrameworkCore/"]
 
-RUN dotnet tool install -g Volo.Abp.Cli && export PATH="$PATH:/root/.dotnet/tools" && chmod +x /root/.dotnet/tools/abp  \
-    && /root/.dotnet/tools/abp help
+RUN dotnet tool install -g Volo.Abp.Cli && chmod +x /root/.dotnet/tools/abp && /root/.dotnet/tools/abp help
+
+ENV PATH="${PATH}:/root/.dotnet/tools"
 
 RUN dotnet restore "./src/Acme.BookStore.HttpApi.Host/Acme.BookStore.HttpApi.Host.csproj"
 COPY . .
