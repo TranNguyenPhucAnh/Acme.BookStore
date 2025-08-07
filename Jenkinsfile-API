@@ -29,6 +29,7 @@ pipeline {
                         cp "$PFX_FILE" "${env.WORKSPACE}/certs/mynginx.store.pfx"
                         chmod 664 "${env.WORKSPACE}/certs/mynginx.store.pfx"
                         ls -l "${env.WORKSPACE}/certs/mynginx.store.pfx"
+                        stat /var/jenkins_home/workspace/api/certs/mynginx.store.pfx
                     """
                 }
             }
@@ -59,18 +60,24 @@ pipeline {
 		stage('Run Container') {
             steps {
                 sh """
-                    docker rm -f bookstore-backend || true
+                    docker rm -f bookstore-debug || true
 
                     docker build -t acme-bookstore-httpapi-host:latest -f src/Acme.BookStore.HttpApi.Host/Dockerfile .
 
                     echo WORKSPACE: ${env.WORKSPACE}
                     ls -lh ${env.WORKSPACE}/certs
 
+                    ls -l /var/jenkins_home/workspace/api/certs/mynginx.store.pfx
+                    if [ ! -f /var/jenkins_home/workspace/api/certs/mynginx.store.pfx ]; then
+                        echo "Error: mynginx.store.pfx is not a file or does not exist"
+                        exit 1
+                    fi
+
                     docker run -i --name bookstore-debug \
-                    -v /var/jenkins_home/workspace/api/certs/mynginx.store.pfx:/tmp/mynginx.store.pfx \
+                    -v ${env.WORKSPACE}/certs/mynginx.store.pfx:/tmp/mynginx.store.pfx \
                     --entrypoint sh \
                     acme-bookstore-httpapi-host:latest \
-                    -c "ls -l /tmp/mynginx.store.pfx && rm -rf /app/mynginx.store.pfx && cp /tmp/mynginx.store.pfx /app/mynginx.store.pfx"
+                    -c "ls -ld /tmp/mynginx.store.pfx && test -f /tmp/mynginx.store.pfx && rm -rf /app/mynginx.store.pfx && cp /tmp/mynginx.store.pfx /app/mynginx.store.pfx"                    docker 
                 """
             }
         }
