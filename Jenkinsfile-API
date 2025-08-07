@@ -61,7 +61,7 @@ pipeline {
                     docker build -t acme-bookstore-httpapi-host:latest -f src/Acme.BookStore.HttpApi.Host/Dockerfile .
 
                     docker run -i --name bookstore-debug \
-                    -v ${env.WORKSPACE}:/app \
+                     -v /var/lib/docker/volumes/jenkins_home/_data/workspace/api/mynginx.store.pfx:/app/mynginx.store.pfx \
                     --entrypoint sh \
                     acme-bookstore-httpapi-host:latest
                 """
