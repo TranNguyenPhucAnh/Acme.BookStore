@@ -28,8 +28,6 @@ pipeline {
                         chmod 775 "${env.WORKSPACE}/certs"
                         cp "$PFX_FILE" "${env.WORKSPACE}/certs/mynginx.store.pfx"
                         chmod 664 "${env.WORKSPACE}/certs/mynginx.store.pfx"
-                        ls -l "${env.WORKSPACE}/certs/mynginx.store.pfx"
-                        stat /var/jenkins_home/workspace/api/certs/mynginx.store.pfx
                     """
                 }
             }
@@ -64,26 +62,23 @@ pipeline {
 
                     docker build -t acme-bookstore-httpapi-host:latest -f src/Acme.BookStore.HttpApi.Host/Dockerfile .
 
-                    echo WORKSPACE: ${env.WORKSPACE}
-                    ls -lh ${env.WORKSPACE}/certs
-
-                    echo "==> Docker socket permissions:"
-                    ls -l /var/run/docker.sock
-
-                    echo "==> Docker daemon process info:"
-                    ps aux | grep dockerd || true
-
-                    ls -l /var/jenkins_home/workspace/api/certs/mynginx.store.pfx
-                    if [ ! -f /var/jenkins_home/workspace/api/certs/mynginx.store.pfx ]; then
-                        echo "Error: mynginx.store.pfx is not a file or does not exist"
-                        exit 1
-                    fi
-
-                    docker run -i --name bookstore-debug \
-                    -v ${env.WORKSPACE}/certs/mynginx.store.pfx:/tmp/mynginx.store.pfx:z \
+                    docker run --rm -i --name bookstore-debug \
+                    -v ${env.WORKSPACE}/certs:/tmp \
                     --entrypoint sh \
                     acme-bookstore-httpapi-host:latest \
-                    -c "ls -ld /tmp/mynginx.store.pfx && test -f /tmp/mynginx.store.pfx && rm -rf /app/mynginx.store.pfx && cp /tmp/mynginx.store.pfx /app/mynginx.store.pfx"
+                    -c '
+                        echo "==> Checking if /tmp/mynginx.store.pfx exists..."
+                        ls -l /tmp/mynginx.store.pfx || exit 1
+
+                        echo "==> Removing existing /app/mynginx.store.pfx (if any)..."
+                        rm -f /app/mynginx.store.pfx || true
+
+                        echo "==> Copying cert to /app/"
+                        cp /tmp/mynginx.store.pfx /app/mynginx.store.pfx || exit 1
+
+                        echo "==> Verifying copied file:"
+                        ls -l /app/mynginx.store.pfx
+                    '
                 """
             }
         }
