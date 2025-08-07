@@ -19,6 +19,14 @@ pipeline {
                 git branch: "${params.GIT_BRANCH}", credentialsId: "ssh-git", url: "git@github.com:TranNguyenPhucAnh/Acme.BookStore.git"
             }
         }
+
+        stage("Install Libs") {
+            steps {
+                dir("${env.WORKSPACE}") {
+                    sh "abp install-libs"
+                }
+            }
+        }
 		
         stage('Setup Certificate') {
             steps {
