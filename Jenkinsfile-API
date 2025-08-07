@@ -55,11 +55,10 @@ pipeline {
             }
         }
 		
-		stage('Run Container') {
+        stage('Run Container') {
             steps {
-                sh
-                """
-                # Kiểm tra file và quyền
+                sh """
+                    # Kiểm tra file và quyền
                     ls -ld ${env.WORKSPACE}/certs
                     ls -l ${env.WORKSPACE}/certs/mynginx.store.pfx
                     if [ ! -f ${env.WORKSPACE}/certs/mynginx.store.pfx ]; then
