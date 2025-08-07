@@ -66,7 +66,7 @@ pipeline {
                     echo WORKSPACE: ${env.WORKSPACE}
                     ls -lh ${env.WORKSPACE}/certs
 
-                    docker run -it --name bookstore-debug \
+                    docker run -i --name bookstore-debug \
                     -v "${env.WORKSPACE}/certs/mynginx.store.pfx:/app/mynginx.store.pfx" \
                     --entrypoint sh \
                     acme-bookstore-httpapi-host:latest
