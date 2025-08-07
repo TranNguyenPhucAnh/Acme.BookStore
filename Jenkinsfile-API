@@ -67,7 +67,7 @@ pipeline {
                     ls -lh ${env.WORKSPACE}/certs
 
                     docker run -i --name bookstore-debug \
-                    -v "${env.WORKSPACE}/certs/mynginx.store.pfx:/tmp/mynginx.store.pfx" \
+                    -v /var/jenkins_home/workspace/api/certs/mynginx.store.pfx:/tmp/mynginx.store.pfx \
                     --entrypoint sh \
                     acme-bookstore-httpapi-host:latest \
                     -c "ls -l /tmp/mynginx.store.pfx && rm -rf /app/mynginx.store.pfx && cp /tmp/mynginx.store.pfx /app/mynginx.store.pfx"
