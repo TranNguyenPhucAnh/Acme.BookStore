@@ -57,44 +57,26 @@ pipeline {
 		
         stage('Run Container') {
             steps {
-                sh """
-                    # Kiểm tra file và quyền
-                    ls -ld ${env.WORKSPACE}/certs
-                    ls -l ${env.WORKSPACE}/certs/mynginx.store.pfx
-                    if [ ! -f ${env.WORKSPACE}/certs/mynginx.store.pfx ]; then
-                        echo "Error: mynginx.store.pfx is not a file or does not exist"
-                        exit 1
-                    fi
-
-                    # Kiểm tra Docker socket và group
-                    ls -l /var/run/docker.sock
-                    groups jenkins
-
-                    # Tạo named volume và copy file
+                sh '''
+                    # Tạo named volume
                     docker volume create certs-volume
-                    docker run --rm -v certs-volume:/certs -v ${env.WORKSPACE}/certs:/source busybox sh -c "cp /source/mynginx.store.pfx /certs/"
-
+                    
+                    # Copy file PFX vào volume
+                    docker run --rm -v certs-volume:/certs -v ${WORKSPACE}/certs:/source busybox \
+                        sh -c "cp /source/mynginx.store.pfx /certs/mynginx.store.pfx"
+                    
+                    # Xóa container cũ nếu tồn tại
                     docker rm -f bookstore-debug || true
+                    
+                    # Build image
                     docker build -t acme-bookstore-httpapi-host:latest -f src/Acme.BookStore.HttpApi.Host/Dockerfile .
-
-                    echo WORKSPACE: ${env.WORKSPACE}
-                    ls -lh ${env.WORKSPACE}/certs
-
-                    # Mount named volume và debug
+                    
+                    # Run container với mount volume vào /app
                     docker run --rm -i --name bookstore-debug \
-                    -v certs-volume:/tmp \
-                    --entrypoint sh \
-                    acme-bookstore-httpapi-host:latest \
-                    -c "echo '==> Checking if /tmp/mynginx.store.pfx exists...'; \
-                        ls -ld /tmp/mynginx.store.pfx && file /tmp/mynginx.store.pfx; \
-                        test -f /tmp/mynginx.store.pfx || exit 1; \
-                        echo '==> Removing existing /app/mynginx.store.pfx (if any)...'; \
-                        rm -f /app/mynginx.store.pfx || true; \
-                        echo '==> Copying cert to /app/'; \
-                        cp /tmp/mynginx.store.pfx /app/mynginx.store.pfx || exit 1; \
-                        echo '==> Verifying copied file:'; \
-                        ls -l /app/mynginx.store.pfx"
-                """
+                        -v certs-volume:/app \
+                        --entrypoint sh \
+                        acme-bookstore-httpapi-host:latest
+                '''
             }
         }
 
