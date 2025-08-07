@@ -55,17 +55,17 @@ pipeline {
 		
         stage('Run Container') {
             steps {
-                sh '''
+                sh """
                     docker rm -f bookstore-debug || true
 
                     docker build -t acme-bookstore-httpapi-host:latest -f src/Acme.BookStore.HttpApi.Host/Dockerfile .
-                    
+
                     docker run -i --name bookstore-debug \
                     -v ${env.WORKSPACE}/mynginx.store.pfx:/app/mynginx.store.pfx:z \
                     --entrypoint sh \
                     acme-bookstore-httpapi-host:latest \
-                     -c "ls -ld /app/mynginx.store.pfx && test -f /app/mynginx.store.pfx"
-                '''
+                    -c "ls -ld /app/mynginx.store.pfx && test -f /app/mynginx.store.pfx"
+                """
             }
         }
 
