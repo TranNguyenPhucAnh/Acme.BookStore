@@ -64,7 +64,7 @@ pipeline {
                     -v ${env.WORKSPACE}:/app:z \
                     --entrypoint sh \
                     acme-bookstore-httpapi-host:latest \
-                    -c "ls -ld /app/mynginx.store.pfx && test -f /app/mynginx.store.pfx"
+                    -c "ls -ld /app/mynginx.store.pfx"
                 """
             }
         }
