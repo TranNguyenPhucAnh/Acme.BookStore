@@ -39,6 +39,4 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 
-# ENTRYPOINT ["dotnet", "Acme.BookStore.HttpApi.Host.dll"]
-ENTRYPOINT ["tail", "-f", "/dev/null"]
-# The above ENTRYPOINT is used to keep the container running for debugging purposes.
+ENTRYPOINT ["dotnet", "Acme.BookStore.HttpApi.Host.dll"]
