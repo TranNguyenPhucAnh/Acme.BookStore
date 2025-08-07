@@ -68,8 +68,6 @@ pipeline {
 
                     docker run -d --name bookstore-backend -p 8080:8080 -p 8081:8081 \
                     acme-bookstore-httpapi-host:latest
-
-                    docker exec bookstore-backend bash -c "/root/.dotnet/tools/abp install-libs"
                     """
             }
         }
