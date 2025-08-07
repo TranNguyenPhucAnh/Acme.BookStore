@@ -24,10 +24,8 @@ pipeline {
             steps {
                 withCredentials([file(credentialsId: 'ssl-certificate', variable: 'PFX_FILE')]) {
                      sh """
-                        mkdir -p "${env.WORKSPACE}/certs"
-                        chmod 775 "${env.WORKSPACE}/certs"
-                        cp "$PFX_FILE" "${env.WORKSPACE}/certs/mynginx.store.pfx"
-                        chmod 664 "${env.WORKSPACE}/certs/mynginx.store.pfx"
+                        cp "$PFX_FILE" "${env.WORKSPACE}/mynginx.store.pfx"
+                        chmod 664 "${env.WORKSPACE}/mynginx.store.pfx"
                     """
                 }
             }
@@ -58,24 +56,15 @@ pipeline {
         stage('Run Container') {
             steps {
                 sh '''
-                    # Tạo named volume
-                    docker volume create certs-volume
-                    
-                    # Copy file PFX vào volume
-                    docker run --rm -v certs-volume:/certs -v ${WORKSPACE}/certs:/source busybox \
-                        sh -c "cp /source/mynginx.store.pfx /certs/mynginx.store.pfx"
-                    
-                    # Xóa container cũ nếu tồn tại
                     docker rm -f bookstore-debug || true
-                    
-                    # Build image
+
                     docker build -t acme-bookstore-httpapi-host:latest -f src/Acme.BookStore.HttpApi.Host/Dockerfile .
                     
-                    # Run container với mount volume vào /app
-                    docker run --rm -i --name bookstore-debug \
-                        -v certs-volume:/app \
-                        --entrypoint sh \
-                        acme-bookstore-httpapi-host:latest
+                    docker run -i --name bookstore-debug \
+                    -v ${env.WORKSPACE}/mynginx.store.pfx:/app/mynginx.store.pfx:z \
+                    --entrypoint sh \
+                    acme-bookstore-httpapi-host:latest \
+                     -c "ls -ld /app/mynginx.store.pfx && test -f /app/mynginx.store.pfx"
                 '''
             }
         }
