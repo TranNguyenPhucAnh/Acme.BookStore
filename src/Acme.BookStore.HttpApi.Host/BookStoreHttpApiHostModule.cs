@@ -20,6 +20,7 @@ using Volo.Abp;
 using Volo.Abp.Account;
 using Volo.Abp.Account.Web;
 using Volo.Abp.AspNetCore.Mvc;
+using Volo.Abp.AspNetCore.Mvc.Libs;
 using Volo.Abp.AspNetCore.Mvc.UI.Bundling;
 using Volo.Abp.AspNetCore.Mvc.UI.Theme.LeptonXLite;
 using Volo.Abp.AspNetCore.Mvc.UI.Theme.LeptonXLite.Bundling;
@@ -147,6 +148,11 @@ public class BookStoreHttpApiHostModule : AbpModule
 
     private void ConfigureBundles()
     {
+        Configure<AbpMvcLibsOptions>(options =>
+        {
+            options.CheckLibs = false;
+        });
+        
         Configure<AbpBundlingOptions>(options =>
         {
             options.StyleBundles.Configure(
