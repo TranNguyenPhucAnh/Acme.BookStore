@@ -36,6 +36,4 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 
-COPY entrypoint.sh /app/entrypoint.sh
-RUN chmod +x /app/entrypoint.sh
-ENTRYPOINT ["/app/entrypoint.sh"]
+ENTRYPOINT ["dotnet", "Acme.BookStore.HttpApi.Host.dll"]
