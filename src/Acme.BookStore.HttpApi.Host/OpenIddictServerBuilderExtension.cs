@@ -15,7 +15,7 @@ public static class OpenIddictServerBuilderExtension
         try
             {
                 Console.WriteLine($"Open the pfx file: {fileName}");
-                File.Open(fileName, FileMode.Open).Dispose(); // Ensure the file exists
+                File.OpenRead(fileName).Dispose(); // Ensure the file exists
 
                 Console.WriteLine($"Attempting to load PFX file: {fileName}");
                 var certificate = flag != null
