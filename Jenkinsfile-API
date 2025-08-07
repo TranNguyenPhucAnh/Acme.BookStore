@@ -25,7 +25,7 @@ pipeline {
                 withCredentials([file(credentialsId: 'ssl-certificate', variable: 'PFX_FILE')]) {
                      sh """
                         mkdir -p "${env.WORKSPACE}/certs"
-                        chmod 666 "${env.WORKSPACE}/certs"
+                        chmod 775 "${env.WORKSPACE}/certs"
                         cp "$PFX_FILE" "${env.WORKSPACE}/certs/mynginx.store.pfx"
                         chmod 666 "${env.WORKSPACE}/certs/mynginx.store.pfx"
                         ls -l "${env.WORKSPACE}/certs/mynginx.store.pfx"
