@@ -43,6 +43,6 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 
-# ENTRYPOINT ["dotnet", "Acme.BookStore.HttpApi.Host.dll"]
-#ENTRYPOINT ["sh", "-c", "id && ls -l /app/mynginx.store.pfx && dotnet Acme.BookStore.HttpApi.Host.dll"]
-ENTRYPOINT ["sh", "-c", "id && chmod 644 /app/mynginx.store.pfx && ls -l /app/mynginx.store.pfx && dotnet Acme.BookStore.HttpApi.Host.dll"]
+COPY entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+ENTRYPOINT ["/app/entrypoint.sh"]
