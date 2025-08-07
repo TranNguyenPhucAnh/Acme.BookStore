@@ -7,13 +7,16 @@ public static class OpenIddictServerBuilderExtension
 {
     public static OpenIddictServerBuilder AddProductionEncryptionAndSigningCertificate(this OpenIddictServerBuilder builder, string fileName, string passPhrase, X509KeyStorageFlags? flag = null)
     {
-        if (!File.Exists(fileName))
-        {
-            throw new FileNotFoundException($"Signing Certificate couldn't found: {fileName}");
-        }
+        // if (!File.Exists(fileName))
+        // {
+        //     throw new FileNotFoundException($"Signing Certificate couldn't found: {fileName}");
+        // }
 
         try
             {
+                Console.WriteLine($"Open the pfx file: {fileName}");
+                File.Open(fileName, FileMode.Open).Dispose(); // Ensure the file exists
+
                 Console.WriteLine($"Attempting to load PFX file: {fileName}");
                 var certificate = flag != null
                     ? X509CertificateLoader.LoadPkcs12FromFile(fileName, passPhrase, flag.Value)
