@@ -20,7 +20,6 @@ using Volo.Abp;
 using Volo.Abp.Account;
 using Volo.Abp.Account.Web;
 using Volo.Abp.AspNetCore.Mvc;
-using Volo.Abp.AspNetCore.Mvc.Libs;
 using Volo.Abp.AspNetCore.Mvc.UI.Bundling;
 using Volo.Abp.AspNetCore.Mvc.UI.Theme.LeptonXLite;
 using Volo.Abp.AspNetCore.Mvc.UI.Theme.LeptonXLite.Bundling;
@@ -67,29 +66,27 @@ public class BookStoreHttpApiHostModule : AbpModule
             });
         });
 
-        // if (!hostingEnvironment.IsDevelopment())
-        // {
-        //     PreConfigure<AbpOpenIddictAspNetCoreOptions>(options =>
-        //     {
-        //         //options.AddDevelopmentEncryptionAndSigningCertificate = false;
-        //     });
+        if (!hostingEnvironment.IsDevelopment())
+        {
+            PreConfigure<AbpOpenIddictAspNetCoreOptions>(options =>
+            {
+                options.AddDevelopmentEncryptionAndSigningCertificate = false;
+            });
 
-        //     PreConfigure<OpenIddictServerBuilder>(serverBuilder =>
-        //     {
-        //         // In production, it is recommended to use two RSA certificates, one for encryption, one for signing
-        //         //OpenIddictServerBuilderExtension.AddProductionEncryptionAndSigningCertificate(
-        //         //    serverBuilder, "mynginx.store.pfx", configuration["AuthServer:CertificatePassPhrase"]!,
-        //         //   X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.EphemeralKeySet
-        //         //    );
+            PreConfigure<OpenIddictServerBuilder>(serverBuilder =>
+            {
+                // In production, it is recommended to use two RSA certificates, one for encryption, one for signing
+                OpenIddictServerBuilderExtension.AddProductionEncryptionAndSigningCertificate(
+                    serverBuilder, "mynginx.store", configuration["AuthServer:CertificatePassPhrase"]!);
                 
-        //         //serverBuilder.SetIssuer(new Uri(configuration["AuthServer:Authority"]!));
-        //         // Increased the lifetime of authorization code and access token
-        //         //serverBuilder.SetAccessTokenLifetime(TimeSpan.FromDays(365));
-        //         //serverBuilder.SetAuthorizationCodeLifetime(TimeSpan.FromDays(365));
-        //         //serverBuilder.SetIdentityTokenLifetime(TimeSpan.FromDays(365));
-        //         //serverBuilder.SetRefreshTokenLifetime(TimeSpan.FromDays(365));
-        //     });
-        // }
+                serverBuilder.SetIssuer(new Uri(configuration["AuthServer:Authority"]!));
+                // Increased the lifetime of authorization code and access token
+                serverBuilder.SetAccessTokenLifetime(TimeSpan.FromDays(365));
+                serverBuilder.SetAuthorizationCodeLifetime(TimeSpan.FromDays(365));
+                //serverBuilder.SetIdentityTokenLifetime(TimeSpan.FromDays(365));
+                //serverBuilder.SetRefreshTokenLifetime(TimeSpan.FromDays(365));
+            });
+        }
     }
 
     public override void ConfigureServices(ServiceConfigurationContext context)
@@ -148,11 +145,6 @@ public class BookStoreHttpApiHostModule : AbpModule
 
     private void ConfigureBundles()
     {
-        Configure<AbpMvcLibsOptions>(options =>
-        {
-            options.CheckLibs = false;
-        });
-        
         Configure<AbpBundlingOptions>(options =>
         {
             options.StyleBundles.Configure(
