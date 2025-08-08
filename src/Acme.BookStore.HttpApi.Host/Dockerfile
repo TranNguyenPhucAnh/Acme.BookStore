@@ -39,5 +39,7 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 
+RUN mkdir -p /app/certs && chmod -R 775 /app/certs
+
 ENTRYPOINT ["dotnet", "Acme.BookStore.HttpApi.Host.dll"]
 # ENTRYPOINT ["tail", "-f", "/dev/null"]
