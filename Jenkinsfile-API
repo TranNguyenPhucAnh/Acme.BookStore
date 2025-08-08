@@ -32,7 +32,9 @@ pipeline {
                     """
                 }
             }
+        }
 
+        stage('Setup Signing Certificate') {
             steps {
                 withCredentials([certificate(credentialsId: 'encryption-certificate', keystoreVariable: 'ENC_FILE')]) {
                     sh """
