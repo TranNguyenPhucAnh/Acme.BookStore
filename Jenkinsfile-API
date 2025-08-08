@@ -22,7 +22,7 @@ pipeline {
 		
         stage('Setup Certificate') {
             steps {
-                withCredentials([certificate(credentialsId: 'pfx-certificate', keystoreVariable: 'PFX_FILE')]) {
+                withCredentials([file(credentialsId: 'ssl-certificate', variable: 'PFX_FILE')]) {
                     sh """
                         cp "$PFX_FILE" "${env.WORKSPACE}/mynginx.store.pfx"
                         chmod 664 "${env.WORKSPACE}/mynginx.store.pfx"
