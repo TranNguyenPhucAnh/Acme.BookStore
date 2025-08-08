@@ -74,8 +74,10 @@ pipeline {
 
                     docker build -t acme-bookstore-httpapi-host:latest -f src/Acme.BookStore.HttpApi.Host/Dockerfile .
 
-                    docker run -d --name bookstore-backend \
+                    docker run -d --name bookstore-backend -p 8080:8080 -p 8081:8081 \
                     -v /var/lib/docker/volumes/jenkins_home/_data/workspace/api/certs:/app/certs \
+                    --network net \
+                    --link acme.bookstore.httpapi.host \
                     acme-bookstore-httpapi-host:latest
                 """
             }
