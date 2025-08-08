@@ -20,12 +20,24 @@ pipeline {
             }
         }
 		
-        stage('Setup Certificate') {
+        stage('Setup Signing Certificate') {
             steps {
                 withCredentials([certificate(credentialsId: 'pfx-certificate', keystoreVariable: 'PFX_FILE')]) {
                     sh """
-                        cp "$PFX_FILE" "${env.WORKSPACE}/mynginx.store.pfx"
-                        chmod 664 "${env.WORKSPACE}/mynginx.store.pfx"
+                        mkdir -p "${env.WORKSPACE}/certs"
+                        chmod 775 "${env.WORKSPACE}/certs"
+
+                        cp "$PFX_FILE" "${env.WORKSPACE}/certs/mynginx.store.pfx"
+                        chmod 664 "${env.WORKSPACE}/certs/mynginx.store.pfx"
+                    """
+                }
+            }
+
+            steps {
+                withCredentials([certificate(credentialsId: 'encryption-certificate', keystoreVariable: 'ENC_FILE')]) {
+                    sh """
+                        cp "$ENC_FILE" "${env.WORKSPACE}/certs/enc.pfx"
+                        chmod 664 "${env.WORKSPACE}/certs/enc.pfx"
                     """
                 }
             }
@@ -61,7 +73,7 @@ pipeline {
                     docker build -t acme-bookstore-httpapi-host:latest -f src/Acme.BookStore.HttpApi.Host/Dockerfile .
 
                     docker run -i --name bookstore-backend \
-                    -v /var/lib/docker/volumes/jenkins_home/_data/workspace/api/mynginx.store.pfx:/app/mynginx.store.pfx \
+                    -v /var/lib/docker/volumes/jenkins_home/_data/workspace/api/certs:/app/certs \
                     acme-bookstore-httpapi-host:latest
                 """
             }
