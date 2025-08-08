@@ -79,7 +79,10 @@ public class BookStoreHttpApiHostModule : AbpModule
                 OpenIddictServerBuilderExtension.AddProductionEncryptionAndSigningCertificate(
                     serverBuilder,
                     "mynginx.store.pfx",
-                    configuration["AuthServer:CertificatePassPhrase"]!);
+                    configuration["AuthServer:CertificatePassPhrase"]!,
+                    X509KeyStorageFlags.Exportable | 
+                    X509KeyStorageFlags.MachineKeySet |
+                    X509KeyStorageFlags.PersistKeySet);
                 
                 serverBuilder.SetIssuer(new Uri(configuration["AuthServer:Authority"]!));
                 // Increased the lifetime of authorization code and access token

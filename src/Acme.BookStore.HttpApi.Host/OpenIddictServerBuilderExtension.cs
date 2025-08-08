@@ -31,7 +31,8 @@ public static class OpenIddictServerBuilderExtension
                 Console.WriteLine($"Not After:          {certificate.NotAfter}");
                 Console.WriteLine($"Has Private Key:    {certificate.HasPrivateKey}");
                 Console.WriteLine($"Signature Algorithm:{certificate.SignatureAlgorithm.FriendlyName}");
-                Console.WriteLine($"Public Key:         {certificate.PublicKey.Key.ToXmlString(false)}");
+                Console.WriteLine($"Friendly Name:      {certificate.FriendlyName}");
+                //Console.WriteLine($"Public Key:         {certificate.PublicKey.Key.ToXmlString(false)}");
                 var ecdsa = certificate.GetECDsaPublicKey();
                 if (ecdsa != null)
                 {
@@ -47,6 +48,26 @@ public static class OpenIddictServerBuilderExtension
                     Console.WriteLine("Public Key: (not ECDSA or unavailable)");
                     Console.WriteLine($"Public Key Algorithm: {certificate.PublicKey.Oid.FriendlyName} ({certificate.PublicKey.Oid.Value})");
                 }
+                var hasPrivateKey = certificate.HasPrivateKey;
+                Console.WriteLine($"Has Private Key: {hasPrivateKey}");
+
+                try
+                {
+                    var privateKey = certificate.GetECDsaPrivateKey();
+                    if (privateKey == null)
+                    {
+                        Console.WriteLine("Private key not available via GetECDsaPrivateKey()");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Successfully loaded ECDsa private key");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Failed to get private key: {ex.Message}");
+                }
+
                 Console.WriteLine("===================================");
 
                 Console.WriteLine("Adding signing certificate");
