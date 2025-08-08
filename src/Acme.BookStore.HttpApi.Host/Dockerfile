@@ -39,5 +39,5 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 
-# ENTRYPOINT ["dotnet", "Acme.BookStore.HttpApi.Host.dll"]
-ENTRYPOINT ["tail", "-f", "/dev/null"]
+ENTRYPOINT ["dotnet", "Acme.BookStore.HttpApi.Host.dll"]
+# ENTRYPOINT ["tail", "-f", "/dev/null"]
