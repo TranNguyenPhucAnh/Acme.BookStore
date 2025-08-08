@@ -62,7 +62,6 @@ pipeline {
 
                     docker run -i --name bookstore-backend \
                     -v /var/lib/docker/volumes/jenkins_home/_data/workspace/api/mynginx.store.pfx:/app/mynginx.store.pfx \
-                    --entrypoint sh \
                     acme-bookstore-httpapi-host:latest
                 """
             }
