@@ -22,7 +22,7 @@ pipeline {
 		
         stage('Setup Certificate') {
             steps {
-                withCredentials([file(credentialsId: 'ssl-certificate', variable: 'PFX_FILE')]) {
+                withCredentials([certificate(credentialsId: 'pfx-certificate', keystoreVariable: 'PFX_FILE')]) {
                     sh """
                         cp "$PFX_FILE" "${env.WORKSPACE}/mynginx.store.pfx"
                         chmod 664 "${env.WORKSPACE}/mynginx.store.pfx"
@@ -62,6 +62,7 @@ pipeline {
 
                     docker run -i --name bookstore-backend \
                     -v /var/lib/docker/volumes/jenkins_home/_data/workspace/api/mynginx.store.pfx:/app/mynginx.store.pfx \
+                    --entrypoint sh \
                     acme-bookstore-httpapi-host:latest
                 """
             }

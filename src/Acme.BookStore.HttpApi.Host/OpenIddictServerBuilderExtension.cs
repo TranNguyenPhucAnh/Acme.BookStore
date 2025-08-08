@@ -48,6 +48,7 @@ public static class OpenIddictServerBuilderExtension
                     Console.WriteLine("Public Key: (not ECDSA or unavailable)");
                     Console.WriteLine($"Public Key Algorithm: {certificate.PublicKey.Oid.FriendlyName} ({certificate.PublicKey.Oid.Value})");
                 }
+                
                 var hasPrivateKey = certificate.HasPrivateKey;
                 Console.WriteLine($"Has Private Key: {hasPrivateKey}");
 
