@@ -15,7 +15,6 @@ using OpenIddict.Validation.AspNetCore;
 using System;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 using Volo.Abp;
 using Volo.Abp.Account;
 using Volo.Abp.Account.Web;
