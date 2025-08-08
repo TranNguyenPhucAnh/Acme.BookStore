@@ -49,11 +49,7 @@ public static class OpenIddictServerBuilderExtension
                 Console.WriteLine("===================================");
 
                 Console.WriteLine("Adding signing certificate");
-                // Use SecurityKey to handle ECDSA explicitly
-                var securityKey = new X509SecurityKey(certificate);
-
-                builder.AddSigningKey(securityKey);
-                // builder.AddSigningCertificate(certificate);
+                builder.AddSigningCertificate(certificate);
                 Console.WriteLine("Signing certificate added");
 
                 Console.WriteLine("Adding encryption certificate");
