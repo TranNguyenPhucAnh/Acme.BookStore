@@ -33,7 +33,6 @@ public static class OpenIddictServerBuilderExtension
             // }, SecurityAlgorithms.EcdsaSha256);
 
             Console.WriteLine("Adding signing credential");
-
             builder.AddSigningCredentials(
             new SigningCredentials(
                 new ECDsaSecurityKey(certificate.GetECDsaPrivateKey()),
@@ -43,6 +42,7 @@ public static class OpenIddictServerBuilderExtension
 
             Console.WriteLine("Adding encryption certificate");
 
+            //actually, encrytion certificate/credential is optional, onyl add it if the client requires
             if (!File.Exists("/app/certs/enc.pfx"))
             {
                 throw new FileNotFoundException($"Encryption Certificate couldn't found: {"/app/certs/enc.pfx"}");
