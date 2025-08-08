@@ -43,17 +43,17 @@ public static class OpenIddictServerBuilderExtension
 
             Console.WriteLine("Adding encryption certificate");
 
-            if (!File.Exists("enc.pfx"))
+            if (!File.Exists("/app/certs/enc.pfx"))
             {
-                throw new FileNotFoundException($"Encryption Certificate couldn't found: {"enc.pfx"}");
+                throw new FileNotFoundException($"Encryption Certificate couldn't found: {"/app/certs/enc.pfx"}");
             }
             var encryptionCertPassword = configuration["OpenIddict:EncryptionCertificate:Password"]!;
 
-            Console.WriteLine($"Attempting to load encyption file: enc.pfx");
+            Console.WriteLine($"Attempting to load encyption file: /app/certs/enc.pfx");
 
             var enc = flag != null
-                ? X509CertificateLoader.LoadPkcs12FromFile("/certs/enc.pfx", encryptionCertPassword, flag.Value)
-                : X509CertificateLoader.LoadPkcs12FromFile("/certs/enc.pfx", encryptionCertPassword);
+                ? X509CertificateLoader.LoadPkcs12FromFile("/app/certs/enc.pfx", encryptionCertPassword, flag.Value)
+                : X509CertificateLoader.LoadPkcs12FromFile("/app/certs/enc.pfx", encryptionCertPassword);
 
             builder.AddEncryptionCertificate(enc);
 

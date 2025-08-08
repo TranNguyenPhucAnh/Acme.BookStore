@@ -79,7 +79,7 @@ public class BookStoreHttpApiHostModule : AbpModule
                 OpenIddictServerBuilderExtension.AddProductionEncryptionAndSigningCertificate(
                     serverBuilder,
                     configuration,
-                    "/certs/mynginx.store.pfx",
+                    "/app/certs/mynginx.store.pfx",
                     configuration["AuthServer:CertificatePassPhrase"]!);
                 
                 serverBuilder.SetIssuer(new Uri(configuration["AuthServer:Authority"]!));
