@@ -34,7 +34,7 @@ pipeline {
             }
         }
 
-        stage('Setup Signing Certificate') {
+        stage('Setup Encryption Certificate') {
             steps {
                 withCredentials([certificate(credentialsId: 'encryption-certificate', keystoreVariable: 'ENC_FILE')]) {
                     sh """
