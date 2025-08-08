@@ -30,18 +30,30 @@ public static class OpenIddictServerBuilderExtension
                 Console.WriteLine($"Not Before:         {certificate.NotBefore}");
                 Console.WriteLine($"Not After:          {certificate.NotAfter}");
                 Console.WriteLine($"Has Private Key:    {certificate.HasPrivateKey}");
-                Console.WriteLine($"Friendly Name:      {certificate.FriendlyName}");
                 Console.WriteLine($"Signature Algorithm:{certificate.SignatureAlgorithm.FriendlyName}");
-                Console.WriteLine($"Public Key:         {certificate.PublicKey.Key.ToXmlString(false)}");
-                Console.WriteLine($"Public Key Algorithm: {certificate.PublicKey.Key.KeyExchangeAlgorithm ?? certificate.PublicKey.Key.SignatureAlgorithm}");
+                var ecdsa = certificate.GetECDsaPublicKey();
+                if (ecdsa != null)
+                {
+                    var parameters = ecdsa.ExportParameters(false);
+                    Console.WriteLine("Public Key:");
+                    Console.WriteLine($"  Curve: {parameters.Curve.Oid.FriendlyName}");
+                    Console.WriteLine($"  Q.X:   {Convert.ToBase64String(parameters.Q.X)}");
+                    Console.WriteLine($"  Q.Y:   {Convert.ToBase64String(parameters.Q.Y)}");
+                    Console.WriteLine($"Public Key Algorithm: ECDSA ({parameters.Curve.Oid.Value})");
+                }
+                else
+                {
+                    Console.WriteLine("Public Key: (not ECDSA or unavailable)");
+                    Console.WriteLine($"Public Key Algorithm: {certificate.PublicKey.Oid.FriendlyName} ({certificate.PublicKey.Oid.Value})");
+                }
                 Console.WriteLine("===================================");
 
                 Console.WriteLine("Adding signing certificate");
                 // Use SecurityKey to handle ECDSA explicitly
                 var securityKey = new X509SecurityKey(certificate);
-                
+
                 builder.AddSigningKey(securityKey);
-                builder.AddSigningCertificate(certificate);
+                // builder.AddSigningCertificate(certificate);
                 Console.WriteLine("Signing certificate added");
 
                 Console.WriteLine("Adding encryption certificate");
