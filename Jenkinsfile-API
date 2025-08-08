@@ -77,7 +77,7 @@ pipeline {
                     docker run -d --name bookstore-backend -p 8080:8080 -p 8081:8081 \
                     -v /var/lib/docker/volumes/jenkins_home/_data/workspace/api/certs:/app/certs \
                     --network net \
-                    --link acme.bookstore.httpapi.host \
+                    --link mysql \
                     acme-bookstore-httpapi-host:latest
                 """
             }
