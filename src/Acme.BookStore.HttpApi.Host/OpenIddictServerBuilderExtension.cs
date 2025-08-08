@@ -21,6 +21,19 @@ public static class OpenIddictServerBuilderExtension
 
                 Console.WriteLine("PFX file loaded successfully");
 
+                Console.WriteLine("===== Certificate Information =====");
+                Console.WriteLine($"Subject:            {certificate.Subject}");
+                Console.WriteLine($"Issuer:             {certificate.Issuer}");
+                Console.WriteLine($"Thumbprint:         {certificate.Thumbprint}");
+                Console.WriteLine($"Serial Number:      {certificate.SerialNumber}");
+                Console.WriteLine($"Not Before:         {certificate.NotBefore}");
+                Console.WriteLine($"Not After:          {certificate.NotAfter}");
+                Console.WriteLine($"Has Private Key:    {certificate.HasPrivateKey}");
+                Console.WriteLine($"Friendly Name:      {certificate.FriendlyName}");
+                Console.WriteLine($"Signature Algorithm:{certificate.SignatureAlgorithm.FriendlyName}");
+                Console.WriteLine($"Public Key:         {certificate.PublicKey.Key.ToXmlString(false)}");
+                Console.WriteLine("===================================");
+
                 Console.WriteLine("Adding signing certificate");
                 builder.AddSigningCertificate(certificate);
                 Console.WriteLine("Signing certificate added");
