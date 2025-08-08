@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 
 public static class OpenIddictServerBuilderExtension
 {
@@ -32,9 +33,14 @@ public static class OpenIddictServerBuilderExtension
                 Console.WriteLine($"Friendly Name:      {certificate.FriendlyName}");
                 Console.WriteLine($"Signature Algorithm:{certificate.SignatureAlgorithm.FriendlyName}");
                 Console.WriteLine($"Public Key:         {certificate.PublicKey.Key.ToXmlString(false)}");
+                Console.WriteLine($"Public Key Algorithm: {certificate.PublicKey.Key.KeyExchangeAlgorithm ?? certificate.PublicKey.Key.SignatureAlgorithm}");
                 Console.WriteLine("===================================");
 
                 Console.WriteLine("Adding signing certificate");
+                // Use SecurityKey to handle ECDSA explicitly
+                var securityKey = new X509SecurityKey(certificate);
+                
+                builder.AddSigningKey(securityKey);
                 builder.AddSigningCertificate(certificate);
                 Console.WriteLine("Signing certificate added");
 
