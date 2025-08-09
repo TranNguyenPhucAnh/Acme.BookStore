@@ -25,13 +25,6 @@ RUN set -eux; \
     apt-get install -y --no-install-recommends nodejs && \
     corepack enable && corepack prepare yarn@stable --activate && \
     \
-    # Cài .NET SDK 9.0 (mới nhất)
-    curl -sSL https://dot.net/v1/dotnet-install.sh -o dotnet-install.sh && \
-    chmod +x dotnet-install.sh && \
-    ./dotnet-install.sh --channel 9.0 --install-dir /usr/share/dotnet && \
-    ln -s /usr/share/dotnet/dotnet /usr/bin/dotnet && \
-    rm dotnet-install.sh && \
-    \
     # Dọn dẹp cache apt
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
