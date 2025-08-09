@@ -2,31 +2,44 @@ FROM jenkins/jenkins:lts
 
 USER root
 
-RUN apt-get update && \
-    apt-get install -y docker.io openssh-client curl gnupg && \
-    curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
-    apt-get install -y nodejs && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
-RUN usermod -aG docker jenkins
-
-RUN mkdir -p /var/jenkins_home/.ssh && \
-    ssh-keyscan github.com > /var/jenkins_home/.ssh/known_hosts
-
-RUN chown -R jenkins:jenkins /var/jenkins_home
-
-RUN apt-get update && \
+# Cài Docker CLI, Node.js 18, Yarn (Corepack), và .NET SDK 9.0
+RUN set -eux; \
+    \
+    # Chuẩn bị SSH known_hosts
+    mkdir -p /var/jenkins_home/.ssh && \
+    ssh-keyscan github.com > /var/jenkins_home/.ssh/known_hosts && \
+    \
+    # Cập nhật và cài gói cần thiết
+    apt-get update && \
     apt-get install -y --no-install-recommends \
         docker.io \
         openssh-client \
         curl \
         gnupg \
-        libicu-dev && \
+        libicu-dev \
+        apt-transport-https \
+        software-properties-common && \
+    \
+    # Cài Node.js 18
     curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
     apt-get install -y --no-install-recommends nodejs && \
     corepack enable && corepack prepare yarn@stable --activate && \
+    \
+    # Cài .NET SDK 9.0 (mới nhất)
+    curl -sSL https://dot.net/v1/dotnet-install.sh -o dotnet-install.sh && \
+    chmod +x dotnet-install.sh && \
+    ./dotnet-install.sh --channel 9.0 --install-dir /usr/share/dotnet && \
+    ln -s /usr/share/dotnet/dotnet /usr/bin/dotnet && \
+    rm dotnet-install.sh && \
+    \
+    # Dọn dẹp cache apt
     apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/* && \
+    \
+    # Fix quyền cho Jenkins home
+    chown -R jenkins:jenkins /var/jenkins_home && \
+    \
+    # Thêm Jenkins user vào nhóm docker
+    usermod -aG docker jenkins
 
 USER jenkins
