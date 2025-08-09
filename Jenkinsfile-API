@@ -34,6 +34,17 @@ pipeline {
             }
         }
 
+        stage('Setup Encryption Certificate') {
+            steps {
+                withCredentials([certificate(credentialsId: 'encryption-certificate', keystoreVariable: 'ENC_FILE')]) {
+                    sh """
+                        cp "$ENC_FILE" "${env.WORKSPACE}/certs/enc.pfx"
+                        chmod 664 "${env.WORKSPACE}/certs/enc.pfx"
+                    """
+                }
+            }
+        }
+
         stage("Restore") {
             steps {
                 dir("${env.WORKSPACE}") {

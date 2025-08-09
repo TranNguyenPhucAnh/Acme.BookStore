@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 
@@ -8,22 +9,24 @@ public static class OpenIddictServerBuilderExtension
 {
     public static OpenIddictServerBuilder AddProductionEncryptionAndSigningCertificate(
         this OpenIddictServerBuilder builder,
-        string fileName,
-        string passPhrase,
+        IConfiguration configuration,
         X509KeyStorageFlags? flag = null)
     {
-        if (!File.Exists(fileName))
+        var signPath = configuration["AuthServer:CertificatePath"];
+        
+        if (!File.Exists(signPath))
         {
-            throw new FileNotFoundException($"Signing Certificate couldn't found: {fileName}");
+            throw new FileNotFoundException($"Signing Certificate couldn't found: {signPath}");
         }
 
         try
         {
-            Console.WriteLine($"Attempting to load PFX file: {fileName}");
-            
+            Console.WriteLine($"Attempting to load PFX file: {signPath}");
+
+            var signPass = configuration["AuthServer:CertificatePassPhrase"];
             var certificate = flag != null
-                ? X509CertificateLoader.LoadPkcs12FromFile(fileName, passPhrase, flag.Value)
-                : X509CertificateLoader.LoadPkcs12FromFile(fileName, passPhrase);
+                ? X509CertificateLoader.LoadPkcs12FromFile(signPath, signPass, flag.Value)
+                : X509CertificateLoader.LoadPkcs12FromFile(signPath, signPass);
 
             // builder.AddSigningCertificate(certificate); signing certificate ECDSA algorithm is not supported by OpenIddict
             // If you want to use ECDSA, you need to use ECDsaSecurityKey instead of X509Certificate2, therefore credential
@@ -41,24 +44,25 @@ public static class OpenIddictServerBuilderExtension
 
             Console.WriteLine("Signing credential added");
 
-            //Console.WriteLine("Adding encryption certificate");
+            Console.WriteLine("Adding encryption certificate");
 
-            //actually, encrytion certificate/credential is optional, only add it if the client requires token encryption
-            // if (!File.Exists("/app/certs/enc.pfx"))
-            // {
-            //     throw new FileNotFoundException($"Encryption Certificate couldn't found: {"/app/certs/enc.pfx"}");
-            // }
-            // var encryptionCertPassword = configuration["OpenIddict:EncryptionCertificate:Password"]!;
+            var encPath = configuration["OpenIddict:EncryptionCertificate:Path"];
 
-            // Console.WriteLine($"Attempting to load encyption file: /app/certs/enc.pfx");
+            if (!File.Exists(encPath))
+            {
+                throw new FileNotFoundException($"Encryption Certificate couldn't found: {encPath}");
+            }
+            var encryptionCertPassword = configuration["OpenIddict:EncryptionCertificate:Password"]!;
 
-            // var enc = flag != null
-            //     ? X509CertificateLoader.LoadPkcs12FromFile("/app/certs/enc.pfx", encryptionCertPassword, flag.Value)
-            //     : X509CertificateLoader.LoadPkcs12FromFile("/app/certs/enc.pfx", encryptionCertPassword);
+            Console.WriteLine($"Attempting to load encyption file: {encPath}");
 
-            // builder.AddEncryptionCertificate(enc);
+            var enc = flag != null
+                ? X509CertificateLoader.LoadPkcs12FromFile(encPath, encryptionCertPassword, flag.Value)
+                : X509CertificateLoader.LoadPkcs12FromFile(encPath, encryptionCertPassword);
 
-            // Console.WriteLine("Encryption certificate added");
+            builder.AddEncryptionCertificate(enc);
+
+            Console.WriteLine("Encryption certificate added");
 
             return builder;
             

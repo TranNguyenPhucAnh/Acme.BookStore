@@ -76,10 +76,7 @@ public class BookStoreHttpApiHostModule : AbpModule
             PreConfigure<OpenIddictServerBuilder>(serverBuilder =>
             {
                 // In production, it is recommended to use two RSA certificates, one for encryption, one for signing
-                OpenIddictServerBuilderExtension.AddProductionEncryptionAndSigningCertificate(
-                    serverBuilder,
-                    configuration["AuthServer:CertificatePath"]!,
-                    configuration["AuthServer:CertificatePassPhrase"]!);
+                OpenIddictServerBuilderExtension.AddProductionEncryptionAndSigningCertificate(serverBuilder, configuration);
                 
                 serverBuilder.SetIssuer(new Uri(configuration["AuthServer:Authority"]!));
                 // Increased the lifetime of authorization code and access token
@@ -151,7 +148,7 @@ public class BookStoreHttpApiHostModule : AbpModule
         {
             options.CheckLibs = false;
         });
-        
+
         Configure<AbpBundlingOptions>(options =>
         {
             options.StyleBundles.Configure(
