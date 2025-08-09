@@ -12,18 +12,20 @@ RUN apt-get update && \
 RUN usermod -aG docker jenkins
 
 RUN mkdir -p /var/jenkins_home/.ssh && \
-ssh-keyscan github.com > /var/jenkins_home/.ssh/known_hosts
+    ssh-keyscan github.com > /var/jenkins_home/.ssh/known_hosts
 
 RUN chown -R jenkins:jenkins /var/jenkins_home
 
-RUN apt-get install -y curl libicu-dev && \
-    curl -sSL https://dot.net/v1/dotnet-install.sh -o dotnet-install.sh && \
-    chmod +x dotnet-install.sh && \
-    ./dotnet-install.sh --version latest --channel 9.0 --install-dir /usr/share/dotnet && \
-    ln -s /usr/share/dotnet/dotnet /usr/bin/dotnet && \
-    rm dotnet-install.sh && \
-    apt-get remove -y curl && \
-    apt-get autoremove -y && \
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        docker.io \
+        openssh-client \
+        curl \
+        gnupg \
+        libicu-dev && \
+    curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+    apt-get install -y --no-install-recommends nodejs && \
+    corepack enable && corepack prepare yarn@stable --activate && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 

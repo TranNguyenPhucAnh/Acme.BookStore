@@ -52,7 +52,6 @@ pipeline {
                             -v ${env.WORKSPACE}/${ANGULAR_DIR}/dynamic-env.json:/usr/share/nginx/html/dynamic-env.json \
                             -v ${VOLUME_PATH}:/usr/share/nginx/html \
                             --network net \
-                            --link acme.bookstore.httpapi.host \
                             ${DOCKER_IMAGE}:${params.BUILD_ENV}
                     """
                 }
