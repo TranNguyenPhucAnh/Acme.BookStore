@@ -28,7 +28,7 @@ pipeline {
 
                         docker build -t ${DOCKER_IMAGE} -f Dockerfile .
 
-                        cp ${VOLUME_PATH}/dynamic-env.json ${VOLUME_PATH}/dist/BookStore/
+                        cp /var/jenkins_home/workspace/frontend/angular/dynamic-env.json ${VOLUME_PATH}/dist/BookStore/
 
                         docker run -d \
                             --name ${CONTAINER_NAME} \
