@@ -27,7 +27,7 @@ RUN dotnet restore "./src/Acme.BookStore.HttpApi.Host/Acme.BookStore.HttpApi.Hos
 COPY . .
 
 RUN apt-get update && apt-get install -y curl \
-    && curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get install -y nodejs \
     && npm install -g npm@latest
 
@@ -50,4 +50,3 @@ COPY --from=publish /app/publish .
 RUN mkdir -p /app/certs && chmod -R 775 /app/certs
 
 ENTRYPOINT ["dotnet", "Acme.BookStore.HttpApi.Host.dll"]
-# ENTRYPOINT ["tail", "-f", "/dev/null"]
