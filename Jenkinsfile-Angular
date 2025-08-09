@@ -32,7 +32,10 @@ pipeline {
         stage("Build") {
             steps {
                 dir("${ANGULAR_DIR}") {
-                    sh "yarn run build -- --configuration=${params.BUILD_ENV}"
+                    sh """
+                    rm -rf dist
+                    yarn run build -- --configuration=${params.BUILD_ENV}
+                    """
                 }
             }
         }
