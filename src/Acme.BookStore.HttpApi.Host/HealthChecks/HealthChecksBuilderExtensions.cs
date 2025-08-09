@@ -22,12 +22,7 @@ public static class HealthChecksBuilderExtensions
 
             // If you don't want to add HealthChecksUI, remove following configurations.
             var configuration = services.GetConfiguration();
-            var healthCheckUrl = configuration["App:HealthCheckUrl"];
-
-            if (string.IsNullOrEmpty(healthCheckUrl))
-            {
-                healthCheckUrl = "http://localhost:44374/health-status"; 
-            }
+            var healthCheckUrl = configuration["App:HealthCheckUrl"]!;
 
             var healthChecksUiBuilder = services.AddHealthChecksUI(settings =>
             {
