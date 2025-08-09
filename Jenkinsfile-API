@@ -45,28 +45,6 @@ pipeline {
             }
         }
 
-        stage("Restore") {
-            steps {
-                dir("${env.WORKSPACE}") {
-                    sh "dotnet restore ${env.SOLUTION_FILE} || exit 1"
-                }
-            }
-        }
-
-        stage("Build") {
-            steps {
-                dir("${env.WORKSPACE}") {
-                    sh "dotnet build ${env.SOLUTION_FILE} -c ${params.BUILD_CONFIG} --no-restore"
-                }
-            }
-        }
-
-        stage("Publish") {
-            steps {
-                sh "dotnet publish src/Acme.BookStore.HttpApi.Host/Acme.BookStore.HttpApi.Host.csproj -c ${params.BUILD_CONFIG} -o ${env.PUBLISH_DIR}"
-            }
-        }
-		
         stage('Run Container') {
             steps {
                 sh """
