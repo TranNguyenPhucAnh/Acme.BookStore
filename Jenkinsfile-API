@@ -3,16 +3,8 @@ pipeline {
 
     parameters {
         string(name: "GIT_BRANCH", defaultValue: "develop", description: "Branch to build")
-        choice(name: "BUILD_CONFIG", choices: ["Release", "Debug"], description: "Build configuration")
     }
-
-    environment {
-        DOTNET_CLI_TELEMETRY_OPTOUT = 1
-        DOTNET_SKIP_FIRST_TIME_EXPERIENCE = 1
-        SOLUTION_FILE = "Acme.BookStore.sln"
-        PUBLISH_DIR = "publish/api"
-    }
-
+    
     stages {
         stage("Checkout") {
             steps {
@@ -59,14 +51,6 @@ pipeline {
                 """
             }
         }
-
-        stage("Archive") {
-            steps {
-                sh "mkdir -p ${env.PUBLISH_DIR}-${BUILD_NUMBER}"
-                sh "mv ${env.PUBLISH_DIR}/* ${env.PUBLISH_DIR}-${BUILD_NUMBER}/"
-                archiveArtifacts artifacts: "${env.PUBLISH_DIR}-${BUILD_NUMBER}/**", fingerprint: true
-            }
-        }
 	}
 
     post {
@@ -79,7 +63,6 @@ pipeline {
 					subject: "Build ${env.JOB_NAME} #${env.BUILD_NUMBER} Failed",
 					body: """Build ${env.JOB_NAME} #${env.BUILD_NUMBER} Failed.
 						Branch: ${params.GIT_BRANCH}
-						Config: ${params.BUILD_CONFIG}
 						View details: ${env.BUILD_URL}""",
 					to: "phucanhatt@gmail.com",
 					from: "support@mynginx.store"
