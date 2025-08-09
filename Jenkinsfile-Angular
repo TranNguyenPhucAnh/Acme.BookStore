@@ -33,7 +33,6 @@ pipeline {
             steps {
                 dir("${ANGULAR_DIR}") {
                     sh """
-                    rm -rf dist
                     yarn run build -- --configuration=${params.BUILD_ENV}
                     """
                 }
