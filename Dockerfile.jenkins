@@ -20,11 +20,6 @@ RUN set -eux; \
         apt-transport-https \
         software-properties-common && \
     \
-    # Cài Node.js 18
-    curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
-    apt-get install -y --no-install-recommends nodejs && \
-    corepack enable && corepack prepare yarn@stable --activate && \
-    \
     # Dọn dẹp cache apt
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \

@@ -3,7 +3,6 @@ pipeline {
 	
     parameters {
         string(name: "GIT_BRANCH", defaultValue: "develop", description: "Branch to build")
-        choice(name: "BUILD_ENV", choices: ["development", "staging", "production"], description: "Build environment")
     }
 
     environment {
@@ -20,24 +19,6 @@ pipeline {
                 git branch: "${params.GIT_BRANCH}", credentialsId: "ssh-git", url: "git@github.com:TranNguyenPhucAnh/Acme.BookStore.git"
             }
         }
-		
-		stage("Install Dependencies") {
-			steps {
-				dir("${ANGULAR_DIR}") {
-					sh "yarn install"
-				}
-			}
-		}
-
-        stage("Build") {
-            steps {
-                dir("${ANGULAR_DIR}") {
-                    sh """
-                    yarn run build -- --configuration=${params.BUILD_ENV}
-                    """
-                }
-            }
-        }
 
         stage("Deploy Container") {
             steps {
@@ -45,16 +26,15 @@ pipeline {
                     sh """
                         docker rm -f ${CONTAINER_NAME} || true
 
-                        docker build -t ${DOCKER_IMAGE}:${params.BUILD_ENV} -f Dockerfile.local .
+                        docker build -t ${DOCKER_IMAGE} -f Dockerfile .
 
                         docker run -d \
                             --name ${CONTAINER_NAME} \
                             -p ${DOCKER_PORT} \
-                            -e NODE_ENV=production \
                             -v ${env.WORKSPACE}/${ANGULAR_DIR}/dynamic-env.json:/usr/share/nginx/html/dynamic-env.json \
                             -v ${VOLUME_PATH}:/usr/share/nginx/html \
                             --network net \
-                            ${DOCKER_IMAGE}:${params.BUILD_ENV}
+                            ${DOCKER_IMAGE}
                     """
                 }
             }
@@ -77,7 +57,6 @@ pipeline {
 				subject: "Build ${env.JOB_NAME} #${env.BUILD_NUMBER} Failed",
 				body: """Build ${env.JOB_NAME} #${env.BUILD_NUMBER} failed.
 					Branch: ${params.GIT_BRANCH}
-					Environment: ${params.BUILD_ENV}
 					View details: ${env.BUILD_URL}""",
 				to: "phucanhatt@gmail.com",
 				from: "support@mynginx.store"
