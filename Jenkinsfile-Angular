@@ -28,6 +28,8 @@ pipeline {
 
                         docker build -t ${DOCKER_IMAGE} -f Dockerfile .
 
+                        cp ./angular/dynamic-env.json /usr/share/nginx/html/dynamic-env.json
+
                         docker run -d \
                             --name ${CONTAINER_NAME} \
                             -p ${DOCKER_PORT} \
