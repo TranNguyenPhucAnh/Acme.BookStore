@@ -144,10 +144,10 @@ public class BookStoreHttpApiHostModule : AbpModule
 
     private void ConfigureBundles()
     {
-        Configure<AbpMvcLibsOptions>(options =>
-        {
-            options.CheckLibs = false;
-        });
+        // Configure<AbpMvcLibsOptions>(options =>
+        // {
+        //     options.CheckLibs = false;
+        // });
 
         Configure<AbpBundlingOptions>(options =>
         {
