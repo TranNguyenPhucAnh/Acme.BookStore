@@ -27,11 +27,7 @@ pipeline {
 
                         docker build -t ${DOCKER_IMAGE} -f Dockerfile .
                     
-                        docker run -d \
-                            --name ${CONTAINER_NAME} \
-                            -p ${DOCKER_PORT} \
-                            --network net \
-                            ${DOCKER_IMAGE}
+                        docker run -d --name ${CONTAINER_NAME} -p ${DOCKER_PORT} --network net ${DOCKER_IMAGE}
                     """
                 }
             }
