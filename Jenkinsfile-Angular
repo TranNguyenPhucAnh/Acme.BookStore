@@ -10,7 +10,6 @@ pipeline {
         DOCKER_IMAGE = "frontend"
         CONTAINER_NAME = "bookstore-frontend"
         DOCKER_PORT = "4200:80"
-        VOLUME_PATH = "/var/lib/docker/volumes/jenkins_home/_data/workspace/frontend/angular"
     }
 
     stages {
@@ -31,7 +30,6 @@ pipeline {
                         docker run -d \
                             --name ${CONTAINER_NAME} \
                             -p ${DOCKER_PORT} \
-                            -v /var/jenkins_home/workspace/frontend/angular/dynamic-env.json:/usr/share/nginx/html/dynamic-env.json \
                             --network net \
                             ${DOCKER_IMAGE}
                     """
