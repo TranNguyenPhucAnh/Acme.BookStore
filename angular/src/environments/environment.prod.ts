@@ -3,7 +3,7 @@ import { Environment } from '@abp/ng.core';
 const baseUrl = 'http://localhost:4200';
 
 const oAuthConfig = {
-  issuer: 'http://localhost:8080/',
+  issuer: 'https://localhost:8081/',
   redirectUri: baseUrl,
   clientId: 'BookStore_App',
   responseType: 'code',
@@ -20,7 +20,7 @@ export const environment = {
   oAuthConfig,
   apis: {
     default: {
-      url: 'http://localhost:8080',
+      url: 'https://localhost:8081',
       rootNamespace: 'Acme.BookStore',
     },
     AbpAccountPublic: {
