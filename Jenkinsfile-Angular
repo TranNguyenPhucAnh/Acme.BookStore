@@ -31,8 +31,8 @@ pipeline {
                         docker run -d \
                             --name ${CONTAINER_NAME} \
                             -p ${DOCKER_PORT} \
-                            -v ${VOLUME_PATH}/dist/BookStore:/usr/share/nginx/html \
                             -v /var/jenkins_home/workspace/frontend/angular/dynamic-env.json:/usr/share/nginx/html/dynamic-env.json \
+                            -v ${VOLUME_PATH}/dist/BookStore:/usr/share/nginx/html \
                             --network net \
                             ${DOCKER_IMAGE}
                     """
