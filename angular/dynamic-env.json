@@ -6,7 +6,7 @@
     "logoUrl": ""
   },
   "oAuthConfig": {
-    "issuer": "https://localhost:8081/",
+    "issuer": "http://localhost:8080/",
     "redirectUri": "http://localhost:4200",
     "clientId": "BookStore_App",
     "responseType": "code",
@@ -14,11 +14,11 @@
   },
   "apis": {
     "default": {
-      "url": "https://localhost:8081",
+      "url": "http://localhost:8080",
       "rootNamespace": "BookStore"
     },
     "AbpAccountPublic": {
-      "url": "https://localhost:8081",
+      "url": "http://localhost:8080",
       "rootNamespace": "AbpAccountPublic"
     }
   }
