@@ -9,7 +9,7 @@ COPY . /app
 RUN yarn build:prod
 
 FROM nginx:alpine
-COPY nginx.conf  /etc/nginx/conf.d/default.conf
 
+COPY nginx.conf  /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist/BookStore /usr/share/nginx/html
-COPY dynamic-env.json  /usr/share/nginx/html/dynamic-env.json
+COPY dynamic-env.json /usr/share/nginx/html

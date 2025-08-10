@@ -32,6 +32,7 @@ pipeline {
                             --name ${CONTAINER_NAME} \
                             -p ${DOCKER_PORT} \
                             -v ${VOLUME_PATH}/dist/BookStore:/usr/share/nginx/html \
+                            - v ${VOLUME_PATH}/dynamic-env.json:/usr/share/nginx/html/dynamic-env.json \
                             --network net \
                             ${DOCKER_IMAGE}
                     """
