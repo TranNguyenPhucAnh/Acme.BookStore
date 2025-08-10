@@ -28,11 +28,10 @@ pipeline {
 
                         docker build -t ${DOCKER_IMAGE} -f Dockerfile .
 
-                        cp /var/jenkins_home/workspace/frontend/angular/dynamic-env.json /usr/share/nginx/html/dynamic-env.json
-
                         docker run -d \
                             --name ${CONTAINER_NAME} \
                             -p ${DOCKER_PORT} \
+                            -volumes-from jenkins_server \
                             -v ${VOLUME_PATH}/dist/BookStore:/usr/share/nginx/html \
                             --network net \
                             ${DOCKER_IMAGE}
