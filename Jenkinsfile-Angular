@@ -1,15 +1,8 @@
 pipeline {
     agent any
-	
-    parameters {
-        string(name: "GIT_BRANCH", defaultValue: "develop", description: "Branch to build")
-    }
-
     environment {
         ANGULAR_DIR = "angular"
-        DOCKER_IMAGE = "frontend"
-        CONTAINER_NAME = "bookstore-frontend"
-        DOCKER_PORT = "4200:80"
+        DIST_DIR = "/var/lib/nginx/html"
     }
 
     stages {
@@ -19,41 +12,24 @@ pipeline {
             }
         }
 
-        stage("Deploy Container") {
+        stage("Build Angular") {
             steps {
                 dir("${ANGULAR_DIR}") {
                     sh """
-                        docker rm -f ${CONTAINER_NAME} || true
-
-                        docker build -t ${DOCKER_IMAGE} -f Dockerfile .
-                    
-                        docker run -d --name ${CONTAINER_NAME} -p ${DOCKER_PORT} --network net ${DOCKER_IMAGE}
+                        yarn install
+                        yarn build:prod
                     """
                 }
             }
         }
 
-        stage("Archive") {
+        stage("Deploy to Nginx Volume") {
             steps {
-                archiveArtifacts artifacts: "${ANGULAR_DIR}/dist/**", fingerprint: true
+                sh """
+                    rm -rf ${DIST_DIR}/*
+                    cp -r ${ANGULAR_DIR}/dist/BookStore/* ${DIST_DIR}/
+                """
             }
         }
     }
-
-	post {
-		success {
-			echo "Build succeeded!"
-		}
-		failure {
-			echo "Build failed!"
-			emailext (
-				subject: "Build ${env.JOB_NAME} #${env.BUILD_NUMBER} Failed",
-				body: """Build ${env.JOB_NAME} #${env.BUILD_NUMBER} failed.
-					Branch: ${params.GIT_BRANCH}
-					View details: ${env.BUILD_URL}""",
-				to: "phucanhatt@gmail.com",
-				from: "support@mynginx.store"
-			)
-		}
-	}
 }
