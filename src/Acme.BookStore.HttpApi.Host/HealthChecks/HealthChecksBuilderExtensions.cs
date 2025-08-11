@@ -14,6 +14,7 @@ public static class HealthChecksBuilderExtensions
     {
         try
         {
+            Console.WriteLine("Adding BookStore Health Checks...");
             // Add your health checks here
             var healthChecksBuilder = services.AddHealthChecks();
             healthChecksBuilder.AddCheck<BookStoreDatabaseCheck>("BookStore DbContext Check", tags: new string[] { "database" });
