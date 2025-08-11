@@ -28,48 +28,6 @@ public static class OpenIddictServerBuilderExtension
                 ? X509CertificateLoader.LoadPkcs12FromFile(signPath, signPass, flag.Value)
                 : X509CertificateLoader.LoadPkcs12FromFile(signPath, signPass);
 
-            Console.WriteLine("Adding signing certificate");
-
-            Console.WriteLine("=== Certificate Information ===");
-            Console.WriteLine($"Subject:        {signCert.Subject}");
-            Console.WriteLine($"Issuer:         {signCert.Issuer}");
-            Console.WriteLine($"Version:        {signCert.Version}");
-            Console.WriteLine($"Not Before:     {signCert.NotBefore}");
-            Console.WriteLine($"Not After:      {signCert.NotAfter}");
-            Console.WriteLine($"Thumbprint:     {signCert.Thumbprint}");
-            Console.WriteLine($"Serial Number:  {signCert.SerialNumber}");
-            Console.WriteLine($"Has PrivateKey: {signCert.HasPrivateKey}");
-            Console.WriteLine($"Signature Alg:  {signCert.SignatureAlgorithm.FriendlyName}");
-
-            // Key algorithm
-            Console.WriteLine($"Public Key Alg: {signCert.PublicKey.Oid.FriendlyName}");
-
-            // Key usage
-            var keyUsage = signCert.Extensions.OfType<X509KeyUsageExtension>().FirstOrDefault();
-            if (keyUsage != null)
-            {
-                Console.WriteLine($"Key Usages:     {keyUsage.KeyUsages}");
-            }
-            else
-            {
-                Console.WriteLine("Key Usages:     (none specified)");
-            }
-
-            // Extended key usage
-            var extKeyUsage = signCert.Extensions.OfType<X509EnhancedKeyUsageExtension>().FirstOrDefault();
-            if (extKeyUsage != null)
-            {
-                Console.WriteLine("Extended Key Usages:");
-                foreach (var oid in extKeyUsage.EnhancedKeyUsages)
-                {
-                    Console.WriteLine($"  - {oid.FriendlyName} ({oid.Value})");
-                }
-            }
-            else
-            {
-                Console.WriteLine("Extended Key Usages: (none specified)");
-            }
-
             builder.AddSigningCertificate(signCert);
 
             Console.WriteLine("Signing certificate added");
