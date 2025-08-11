@@ -12,7 +12,7 @@ public static class OpenIddictServerBuilderExtension
         IConfiguration configuration,
         X509KeyStorageFlags? flag = null)
     {
-        var signPath = configuration["OpenIddict:EncryptionCertificate:Path"];
+        var signPath = configuration["OpenIddict:SigningCertificate:Path"];
         
         if (!File.Exists(signPath))
         {
@@ -23,7 +23,7 @@ public static class OpenIddictServerBuilderExtension
         {
             Console.WriteLine($"Attempting to load Signing Certificate: {signPath}");
 
-            var signPass = configuration["OpenIddict:EncryptionCertificate:Password"];
+            var signPass = configuration["OpenIddict:SigningCertificate:Password"];
             var signCert = flag != null
                 ? X509CertificateLoader.LoadPkcs12FromFile(signPath, signPass, flag.Value)
                 : X509CertificateLoader.LoadPkcs12FromFile(signPath, signPass);
