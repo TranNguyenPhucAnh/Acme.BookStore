@@ -2,7 +2,7 @@ pipeline {
     agent any
     environment {
         ANGULAR_DIR = "angular"
-        DIST_DIR = "/var/lib/nginx/html"
+        DIST_DIR = "/var/lib/docker/volumes/jenkins_home/_data/workspace/frontend/angular/dist/BookStore"
     }
 
     stages {
