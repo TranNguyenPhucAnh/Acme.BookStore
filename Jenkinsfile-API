@@ -44,11 +44,13 @@ pipeline {
 
                     docker build -t acme-bookstore-httpapi-host:latest -f src/Acme.BookStore.HttpApi.Host/Dockerfile .
 
-                    docker run -d --name bookstore-backend -p 8080:8080 -p 8081:8081 \
+                    docker run -d --name bookstore-backend \
+                    -p 8080:8080 \
                     -v /var/lib/docker/volumes/jenkins_home/_data/workspace/api/certs:/app/certs \
-                    -e ASPNETCORE_HTTP_PORTS=8080 \
-                    -e ASPNETCORE_HTTPS_PORTS=8081 \
                     --network net \
+                    -e ASPNETCORE_URLS=http://+:8080 \
+                    -e ASPNETCORE_ENVIRONMENT=Production \
+                    -e App__HealthCheckUrl=http://localhost:8080/health-status \
                     acme-bookstore-httpapi-host:latest
                 """
             }
