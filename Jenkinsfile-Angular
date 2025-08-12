@@ -1,10 +1,5 @@
 pipeline {
-    agent {
-        docker {
-            image 'node:18-alpine'  // Image nhẹ, có Node
-            args '-v /var/lib/docker/volumes/jenkins_home/_data/workspace/frontend/angular/dist/BookStore:/usr/share/nginx/html' // Mount volume để copy sang nginx
-        }
-    }
+    agent any
 
     parameters {
         string(name: "GIT_BRANCH", defaultValue: "develop", description: "Branch to build")
@@ -12,6 +7,9 @@ pipeline {
 
     environment {
         ANGULAR_DIR = "angular"
+        DOCKER_IMAGE = "frontend"
+        CONTAINER_NAME = "bookstore-frontend"
+        DOCKER_PORT = "4200:80"
     }
 
     stages {
@@ -21,48 +19,41 @@ pipeline {
             }
         }
 
-        stage("Install & Build Angular") {
+        stage("Deploy Container") {
             steps {
                 dir("${ANGULAR_DIR}") {
                     sh """
-                        npm install -g yarn
-                        yarn install
-                        yarn build:prod
+                        docker rm -f ${CONTAINER_NAME} || true
+
+                        docker build -t ${DOCKER_IMAGE} -f Dockerfile .
+
+                        docker run -d --name ${CONTAINER_NAME} -p ${DOCKER_PORT} --network net ${DOCKER_IMAGE}
                     """
                 }
             }
         }
 
-        stage("Deploy to Nginx volume") {
-            steps {
-                sh """
-                    rm -rf /usr/share/nginx/html/*
-                    cp -r ${ANGULAR_DIR}/dist/BookStore/* /usr/share/nginx/html/
-                """
-            }
-        }
-
-        stage("Archive Build") {
+        stage("Archive") {
             steps {
                 archiveArtifacts artifacts: "${ANGULAR_DIR}/dist/**", fingerprint: true
             }
         }
     }
 
-    post {
-        success {
-            echo "Build & Deploy succeeded!"
-        }
-        failure {
-            echo "Build failed!"
-            emailext (
-                subject: "Build ${env.JOB_NAME} #${env.BUILD_NUMBER} Failed",
-                body: """Build ${env.JOB_NAME} #${env.BUILD_NUMBER} failed.
-                    Branch: ${params.GIT_BRANCH}
-                    View details: ${env.BUILD_URL}""",
-                to: "phucanhatt@gmail.com",
-                from: "support@mynginx.store"
-            )
-        }
-    }
+	post {
+		success {
+			echo "Build succeeded!"
+		}
+		failure {
+			echo "Build failed!"
+			emailext (
+				subject: "Build ${env.JOB_NAME} #${env.BUILD_NUMBER} Failed",
+				body: """Build ${env.JOB_NAME} #${env.BUILD_NUMBER} failed.
+					Branch: ${params.GIT_BRANCH}
+					View details: ${env.BUILD_URL}""",
+				to: "phucanhatt@gmail.com",
+				from: "support@mynginx.store"
+			)
+		}
+	}
 }
