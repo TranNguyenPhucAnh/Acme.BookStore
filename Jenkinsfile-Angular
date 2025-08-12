@@ -1,8 +1,8 @@
 pipeline {
     agent {
         docker {
-            image 'node:18-alpine'  // Image nhẹ, có Node
-            args '--user root -v /var/lib/docker/volumes/jenkins_home/_data/workspace/frontend/angular/dist/BookStore:/usr/share/nginx/html' // Mount volume để copy sang nginx
+            image 'node:18-alpine'
+            args '-u root -v /var/lib/docker/volumes/jenkins_home/_data/workspace/frontend/angular/dist/BookStore:dist/BookStore'
         }
     }
 
@@ -28,18 +28,8 @@ pipeline {
                         corepack enable yarn
                         yarn install
                         yarn build:prod
-                        ls -l dist/BookStore/
                     """
                 }
-            }
-        }
-
-        stage("Deploy to Nginx volume") {
-            steps {
-                sh """
-                    rm -rf /usr/share/nginx/html/*
-                    cp -r dist/BookStore/* /usr/share/nginx/html/
-                """
             }
         }
 
