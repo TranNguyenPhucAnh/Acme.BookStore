@@ -1,1 +1,9 @@
-﻿
+﻿db-migrator:
+  environment:
+    - OpenIddict__Applications__BookStore_App__RootUrl=https://mynginx.store
+    - OpenIddict__Applications__BookStore_Swagger__RootUrl=https://mynginx.store/swagger
+nginx:
+    volumes:
+    - /root/configs/nginx/mynginx.store.cer:/etc/nginx/certs/mynginx.store.cer:ro
+    - /root/configs/nginx/mynginx.store.key:/etc/nginx/certs/mynginx.store.key:ro
+    - /root/configs/nginx/default.conf:/etc/nginx/conf.d/default.conf
