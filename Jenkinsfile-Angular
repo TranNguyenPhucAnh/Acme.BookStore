@@ -2,7 +2,7 @@ pipeline {
     agent {
         docker {
             image 'node:18-alpine'
-            args '-v /var/lib/docker/volumes/jenkins_home/_data/workspace/frontend/angular/dist/BookStore:/dist/BookStore'
+            args '-u root -v /var/lib/docker/volumes/jenkins_home/_data/workspace/frontend/angular/dist/BookStore:/dist/BookStore'
         }
     }
 
