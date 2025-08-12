@@ -28,7 +28,7 @@ pipeline {
                         corepack enable yarn
                         yarn install
                         yarn build:prod
-                        ls -l
+                        ls -l dist
                     """
                 }
             }
