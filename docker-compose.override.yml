@@ -3,7 +3,9 @@
     - OpenIddict__Applications__BookStore_App__RootUrl=https://mynginx.store
     - OpenIddict__Applications__BookStore_Swagger__RootUrl=https://mynginx.store/swagger
 nginx:
-    volumes:
+    volumes: # create /root/configs/nginx directory before spin up containers 
     - /root/configs/nginx/mynginx.store.cer:/etc/nginx/certs/mynginx.store.cer:ro
     - /root/configs/nginx/mynginx.store.key:/etc/nginx/certs/mynginx.store.key:ro
     - /root/configs/nginx/default.conf:/etc/nginx/conf.d/default.conf
+angular:
+    volumes: # provide full volume mount point for /usr/share/nginx/html
