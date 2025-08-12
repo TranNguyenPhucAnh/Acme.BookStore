@@ -25,7 +25,7 @@ pipeline {
             steps {
                 dir("${ANGULAR_DIR}") {
                     sh """
-                        corepack enable yarn
+                        npm install -g yarn
                         yarn install
                         yarn build:prod
                     """
