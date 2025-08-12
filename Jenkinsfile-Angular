@@ -28,7 +28,7 @@ pipeline {
                         corepack enable yarn
                         yarn install
                         yarn build:prod
-                        ls -l /dist
+                        ls -l
                     """
                 }
             }
@@ -37,7 +37,6 @@ pipeline {
         stage("Deploy to Nginx volume") {
             steps {
                 sh """
-                    ls -l /dist/BookStore/
                     rm -rf /usr/share/nginx/html/*
                     cp -r /dist/BookStore/* /usr/share/nginx/html/
                 """
