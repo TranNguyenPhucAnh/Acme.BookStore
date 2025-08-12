@@ -28,7 +28,6 @@ pipeline {
                         corepack enable yarn
                         yarn install
                         yarn build:prod
-                        ls -l dist
                     """
                 }
             }
@@ -38,8 +37,7 @@ pipeline {
             steps {
                 sh """
                     rm -rf /usr/share/nginx/html/*
-                    ls -l angular/dist/BookStore/
-                    cp -r ${ANGULAR_DIR}/dist/BookStore/* /usr/share/nginx/html/
+                    cp -r dist/BookStore/* /usr/share/nginx/html/
                 """
             }
         }
