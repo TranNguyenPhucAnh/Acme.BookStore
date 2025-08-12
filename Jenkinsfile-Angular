@@ -25,9 +25,10 @@ pipeline {
             steps {
                 dir("${ANGULAR_DIR}") {
                     sh """
-                        corepack enable
+                        corepack enable yarn
                         yarn install
                         yarn build:prod
+                        ls -l dist
                     """
                 }
             }
@@ -37,6 +38,7 @@ pipeline {
             steps {
                 sh """
                     rm -rf /usr/share/nginx/html/*
+                    ls -l angular/dist/BookStore/
                     cp -r ${ANGULAR_DIR}/dist/BookStore/* /usr/share/nginx/html/
                 """
             }
