@@ -1,69 +1,61 @@
 pipeline {
-    agent {
-        docker {
-            image "mcr.microsoft.com/dotnet/sdk:9.0"
-            args "-u root:root -v nuget-cache:/root/.nuget/packages"
-        }
-    }
+    agent any
 
     parameters {
         string(name: "GIT_BRANCH", defaultValue: "develop", description: "Branch to build")
-        choice(name: "BUILD_CONFIG", choices: ["Release", "Debug"], description: "Build configuration")
     }
-
-    environment {
-        DOTNET_CLI_TELEMETRY_OPTOUT = 1
-        DOTNET_SKIP_FIRST_TIME_EXPERIENCE = 1
-        SOLUTION_FILE = "Acme.BookStore.sln"
-        PUBLISH_DIR = "publish/api"
-    }
-
+    
     stages {
         stage("Checkout") {
             steps {
                 git branch: "${params.GIT_BRANCH}", credentialsId: "ssh-git", url: "git@github.com:TranNguyenPhucAnh/Acme.BookStore.git"
             }
         }
-
-        stage("Restore") {
+		
+        stage('Setup Signing Certificate') {
             steps {
-                dir("${env.WORKSPACE}") {
-                    sh "dotnet restore ${env.SOLUTION_FILE} || exit 1"
+                withCredentials([certificate(credentialsId: 'signing-certificate', keystoreVariable: 'SIGN_FILE')]) {
+                    sh """
+                        mkdir -p "${env.WORKSPACE}/certs"
+                        chmod 775 "${env.WORKSPACE}/certs"
+
+                        cp "$SIGN_FILE" "${env.WORKSPACE}/certs/sign.pfx"
+                        chmod 664 "${env.WORKSPACE}/certs/sign.pfx"
+                    """
                 }
             }
         }
 
-        stage("Build") {
+        stage('Setup Encryption Certificate') {
             steps {
-                dir("${env.WORKSPACE}") {
-                    sh "dotnet build ${env.SOLUTION_FILE} -c ${params.BUILD_CONFIG} --no-restore"
+                withCredentials([certificate(credentialsId: 'encryption-certificate', keystoreVariable: 'ENC_FILE')]) {
+                    sh """
+                        cp "$ENC_FILE" "${env.WORKSPACE}/certs/enc.pfx"
+                        chmod 664 "${env.WORKSPACE}/certs/enc.pfx"
+                    """
                 }
             }
         }
 
-        stage("Publish") {
+        stage('Run Container') {
             steps {
-                sh "dotnet publish src/Acme.BookStore.HttpApi.Host/Acme.BookStore.HttpApi.Host.csproj -c ${params.BUILD_CONFIG} -o ${env.PUBLISH_DIR}"
-            }
-        }
+                sh """
+                    docker rm -f bookstore-backend || true
 
-        stage("Archive") {
-            steps {
-                sh "mkdir -p ${env.PUBLISH_DIR}-${BUILD_NUMBER}"
-                sh "mv ${env.PUBLISH_DIR}/* ${env.PUBLISH_DIR}-${BUILD_NUMBER}/"
-                archiveArtifacts artifacts: "${env.PUBLISH_DIR}-${BUILD_NUMBER}/**", fingerprint: true
-            }
-        }
+                    docker build -t acme-bookstore-httpapi-host:latest -f src/Acme.BookStore.HttpApi.Host/Dockerfile .
 
-        stage("Build Docker Image") {
-            when {
-                branch "main"
-            }
-            steps {
-                sh "docker build -t acme-bookstore:${BUILD_NUMBER} -f src/Acme.BookStore.HttpApi.Host/Dockerfile ."
+                    docker run -d --name bookstore-backend \
+                    -p 8080:8080 \
+                    -v /var/lib/docker/volumes/jenkins_home/_data/workspace/api/certs:/app/certs \
+                    --network net \
+                    -e ASPNETCORE_URLS=http://+:8080 \
+                    -e ASPNETCORE_ENVIRONMENT=Production \
+                    -e App__HealthCheckUrl=http://localhost:8080/health-status \
+                    acme-bookstore-httpapi-host:latest
+                """
             }
         }
-    }
+	}
 
     post {
         success {
@@ -72,17 +64,13 @@ pipeline {
         failure {
             echo "Build failed!"
 			emailext (
-					subject: "Build ${env.JOB_NAME} #${env.BUILD_NUMBER} Succeeded",
-					body: """Build ${env.JOB_NAME} #${env.BUILD_NUMBER} completed successfully.
+					subject: "Build ${env.JOB_NAME} #${env.BUILD_NUMBER} Failed",
+					body: """Build ${env.JOB_NAME} #${env.BUILD_NUMBER} Failed.
 						Branch: ${params.GIT_BRANCH}
-						Config: ${params.BUILD_CONFIG}
 						View details: ${env.BUILD_URL}""",
 					to: "phucanhatt@gmail.com",
 					from: "support@mynginx.store"
 				)
-        }
-        always {
-            cleanWs()
         }
     }
 }
