@@ -6,7 +6,7 @@
     "logoUrl": ""
   },
   "oAuthConfig": {
-    "issuer": "https://mynginx.store/",
+    "issuer": "https://mynginx.store",
     "redirectUri": "https://mynginx.store",
     "clientId": "BookStore_App",
     "responseType": "code",
