@@ -210,15 +210,14 @@ public class BookStoreHttpApiHostModule : AbpModule
         //     options.TokenCookie.SecurePolicy = CookieSecurePolicy.Always;
         //     options.TokenCookie.HttpOnly = false;
         // });
-
-        Configure<AntiforgeryOptions>(options =>
+        context.Services.AddAntiforgery(options =>
         {
-            options.Cookie.Name = ".AspNetCore.Antiforgery"; // hoặc giữ nguyên tên auto-gen
+            options.Cookie.Name = ".AspNetCore.Antiforgery";
             options.Cookie.SameSite = SameSiteMode.None;
             options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-            options.Cookie.HttpOnly = true; // cookie hệ thống thì nên giữ HttpOnly
+            options.Cookie.HttpOnly = false;
         });
-
+        
         context.Services.AddCors(options =>
         {
             options.AddDefaultPolicy(builder =>
