@@ -2,16 +2,17 @@
 
 # This stage is used when running from VS in fast mode (Default for Debug configuration)
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
+
 USER $APP_UID
 WORKDIR /app
 EXPOSE 8080
 EXPOSE 8081
 
-
 # This stage is used to build the service project
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
+
 COPY ["NuGet.Config", "."]
 COPY ["src/Acme.BookStore.HttpApi.Host/Acme.BookStore.HttpApi.Host.csproj", "src/Acme.BookStore.HttpApi.Host/"]
 COPY ["src/Acme.BookStore.Application/Acme.BookStore.Application.csproj", "src/Acme.BookStore.Application/"]
@@ -21,9 +22,19 @@ COPY ["src/Acme.BookStore.Application.Contracts/Acme.BookStore.Application.Contr
 COPY ["src/Acme.BookStore.BackgroundWorker/Acme.BookStore.BackgroundWorker.csproj", "src/Acme.BookStore.BackgroundWorker/"]
 COPY ["src/Acme.BookStore.HttpApi/Acme.BookStore.HttpApi.csproj", "src/Acme.BookStore.HttpApi/"]
 COPY ["src/Acme.BookStore.EntityFrameworkCore/Acme.BookStore.EntityFrameworkCore.csproj", "src/Acme.BookStore.EntityFrameworkCore/"]
+
 RUN dotnet restore "./src/Acme.BookStore.HttpApi.Host/Acme.BookStore.HttpApi.Host.csproj"
 COPY . .
+
+RUN apt-get update && apt-get install -y curl \
+    && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+    && apt-get install -y nodejs \
+    && npm install -g npm@latest
+
+RUN dotnet tool install -g Volo.Abp.Cli && export PATH="$PATH:/root/.dotnet/tools" && abp install-libs
+
 WORKDIR "/src/src/Acme.BookStore.HttpApi.Host"
+
 RUN dotnet build "./Acme.BookStore.HttpApi.Host.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # This stage is used to publish the service project to be copied to the final stage
@@ -35,5 +46,7 @@ RUN dotnet publish "./Acme.BookStore.HttpApi.Host.csproj" -c $BUILD_CONFIGURATIO
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-COPY ["src/Acme.BookStore.HttpApi.Host/openiddict.pfx", "/app/openiddict.pfx"]
+
+RUN mkdir -p /app/certs && chmod -R 775 /app/certs
+
 ENTRYPOINT ["dotnet", "Acme.BookStore.HttpApi.Host.dll"]

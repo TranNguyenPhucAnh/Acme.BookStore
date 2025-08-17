@@ -14,6 +14,7 @@ public static class HealthChecksBuilderExtensions
     {
         try
         {
+            Console.WriteLine("Adding BookStore Health Checks...");
             // Add your health checks here
             var healthChecksBuilder = services.AddHealthChecks();
             healthChecksBuilder.AddCheck<BookStoreDatabaseCheck>("BookStore DbContext Check", tags: new string[] { "database" });
@@ -22,12 +23,7 @@ public static class HealthChecksBuilderExtensions
 
             // If you don't want to add HealthChecksUI, remove following configurations.
             var configuration = services.GetConfiguration();
-            var healthCheckUrl = configuration["App:HealthCheckUrl"];
-
-            if (string.IsNullOrEmpty(healthCheckUrl))
-            {
-                healthCheckUrl = "http://localhost:44374/health-status"; 
-            }
+            var healthCheckUrl = configuration["App:HealthCheckUrl"]!;
 
             var healthChecksUiBuilder = services.AddHealthChecksUI(settings =>
             {

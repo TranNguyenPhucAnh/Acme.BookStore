@@ -19,6 +19,7 @@ using Volo.Abp;
 using Volo.Abp.Account;
 using Volo.Abp.Account.Web;
 using Volo.Abp.AspNetCore.Mvc;
+using Volo.Abp.AspNetCore.Mvc.Libs;
 using Volo.Abp.AspNetCore.Mvc.UI.Bundling;
 using Volo.Abp.AspNetCore.Mvc.UI.Theme.LeptonXLite;
 using Volo.Abp.AspNetCore.Mvc.UI.Theme.LeptonXLite.Bundling;
@@ -74,8 +75,9 @@ public class BookStoreHttpApiHostModule : AbpModule
 
             PreConfigure<OpenIddictServerBuilder>(serverBuilder =>
             {
-                // In production, it is recommended to use two RSA certificates, one for encryption, one for signing.
-                serverBuilder.AddProductionEncryptionAndSigningCertificate("openiddict.pfx", configuration["AuthServer:CertificatePassPhrase"]!);
+                // In production, it is recommended to use two RSA certificates, one for encryption, one for signing
+                OpenIddictServerBuilderExtension.AddProductionEncryptionAndSigningCertificate(serverBuilder, configuration);
+                
                 serverBuilder.SetIssuer(new Uri(configuration["AuthServer:Authority"]!));
                 // Increased the lifetime of authorization code and access token
                 serverBuilder.SetAccessTokenLifetime(TimeSpan.FromDays(365));
@@ -142,6 +144,11 @@ public class BookStoreHttpApiHostModule : AbpModule
 
     private void ConfigureBundles()
     {
+        // Configure<AbpMvcLibsOptions>(options =>
+        // {
+        //     options.CheckLibs = false;
+        // });
+
         Configure<AbpBundlingOptions>(options =>
         {
             options.StyleBundles.Configure(
@@ -226,7 +233,11 @@ public class BookStoreHttpApiHostModule : AbpModule
         var app = context.GetApplicationBuilder();
         var env = context.GetEnvironment();
 
-        app.UseForwardedHeaders();
+        app.UseForwardedHeaders(new ForwardedHeadersOptions
+            {
+                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+            }
+        );
 
         if (env.IsDevelopment())
         {
