@@ -204,13 +204,13 @@ public class BookStoreHttpApiHostModule : AbpModule
     }
     private void ConfigureCors(ServiceConfigurationContext context, IConfiguration configuration)
     {
-        Configure<AbpAntiForgeryOptions>(options =>
-        {
-            options.TokenCookie.Name = ".AspNetCore.Antiforgery";
-            options.TokenCookie.SameSite = SameSiteMode.None;
-            options.TokenCookie.SecurePolicy = CookieSecurePolicy.Always;
-            options.TokenCookie.HttpOnly = true;
-        });
+        // Configure<AbpAntiForgeryOptions>(options =>
+        // {
+        //     options.TokenCookie.Name = ".AspNetCore.Antiforgery";
+        //     options.TokenCookie.SameSite = SameSiteMode.None;
+        //     options.TokenCookie.SecurePolicy = CookieSecurePolicy.Always;
+        //     options.TokenCookie.HttpOnly = true;
+        // });
 
         context.Services.AddCors(options =>
         {
