@@ -1,6 +1,7 @@
 using Acme.BookStore.BackgroundWorker;
 using Acme.BookStore.EntityFrameworkCore;
 using Acme.BookStore.HealthChecks;
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Extensions.DependencyInjection;
@@ -203,11 +204,19 @@ public class BookStoreHttpApiHostModule : AbpModule
     }
     private void ConfigureCors(ServiceConfigurationContext context, IConfiguration configuration)
     {
-        Configure<AbpAntiForgeryOptions>(options =>
+        // Configure<AbpAntiForgeryOptions>(options =>
+        // {
+        //     options.TokenCookie.SameSite = SameSiteMode.None;
+        //     options.TokenCookie.SecurePolicy = CookieSecurePolicy.Always;
+        //     options.TokenCookie.HttpOnly = false;
+        // });
+
+        Configure<AntiforgeryOptions>(options =>
         {
-            options.TokenCookie.SameSite = SameSiteMode.None;
-            options.TokenCookie.SecurePolicy = CookieSecurePolicy.Always;
-            options.TokenCookie.HttpOnly = false;
+            options.Cookie.Name = ".AspNetCore.Antiforgery"; // hoặc giữ nguyên tên auto-gen
+            options.Cookie.SameSite = SameSiteMode.None;
+            options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+            options.Cookie.HttpOnly = true; // cookie hệ thống thì nên giữ HttpOnly
         });
 
         context.Services.AddCors(options =>
