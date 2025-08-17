@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,7 +20,7 @@ using Volo.Abp;
 using Volo.Abp.Account;
 using Volo.Abp.Account.Web;
 using Volo.Abp.AspNetCore.Mvc;
-using Volo.Abp.AspNetCore.Mvc.Libs;
+using Volo.Abp.AspNetCore.Mvc.AntiForgery;
 using Volo.Abp.AspNetCore.Mvc.UI.Bundling;
 using Volo.Abp.AspNetCore.Mvc.UI.Theme.LeptonXLite;
 using Volo.Abp.AspNetCore.Mvc.UI.Theme.LeptonXLite.Bundling;
@@ -202,6 +203,13 @@ public class BookStoreHttpApiHostModule : AbpModule
     }
     private void ConfigureCors(ServiceConfigurationContext context, IConfiguration configuration)
     {
+        Configure<AbpAntiForgeryOptions>(options =>
+        {
+            options.TokenCookie.SameSite = SameSiteMode.None;
+            options.TokenCookie.SecurePolicy = CookieSecurePolicy.Always;
+            options.TokenCookie.HttpOnly = false;
+        });
+
         context.Services.AddCors(options =>
         {
             options.AddDefaultPolicy(builder =>
