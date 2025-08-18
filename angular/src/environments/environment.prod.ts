@@ -8,7 +8,7 @@ const oAuthConfig = {
   clientId: 'BookStore_App',
   responseType: 'code',
   scope: 'offline_access BookStore',
-  requireHttps: true,
+  requireHttps: false,
 };
 
 export const environment = {
