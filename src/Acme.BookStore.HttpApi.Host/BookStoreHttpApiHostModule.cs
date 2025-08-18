@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using OpenIddict.Server.AspNetCore;
 using OpenIddict.Validation.AspNetCore;
@@ -198,12 +199,6 @@ public class BookStoreHttpApiHostModule : AbpModule
     }
     private void ConfigureCors(ServiceConfigurationContext context, IConfiguration configuration)
     {
-        Configure<AbpAntiForgeryOptions>(options =>
-        {
-            options.TokenCookie.SameSite = SameSiteMode.None;
-            options.TokenCookie.SecurePolicy = CookieSecurePolicy.Always;
-        });
-
         context.Services.AddCors(options =>
         {
             options.AddDefaultPolicy(builder =>
@@ -241,6 +236,21 @@ public class BookStoreHttpApiHostModule : AbpModule
             }
         );
 
+        // 🔴 Middleware log lỗi global
+        app.Use(async (context, next) =>
+        {
+            try
+            {
+                await next();
+            }
+            catch (Exception ex)
+            {
+                var logger = context.RequestServices.GetRequiredService<ILogger<BookStoreHttpApiHostModule>>();
+                logger.LogError(ex, "Unhandled exception for {Path}", context.Request.Path);
+                throw; // rethrow để antiforgery vẫn hoạt động bình thường
+            }
+        });
+
         if (env.IsDevelopment())
         {
             app.UseDeveloperExceptionPage();
@@ -273,7 +283,7 @@ public class BookStoreHttpApiHostModule : AbpModule
             options.OAuthClientId(configuration["AuthServer:SwaggerClientId"]);
         });
         app.UseAuditing();
-        app.UseAbpSerilogEnrichers();       
+        app.UseAbpSerilogEnrichers();
         app.UseConfiguredEndpoints();
     }
 }
