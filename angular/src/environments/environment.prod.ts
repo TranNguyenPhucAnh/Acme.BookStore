@@ -27,5 +27,9 @@ export const environment = {
       url: oAuthConfig.issuer,
       rootNamespace: 'BookStore',
     },
+  },
+  remoteEnv: {
+    url: '/getEnvConfig',
+    mergeStrategy: 'deepmerge'
   }
 } as Environment;

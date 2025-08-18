@@ -1,0 +1,25 @@
+{
+  "production": true,
+  "application": {
+    "baseUrl": "https://mynginx.store",
+    "name": "BookStore",
+    "logoUrl": ""
+  },
+  "oAuthConfig": {
+    "issuer": "https://mynginx.store/",
+    "redirectUri": "https://mynginx.store",
+    "clientId": "BookStore_App",
+    "responseType": "code",
+    "scope": "offline_access openid profile email phone BookStore"
+  },
+  "apis": {
+    "default": {
+      "url": "https://mynginx.store",
+      "rootNamespace": "BookStore"
+    },
+    "AbpAccountPublic": {
+      "url": "https://mynginx.store",
+      "rootNamespace": "BookStore"
+    }
+  }
+}
