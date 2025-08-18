@@ -75,9 +75,6 @@ services:
       - /Users/phucanhtrannguyen/Downloads/mynginx.store.key:/etc/nginx/certs/mynginx.store.key:ro
       - /Users/phucanhtrannguyen/Downloads/default.conf:/etc/nginx/conf.d/default.conf
       - /var/lib/docker/volumes/jenkins_home/_data/workspace/frontend/angular/dist/BookStore:/usr/share/nginx/html
-    depends_on:
-      - angular
-      - dotnet
     networks:
       - net
 volumes:

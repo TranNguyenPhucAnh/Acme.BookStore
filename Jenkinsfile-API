@@ -48,9 +48,6 @@ pipeline {
                     -p 8080:8080 \
                     -v /var/lib/docker/volumes/jenkins_home/_data/workspace/api/certs:/app/certs \
                     --network net \
-                    -e ASPNETCORE_URLS=http://+:8080 \
-                    -e ASPNETCORE_ENVIRONMENT=Production \
-                    -e App__HealthCheckUrl=http://localhost:8080/health-status \
                     acme-bookstore-httpapi-host:latest
                 """
             }
