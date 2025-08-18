@@ -28,8 +28,6 @@ pipeline {
                         corepack enable yarn
                         yarn install
                         yarn build:prod
-                        cp dynamic-env.json /dist/BookStore/dynamic-env.json
-                        ls -l /dist/BookStore
                         """
                 }
             }
