@@ -1,9 +1,9 @@
 import { Environment } from '@abp/ng.core';
 
-const baseUrl = 'http://localhost:4200';
+const baseUrl = 'https://mynginx.store';
 
 const oAuthConfig = {
-  issuer: 'https://localhost:8081/',
+  issuer: 'https://mynginx.store/',
   redirectUri: baseUrl,
   clientId: 'BookStore_App',
   responseType: 'code',
@@ -20,12 +20,12 @@ export const environment = {
   oAuthConfig,
   apis: {
     default: {
-      url: 'https://localhost:8081',
+      url: 'https://mynginx.store',
       rootNamespace: 'Acme.BookStore',
     },
     AbpAccountPublic: {
       url: oAuthConfig.issuer,
-      rootNamespace: 'AbpAccountPublic',
+      rootNamespace: 'BookStore',
     },
   }
 } as Environment;
