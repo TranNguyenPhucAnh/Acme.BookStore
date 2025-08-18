@@ -219,7 +219,7 @@ public class BookStoreHttpApiHostModule : AbpModule
 
     private void ConfigureHealthChecks(ServiceConfigurationContext context)
     {
-        context.Services.AddBookStoreHealthChecks();
+        //context.Services.AddBookStoreHealthChecks();
     }
 
     public override void OnApplicationInitialization(ApplicationInitializationContext context)
