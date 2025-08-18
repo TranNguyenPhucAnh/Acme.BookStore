@@ -236,21 +236,6 @@ public class BookStoreHttpApiHostModule : AbpModule
             }
         );
 
-        // 🔴 Middleware log lỗi global
-        app.Use(async (context, next) =>
-        {
-            try
-            {
-                await next();
-            }
-            catch (Exception ex)
-            {
-                var logger = context.RequestServices.GetRequiredService<ILogger<BookStoreHttpApiHostModule>>();
-                logger.LogError(ex, "Unhandled exception for {Path}", context.Request.Path);
-                throw; // rethrow để antiforgery vẫn hoạt động bình thường
-            }
-        });
-
         if (env.IsDevelopment())
         {
             app.UseDeveloperExceptionPage();
