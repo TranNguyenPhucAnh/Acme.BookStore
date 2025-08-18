@@ -1,16 +1,13 @@
 using Acme.BookStore.BackgroundWorker;
 using Acme.BookStore.EntityFrameworkCore;
-using Acme.BookStore.HealthChecks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using OpenIddict.Server.AspNetCore;
 using OpenIddict.Validation.AspNetCore;
@@ -21,7 +18,6 @@ using Volo.Abp;
 using Volo.Abp.Account;
 using Volo.Abp.Account.Web;
 using Volo.Abp.AspNetCore.Mvc;
-using Volo.Abp.AspNetCore.Mvc.AntiForgery;
 using Volo.Abp.AspNetCore.Mvc.UI.Bundling;
 using Volo.Abp.AspNetCore.Mvc.UI.Theme.LeptonXLite;
 using Volo.Abp.AspNetCore.Mvc.UI.Theme.LeptonXLite.Bundling;
@@ -230,18 +226,18 @@ public class BookStoreHttpApiHostModule : AbpModule
         var app = context.GetApplicationBuilder();
         var env = context.GetEnvironment();
 
-        // app.UseForwardedHeaders(new ForwardedHeadersOptions
-        //     {
-        //         ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
-        //     }
-        // );
-
-        app.Use((context, next) =>
+        app.UseForwardedHeaders(new ForwardedHeadersOptions
         {
-            context.Request.Scheme = "https";
-
-            return next();
+            ForwardedHeaders = ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedFor
         });
+
+        //restore request scheme to https as it is required by OpenIddict, due to the TLS termination at the reverse proxy level
+        // app.Use((context, next) =>
+        // {
+        //     context.Request.Scheme = "https";
+
+        //     return next();
+        // });
 
         if (env.IsDevelopment())
         {
