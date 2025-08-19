@@ -17,6 +17,8 @@ export class SpinnerInterceptor implements HttpInterceptor {
 
     const shouldBypass = bypassUrls.some(url => req.url.includes(url));
 
+    console.log('Should bypass:', shouldBypass);
+
     const modifiedReq = shouldBypass
       ? req.clone({ setHeaders: { 'X-Silent-Request': 'true' } })
       : req;
