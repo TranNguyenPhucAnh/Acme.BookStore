@@ -8,8 +8,22 @@ export class SpinnerInterceptor implements HttpInterceptor {
   constructor(private loadingService: LoadingService) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+    console.log('Outgoing request, url and headers:', req.url, req.headers);
+
+    const bypassUrls = [
+      '/connect/authorize',
+      '/Account/Login'
+    ];
+
+    const shouldBypass = bypassUrls.some(url => req.url.includes(url));
+
+    const modifiedReq = shouldBypass
+      ? req.clone({ setHeaders: { 'X-Silent-Request': 'true' } })
+      : req;
+
     //Request có header không ảnh hưởng giao diện như background sync, api tracking/log, refresh token, preload,...
     const isSilent = req.headers.get('X-Silent-Request') === 'true';
+    
     //phù hợp long-latency request như export, download, submit form,...hoặc gọi API parallel 
     if (!isSilent) {
       //Nếu gọi tiếp 1 request trước khi request trước đó kết thúc
@@ -19,7 +33,7 @@ export class SpinnerInterceptor implements HttpInterceptor {
       this.loadingService.show();
     }
 
-    return next.handle(req) //chuyển request xuống backend như bình thường
+    return next.handle(modifiedReq) //chuyển request xuống backend như bình thường
     .pipe(
       finalize(() => { //luôn được gọi cuối cùng bất kể request `thành công` hay `thất bại`
         if (!isSilent) {
