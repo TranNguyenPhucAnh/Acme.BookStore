@@ -1,6 +1,5 @@
 using Acme.BookStore.BackgroundWorker;
 using Acme.BookStore.EntityFrameworkCore;
-using Acme.BookStore.HealthChecks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Extensions.DependencyInjection;
@@ -19,7 +18,6 @@ using Volo.Abp;
 using Volo.Abp.Account;
 using Volo.Abp.Account.Web;
 using Volo.Abp.AspNetCore.Mvc;
-using Volo.Abp.AspNetCore.Mvc.Libs;
 using Volo.Abp.AspNetCore.Mvc.UI.Bundling;
 using Volo.Abp.AspNetCore.Mvc.UI.Theme.LeptonXLite;
 using Volo.Abp.AspNetCore.Mvc.UI.Theme.LeptonXLite.Bundling;
@@ -144,11 +142,6 @@ public class BookStoreHttpApiHostModule : AbpModule
 
     private void ConfigureBundles()
     {
-        // Configure<AbpMvcLibsOptions>(options =>
-        // {
-        //     options.CheckLibs = false;
-        // });
-
         Configure<AbpBundlingOptions>(options =>
         {
             options.StyleBundles.Configure(
@@ -225,7 +218,7 @@ public class BookStoreHttpApiHostModule : AbpModule
 
     private void ConfigureHealthChecks(ServiceConfigurationContext context)
     {
-        context.Services.AddBookStoreHealthChecks();
+        //context.Services.AddBookStoreHealthChecks();
     }
 
     public override void OnApplicationInitialization(ApplicationInitializationContext context)
@@ -233,11 +226,18 @@ public class BookStoreHttpApiHostModule : AbpModule
         var app = context.GetApplicationBuilder();
         var env = context.GetEnvironment();
 
-        app.UseForwardedHeaders(new ForwardedHeadersOptions
-            {
-                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
-            }
-        );
+        // app.UseForwardedHeaders(new ForwardedHeadersOptions
+        // {
+        //     ForwardedHeaders = ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedFor
+        // });
+
+        //restore request scheme to https as it is required by OpenIddict, due to the TLS termination at the reverse proxy level
+        app.Use((context, next) =>
+        {
+            context.Request.Scheme = "https";
+
+            return next();
+        });
 
         if (env.IsDevelopment())
         {
@@ -271,7 +271,7 @@ public class BookStoreHttpApiHostModule : AbpModule
             options.OAuthClientId(configuration["AuthServer:SwaggerClientId"]);
         });
         app.UseAuditing();
-        app.UseAbpSerilogEnrichers();       
+        app.UseAbpSerilogEnrichers();
         app.UseConfiguredEndpoints();
     }
 }
