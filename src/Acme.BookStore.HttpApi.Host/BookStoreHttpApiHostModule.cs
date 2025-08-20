@@ -1,5 +1,6 @@
 using Acme.BookStore.BackgroundWorker;
 using Acme.BookStore.EntityFrameworkCore;
+using Acme.BookStore.HealthChecks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Extensions.DependencyInjection;
@@ -218,7 +219,7 @@ public class BookStoreHttpApiHostModule : AbpModule
 
     private void ConfigureHealthChecks(ServiceConfigurationContext context)
     {
-        //context.Services.AddBookStoreHealthChecks();
+        context.Services.AddBookStoreHealthChecks();
     }
 
     public override void OnApplicationInitialization(ApplicationInitializationContext context)
