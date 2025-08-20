@@ -19,7 +19,7 @@
     },
     "AbpAccountPublic": {
       "url": "https://mynginx.store",
-      "rootNamespace": "AbpAccountPublic"
+      "rootNamespace": "BookStore"
     }
   }
 }
