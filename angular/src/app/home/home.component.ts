@@ -1,4 +1,4 @@
-import { AbpWindowService, AuthService } from '@abp/ng.core';
+import { AbpWindowService, AuthService, EnvironmentService } from '@abp/ng.core';
 import { ToasterService } from '@abp/ng.theme.shared';
 import { Component, OnInit } from '@angular/core';
 import { BookService } from '@proxy/books';
@@ -11,7 +11,7 @@ import { DateHelper } from '../shared/helpers/dates.utility';
   styleUrls: ['./home.component.scss'],
 })
 export class HomeComponent implements OnInit {
-  sampleUrl: string;
+  envUrl: string;
 
   get hasLoggedIn(): boolean {
     return this.authService.isAuthenticated
@@ -21,11 +21,12 @@ export class HomeComponent implements OnInit {
     private authService: AuthService,
     private bookService: BookService,
     private toasterService: ToasterService,
-    private abpWindowService: AbpWindowService
+    private abpWindowService: AbpWindowService,
+    private envService: EnvironmentService
   ) {}
 
   ngOnInit(): void {
-
+    this.envUrl = this.envService.getEnvironment().apis.default.url;
   }
 
   download() : void {

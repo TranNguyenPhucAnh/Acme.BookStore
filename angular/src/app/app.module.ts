@@ -17,7 +17,8 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { APP_ROUTE_PROVIDER } from './route.provider';
 import { HTTP_INTERCEPTOR_PROVIDER } from './interceptors/http-interceptors.provider';
-import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
+import { MatProgressSpinnerModule} from '@angular/material/progress-spinner';
+import { ERROR_HANDLER_PROVIDER } from './handlers/app-error.handlers.provider';
 
 @NgModule({
   declarations: [AppComponent],
@@ -32,6 +33,7 @@ import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
     SideMenuLayoutModule.forRoot()
   ],
   providers: [
+    ERROR_HANDLER_PROVIDER,
     APP_ROUTE_PROVIDER,
     HTTP_INTERCEPTOR_PROVIDER,
     provideAbpCore(
