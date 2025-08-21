@@ -6,10 +6,12 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <RootNamespace>Acme.BookStore</RootNamespace>
+    <GenerateEmbeddedFilesManifest>true</GenerateEmbeddedFilesManifest>
   </PropertyGroup>
-
+  
   <ItemGroup>
-    <EmbeddedResource Include="*.tpl" />
+    <None Remove="Emails\Templates\Emailing\*.tpl" />
+    <EmbeddedResource Include="Emails\Templates\Emailing\*.tpl" />
   </ItemGroup>
 
   <ItemGroup>
