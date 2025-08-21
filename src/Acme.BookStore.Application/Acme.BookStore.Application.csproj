@@ -9,8 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Emails\Templates\Emailing\Layout.tpl" />
-    <EmbeddedResource Include="Emails\Templates\Emailing\Message.tpl" />
+    <EmbeddedResource Include="Emails/Templates/Emailing/Layout.tpl" />
+    <EmbeddedResource Include="Emails/Templates/Emailing/Message.tpl" />
   </ItemGroup>
 
   <ItemGroup>
