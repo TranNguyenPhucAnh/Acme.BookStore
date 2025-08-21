@@ -16,7 +16,7 @@ public class CustomEmailTemplateDefinitionProvider : TemplateDefinitionProvider,
                 StandardEmailTemplates.Layout,
                 displayName: LocalizableString.Create<EmailingResource>("TextTemplate:StandardEmailTemplates.Layout"),
                 isLayout: true
-            ).WithVirtualFilePath("Emails/Templates/Emailing/Layout.tpl", true)
+            ).WithVirtualFilePath("Acme.BookStore.Application/Emails/Templates/Emailing/Layout.tpl", true)
              .WithScribanEngine()
         );
 
@@ -25,7 +25,7 @@ public class CustomEmailTemplateDefinitionProvider : TemplateDefinitionProvider,
                 StandardEmailTemplates.Message,
                 displayName: LocalizableString.Create<EmailingResource>("TextTemplate:StandardEmailTemplates.Message"),
                 layout: StandardEmailTemplates.Layout
-            ).WithVirtualFilePath("Emails/Templates/Emailing/Message.tpl", true)
+            ).WithVirtualFilePath("Acme.BookStore.Application/Emails/Templates/Emailing/Message.tpl", true)
             .WithScribanEngine()
         );
     }
