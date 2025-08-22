@@ -66,7 +66,7 @@ pipeline {
 						Branch: ${params.GIT_BRANCH}
 						View details: ${env.BUILD_URL}""",
 					to: "phucanhatt@gmail.com",
-					from: "support@mynginx.store"
+					from: "support@bookstore-demo.online"
 				)
         }
     }
