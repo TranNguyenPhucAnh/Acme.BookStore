@@ -71,8 +71,8 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - /Users/phucanhtrannguyen/Downloads/mynginx.store.cer:/etc/nginx/certs/mynginx.store.cer:ro
-      - /Users/phucanhtrannguyen/Downloads/mynginx.store.key:/etc/nginx/certs/mynginx.store.key:ro
+      - /Users/phucanhtrannguyen/Downloads/bookstore-demo.online.cer:/etc/nginx/certs/bookstore-demo.online.cer:ro
+      - /Users/phucanhtrannguyen/Downloads/bookstore-demo.online.key:/etc/nginx/certs/bookstore-demo.online.key:ro
       - /Users/phucanhtrannguyen/Downloads/default.conf:/etc/nginx/conf.d/default.conf
       - /var/lib/docker/volumes/jenkins_home/_data/workspace/frontend/angular/dist/BookStore:/usr/share/nginx/html
     networks:
