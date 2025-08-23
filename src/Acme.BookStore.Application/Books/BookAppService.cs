@@ -617,8 +617,6 @@ public class BookAppService :
     {
         var book = await Repository.GetAsync(id);
 
-        book.SetDefaultsForExtraProperties();// Ensure extra properties are set before deletion
-
         await _notificationAppService.InsertNotificationAndSendEmailAsync(
             _currentUser.Id.GetValueOrDefault(),
             _currentUser.Email,

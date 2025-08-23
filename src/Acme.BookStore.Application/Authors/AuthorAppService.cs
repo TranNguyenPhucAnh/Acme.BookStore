@@ -10,7 +10,6 @@ using System.Linq.Dynamic.Core;
 using System.Threading.Tasks;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
-using Volo.Abp.Data;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Users;
 
@@ -110,8 +109,6 @@ public class AuthorAppService(
                 $"Please delete or reassign the books before deleting author '{author.Name}'."
             );
         }
-
-        author.SetDefaultsForExtraProperties();// Ensure extra properties are set before deletion
 
         await _authorRepository.DeleteAsync(id);
 
