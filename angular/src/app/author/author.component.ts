@@ -213,7 +213,7 @@ export class AuthorComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$)
     ).subscribe({
       next: (val) => {
-        console.log('Response value:', val);
+        console.log('Response value:', val); //if response is null or 204, change Observer<any> to Observer<void>
         this.list.get();
         this.sendMessage(Constants.EntityHubUrl, "SendAuthorListReload", "Author deleted");
         this.sendMessage(Constants.NotificationHubUrl, "SendNotificationListReload", "Author deleted");
