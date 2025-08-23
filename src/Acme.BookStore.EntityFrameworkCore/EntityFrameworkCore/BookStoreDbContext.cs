@@ -75,7 +75,7 @@ public class BookStoreDbContext : AbpDbContext<BookStoreDbContext>
             b.ToTable(BookStoreConsts.DbTablePrefix + "Books", BookStoreConsts.DbSchema);
             b.ConfigureByConvention(); //auto configure for the base class props
             b.Property(x => x.Name).IsRequired().HasMaxLength(128);
-            //b.Ignore(x => x.ExtraProperties);
+            b.Ignore(x => x.ExtraProperties);
 
             // ADD THE MAPPING FOR THE RELATION
             b.HasOne<Author>()
@@ -92,7 +92,7 @@ public class BookStoreDbContext : AbpDbContext<BookStoreDbContext>
 
             b.ConfigureByConvention();
 
-            //b.Ignore(x => x.ExtraProperties);
+            b.Ignore(x => x.ExtraProperties);
 
             b.Property(x => x.Name)
                 .IsRequired()
