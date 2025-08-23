@@ -19,7 +19,7 @@ export class BookService {
     { apiName: this.apiName,...config });
   
   delete = (id: string, config?: Partial<Rest.Config>) =>
-    this.restService.request<any, any>({
+    this.restService.request<any, void>({
       method: 'DELETE',
       url: `/api/app/book/${id}`
     },
