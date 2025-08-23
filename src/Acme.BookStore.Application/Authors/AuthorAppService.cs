@@ -110,7 +110,10 @@ public class AuthorAppService(
                 $"Please delete or reassign the books before deleting author '{author.Name}'."
             );
         }
-                
+
+        author.SetDefaultsForExtraProperties();// Ensure extra properties are set before deletion
+        author.SetExtraPropertiesToRegularProperties();
+        
         await _authorRepository.DeleteAsync(id);
 
         await _notificationAppService.InsertNotificationAndSendEmailAsync(
