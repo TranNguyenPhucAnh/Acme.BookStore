@@ -624,6 +624,8 @@ public class BookAppService :
             ObjectMapper.Map<Book, BookDto>(book),
             "deleted");
 
+        book.SetDefaultsForExtraProperties();// Ensure extra properties are set before deletion
+
         await DeepDeleteAsync(book);
     }
 
