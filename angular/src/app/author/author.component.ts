@@ -213,6 +213,7 @@ export class AuthorComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$)
     ).subscribe({
       next: (val) => {
+        console.log('Response value:', val);
         this.list.get();
         this.sendMessage(Constants.EntityHubUrl, "SendAuthorListReload", "Author deleted");
         this.sendMessage(Constants.NotificationHubUrl, "SendNotificationListReload", "Author deleted");
@@ -220,7 +221,7 @@ export class AuthorComponent implements OnInit, OnDestroy {
       },
       error: (err) => console.log(err),
       complete: () => console.log('delete author completed')
-    } as Observer<any>);
+    } as Observer<void>);
   }
 
     //consider date-fns library to handle date type
