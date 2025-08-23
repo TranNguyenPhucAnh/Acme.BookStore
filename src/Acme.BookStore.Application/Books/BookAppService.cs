@@ -616,12 +616,24 @@ public class BookAppService :
     public override async Task DeleteAsync(Guid id)
     {
         var book = await Repository.GetAsync(id);
+        var authorName = (await _authorRepository.GetAsync(book.AuthorId)).Name;
 
         await _notificationAppService.InsertNotificationAndSendEmailAsync(
             _currentUser.Id.GetValueOrDefault(),
             _currentUser.Email,
             NotificationType.BookCRUD,
-            ObjectMapper.Map<Book, BookDto>(book),
+            //ObjectMapper.Map<Book, BookDto>(book), //fluent validation checks for wherever object is mapped to its type
+            new BookDto
+            {
+                Id = book.Id,
+                Name = book.Name,
+                AuthorId = book.AuthorId,
+                AuthorName = authorName,
+                ISBN = book.ISBN,
+                Type = book.Type,
+                PublishDate = book.PublishDate,
+                Publisher = book.Publisher
+            },
             "deleted");
 
         book.SetDefaultsForExtraProperties();// Ensure extra properties are set before deletion
