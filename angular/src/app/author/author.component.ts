@@ -213,16 +213,15 @@ export class AuthorComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$)
     ).subscribe({
       next: (val) => {
-        if (val) {
-          this.list.get();
-          this.sendMessage(Constants.EntityHubUrl, "SendAuthorListReload", "Author deleted");
-          this.sendMessage(Constants.NotificationHubUrl, "SendNotificationListReload", "Author deleted");
-          this.toasterService.success("Deleted Successfully"); //should place success toaster here, not switchMap because error might not been catched
-        }
+        console.log('Response value:', val); //if response is null or 204, change Observer<any> to Observer<void>
+        this.list.get();
+        this.sendMessage(Constants.EntityHubUrl, "SendAuthorListReload", "Author deleted");
+        this.sendMessage(Constants.NotificationHubUrl, "SendNotificationListReload", "Author deleted");
+        this.toasterService.success("Deleted Successfully"); //should place success toaster here, not switchMap because error might not been catched
       },
       error: (err) => console.log(err),
       complete: () => console.log('delete author completed')
-    } as Observer<any>);
+    } as Observer<void>);
   }
 
     //consider date-fns library to handle date type

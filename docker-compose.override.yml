@@ -1,11 +1,11 @@
 ﻿db-migrator:
   environment:
-    - OpenIddict__Applications__BookStore_App__RootUrl=https://mynginx.store
-    - OpenIddict__Applications__BookStore_Swagger__RootUrl=https://mynginx.store/swagger
+    - OpenIddict__Applications__BookStore_App__RootUrl=https://bookstore-demo.online
+    - OpenIddict__Applications__BookStore_Swagger__RootUrl=https://bookstore-demo.online/swagger
 nginx:
     volumes: # create /root/configs/nginx directory before spin up containers 
-    - /root/configs/nginx/mynginx.store.cer:/etc/nginx/certs/mynginx.store.cer:ro
-    - /root/configs/nginx/mynginx.store.key:/etc/nginx/certs/mynginx.store.key:ro
+    - /root/configs/nginx/bookstore-demo.online.cer:/etc/nginx/certs/bookstore-demo.online.cer:ro
+    - /root/configs/nginx/bookstore-demo.online.key:/etc/nginx/certs/bookstore-demo.online.key:ro
     - /root/configs/nginx/default.conf:/etc/nginx/conf.d/default.conf
 angular:
     volumes: # provide full volume mount point for /usr/share/nginx/html
