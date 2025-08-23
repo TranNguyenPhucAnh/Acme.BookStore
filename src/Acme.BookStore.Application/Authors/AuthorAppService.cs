@@ -10,6 +10,7 @@ using System.Linq.Dynamic.Core;
 using System.Threading.Tasks;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
+using Volo.Abp.Data;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Users;
 
@@ -100,6 +101,7 @@ public class AuthorAppService(
     public async Task DeleteAsync(Guid id)
     {
         var author = await _authorRepository.GetAsync(id);
+        Console.WriteLine($"Author before set extra properties: {author}");
         // Check if there is any referential entity associated with this lookup entity to ensure referential integrity constraint
         if (await _bookRepository.AnyAsync(x => x.AuthorId == author.Id))
         {
@@ -110,6 +112,10 @@ public class AuthorAppService(
             );
         }
 
+        author.SetDefaultsForExtraProperties();// Ensure extra properties are set before deletion
+
+        Console.WriteLine($"Author after set extra properties: {author}");
+        
         await _authorRepository.DeleteAsync(id);
 
         await _notificationAppService.InsertNotificationAndSendEmailAsync(
