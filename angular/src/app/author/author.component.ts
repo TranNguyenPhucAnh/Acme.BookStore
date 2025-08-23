@@ -213,12 +213,10 @@ export class AuthorComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$)
     ).subscribe({
       next: (val) => {
-        if (val) {
-          this.list.get();
-          this.sendMessage(Constants.EntityHubUrl, "SendAuthorListReload", "Author deleted");
-          this.sendMessage(Constants.NotificationHubUrl, "SendNotificationListReload", "Author deleted");
-          this.toasterService.success("Deleted Successfully"); //should place success toaster here, not switchMap because error might not been catched
-        }
+        this.list.get();
+        this.sendMessage(Constants.EntityHubUrl, "SendAuthorListReload", "Author deleted");
+        this.sendMessage(Constants.NotificationHubUrl, "SendNotificationListReload", "Author deleted");
+        this.toasterService.success("Deleted Successfully"); //should place success toaster here, not switchMap because error might not been catched
       },
       error: (err) => console.log(err),
       complete: () => console.log('delete author completed')
