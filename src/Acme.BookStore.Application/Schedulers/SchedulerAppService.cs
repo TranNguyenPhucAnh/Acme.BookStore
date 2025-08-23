@@ -39,7 +39,8 @@ namespace Acme.BookStore.Schedulers
         public override Task<SchedulerDto> CreateAsync(CreateUpdateSchedulerDto input)
         {
             input.Description = ExpressionDescriptor.GetDescription(input.CronExpression);
-
+            //the server is using UTC, handle timezone locally here
+            //also, handle 302 request reached the end of the middleware pipeline without being handled by application code
             return base.CreateAsync(input);
         }
 

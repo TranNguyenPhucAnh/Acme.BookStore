@@ -72,7 +72,11 @@ namespace Acme.BookStore.Controllers.ApplicationConfigurations
 
             var userOrgIds = await _organizationUnitAppService.GetUserOrganizationUnitIdsAsync(CurrentUser.Id.GetValueOrDefault());
 
+            Console.WriteLine($"Current User Id: {CurrentUser.Id.GetValueOrDefault()}");
+            Console.WriteLine(string.Join(", ", userOrgIds));
+
             configuration.ExtraProperties["EnabledFeatures"] = features.Where(f => userOrgIds.Contains(Guid.Parse(f.Key))).Select(s => s.Name);
+            Console.WriteLine(string.Join(", ", configuration.ExtraProperties["EnabledFeatures"] as string[] ?? Array.Empty<string>()));
 
             return configuration;
         }
