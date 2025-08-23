@@ -7,7 +7,6 @@ using Amazon.S3;
 using Amazon.S3.Model;
 using AutoFilterer.Extensions;
 using ClosedXML.Excel;
-using DocumentFormat.OpenXml.Office2010.PowerPoint;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -19,7 +18,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using System.IO.Pipes;
 using System.Linq;
 using System.Linq.Dynamic.Core;
 using System.Threading.Tasks;
@@ -534,7 +532,7 @@ public class BookAppService :
 
         foreach (var book in booksToDelete)
         {
-            await Repository.DeleteAsync(book);
+            await DeepDeleteAsync(book);
             _logger.LogInformation($"Book with ISBN: {book.ISBN} will be deleted (not found in imported data).");
         }
 
@@ -618,17 +616,61 @@ public class BookAppService :
     public override async Task DeleteAsync(Guid id)
     {
         var book = await Repository.GetAsync(id);
-
-        book.SetDefaultsForExtraProperties();// Ensure extra properties are set before deletion
+        var authorName = (await _authorRepository.GetAsync(book.AuthorId)).Name;
 
         await _notificationAppService.InsertNotificationAndSendEmailAsync(
             _currentUser.Id.GetValueOrDefault(),
             _currentUser.Email,
             NotificationType.BookCRUD,
-            ObjectMapper.Map<Book, BookDto>(book),
+            //ObjectMapper.Map<Book, BookDto>(book), //fluent validation checks for wherever object is mapped to its type
+            new BookDto
+            {
+                Id = book.Id,
+                Name = book.Name,
+                AuthorId = book.AuthorId,
+                AuthorName = authorName,
+                ISBN = book.ISBN,
+                Type = book.Type,
+                PublishDate = book.PublishDate,
+                Publisher = book.Publisher
+            },
             "deleted");
 
-        await base.DeleteAsync(id);
+        book.SetDefaultsForExtraProperties();// Ensure extra properties are set before deletion
+
+        await DeepDeleteAsync(book);
+    }
+
+    private async Task DeepDeleteAsync(Book book)
+    {
+        // Delete related book media
+        var bookMediaQuery = await _bookMediaRepository.GetQueryableAsync();
+        var bookMedias = bookMediaQuery.Where(b => b.BookId == book.Id).ToList();
+
+        foreach (var media in bookMedias)
+        {
+            if (!media.ObjectKey.IsNullOrEmpty())
+            {
+                var client = new AmazonS3Client("AKIATCKASQLCAWNTY3LR", "ywno5QQsiwjlS2mWotGdlMji23aU0TbdvA7mTdfJ", RegionEndpoint.APSoutheast1);
+                await client.DeleteObjectAsync(new DeleteObjectRequest
+                {
+                    BucketName = "abp-book-store-uploaded-documents",
+                    Key = media.ObjectKey
+                });
+            }
+            await _bookMediaRepository.DeleteAsync(media);
+        }
+
+        // Delete the book itself
+        await Repository.DeleteAsync(book.Id);
+
+        //if the author has no other books, delete the author
+        var authorBooks = await Repository.CountAsync(b => b.AuthorId == book.AuthorId);
+        if (authorBooks == 0)
+        {
+            _logger.LogInformation($"Author with ID {book.AuthorId} has no other books, deleting author.");
+            await _authorRepository.DeleteAsync(book.AuthorId);
+        }
     }
 
     public async Task<ListResultDto<AuthorLookupDto>> GetAuthorLookupAsync()
@@ -661,7 +703,6 @@ public class BookAppService :
         // Tách sorting thành tên thuộc tính và hướng sắp xếp (asc/desc)
         var sortParts = sorting.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         var propertyName = sortParts[0];
-        var sortDirection = sortParts.Length > 1 ? sortParts[1].ToLower() : "asc";
 
         // Kiểm tra xem propertyName có hợp lệ không
         if (validSortProperties.Contains(propertyName, StringComparer.OrdinalIgnoreCase))

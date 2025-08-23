@@ -255,16 +255,15 @@ export class BookComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$),
     ).subscribe({
       next: (val) => {
-        if (val) {
-          this.list.get();
-          this.sendMessage(Constants.NotificationHubUrl, "SendNotificationListReload", "Book deleted");
-          this.sendMessage(Constants.EntityHubUrl, "SendBookListReload", "Book deleted");
-          this.toasterService.success("Deleted Successfully"); //should place success toaster here, not switchMap because error might not been catched
-        }
+        this.list.get();
+        this.sendMessage(Constants.NotificationHubUrl, "SendNotificationListReload", "Book deleted");
+        this.sendMessage(Constants.EntityHubUrl, "SendBookListReload", "Book deleted");
+        this.toasterService.success("Deleted Successfully"); //should place success toaster here, not switchMap because error might not been catched
+        
       },
       error: (err) => console.log(err),
       complete: () => console.log('delete book completed')
-    } as Observer<any>);
+    } as Observer<void>);
   }
 
   subscribeToAuthorIdChanges(): void {

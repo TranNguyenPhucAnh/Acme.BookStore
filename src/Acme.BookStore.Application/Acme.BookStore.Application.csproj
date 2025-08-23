@@ -6,11 +6,12 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <RootNamespace>Acme.BookStore</RootNamespace>
+    <GenerateEmbeddedFilesManifest>true</GenerateEmbeddedFilesManifest>
   </PropertyGroup>
-
+  
   <ItemGroup>
-    <EmbeddedResource Include="Emails\Templates\Emailing\Layout.tpl" />
-    <EmbeddedResource Include="Emails\Templates\Emailing\Message.tpl" />
+    <None Remove="Emails\Templates\Emailing\*.tpl" />
+    <EmbeddedResource Include="Emails\Templates\Emailing\*.tpl" />
   </ItemGroup>
 
   <ItemGroup>
@@ -35,6 +36,7 @@
     <PackageReference Include="Volo.Abp.Account.Application" Version="9.1.0" />
     <PackageReference Include="Volo.Abp.Identity.Application" Version="9.1.0" />
     <PackageReference Include="Volo.Abp.TenantManagement.Application" Version="9.2.1" />
+    <PackageReference Include="Microsoft.Extensions.FileProviders.Embedded" Version="9.0.8" />
   </ItemGroup>
 
 </Project>

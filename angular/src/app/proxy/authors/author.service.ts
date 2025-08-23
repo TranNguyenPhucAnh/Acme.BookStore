@@ -22,7 +22,7 @@ export class AuthorService {
   
 
   delete = (id: string, config?: Partial<Rest.Config>) =>
-    this.restService.request<any, any>({
+    this.restService.request<any, void>({
       method: 'DELETE',
       url: `/api/app/author/${id}`,
     },

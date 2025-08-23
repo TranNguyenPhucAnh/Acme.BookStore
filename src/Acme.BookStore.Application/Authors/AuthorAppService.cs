@@ -112,7 +112,7 @@ public class AuthorAppService(
         }
 
         author.SetDefaultsForExtraProperties();// Ensure extra properties are set before deletion
-
+        
         await _authorRepository.DeleteAsync(id);
 
         await _notificationAppService.InsertNotificationAndSendEmailAsync(
