@@ -11,5 +11,6 @@ namespace Acme.BookStore.Schedulers
         public string Description { get; set; } = default!;
         public virtual RecipientTypeEnum RecipientType { get; set; }
         public virtual WorkerOutputTypeEnum WorkerOutputType { get; set; }
+        public virtual string TimeZone { get; set; } = default!;
     }
 }
