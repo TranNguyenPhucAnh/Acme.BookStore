@@ -6,7 +6,7 @@ export interface CreateUpdateSchedulerDto extends EntityDto<string> {
   recipientEntityId?: string;
   recipientEntity?: string;
   cronExpression?: string;
-  description?: string;
+  timeZone?: string;
   recipientType?: RecipientTypeEnum;
   workerOutputType?: WorkerOutputTypeEnum;
 }
@@ -15,7 +15,7 @@ export interface SchedulerDto extends EntityDto<string> {
   recipientEntityId?: string;
   recipientEntity?: string;
   cronExpression?: string;
-  description?: string;
+  timeZone?: string;
   recipientType?: RecipientTypeEnum;
   workerOutputType?: WorkerOutputTypeEnum;
 }
