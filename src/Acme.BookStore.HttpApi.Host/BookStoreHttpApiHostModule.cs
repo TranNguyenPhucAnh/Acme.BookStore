@@ -197,10 +197,11 @@ public class BookStoreHttpApiHostModule : AbpModule
     }
     private void ConfigureCors(ServiceConfigurationContext context, IConfiguration configuration)
     {
-    Configure<AbpAntiForgeryOptions>(options =>
-    {
-        options.AutoValidate = false;
-    });
+        Configure<AbpAntiForgeryOptions>(options =>
+        {
+            options.AutoValidate = false;
+        });
+        
         context.Services.AddCors(options =>
         {
             options.AddDefaultPolicy(builder =>
@@ -232,25 +233,25 @@ public class BookStoreHttpApiHostModule : AbpModule
         var app = context.GetApplicationBuilder();
         var env = context.GetEnvironment();
 
-        // app.UseForwardedHeaders(new ForwardedHeadersOptions
-        // {
-        //     ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
-        //     KnownNetworks = { }, // reset lại
-        //     KnownProxies = { }   // reset lại
-        // });
-
-        //restore request scheme to https as it is required by OpenIddict, due to the TLS termination at the reverse proxy level
-        app.Use((context, next) =>
-        {
-            context.Request.Scheme = "https";
-
-            return next();
-        });
-
         if (env.IsDevelopment())
         {
             app.UseDeveloperExceptionPage();
         }
+
+        app.UseForwardedHeaders(new ForwardedHeadersOptions
+        {
+            ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+            KnownNetworks = { },
+            KnownProxies = { }
+        });
+
+        //restore request scheme to https as it is required by OpenIddict, due to the TLS termination at the reverse proxy level
+        // app.Use((context, next) =>
+        // {
+        //     context.Request.Scheme = "https";
+
+        //     return next();
+        // });
 
         app.UseAbpRequestLocalization();
 
