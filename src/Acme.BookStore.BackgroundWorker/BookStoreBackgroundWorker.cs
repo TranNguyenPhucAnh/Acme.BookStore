@@ -104,7 +104,7 @@ namespace Acme.BookStore.BackgroundWorker
                     var model = new
                     {
                         Username = admin.UserName,
-                        Message = "This is a test email message.",
+                        LocalizedMessage = "Hi, please find the attachment in this email.",
                         Year = DateTime.Now.Year
                     };
 
