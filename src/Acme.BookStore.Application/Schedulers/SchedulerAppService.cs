@@ -63,8 +63,8 @@ namespace Acme.BookStore.Schedulers
             var localTimeZone = TimeZoneInfo.FindSystemTimeZoneById(localTimeZoneId);
 
             // Tính thời điểm xảy ra tiếp theo trong múi giờ local
-            var now = DateTime.Now;
-            var nextOccurrenceLocal = cron.GetNextOccurrence(now, localTimeZone);
+            var nowUtc = DateTime.UtcNow;
+            var nextOccurrenceLocal = cron.GetNextOccurrence(nowUtc, localTimeZone);
             if (!nextOccurrenceLocal.HasValue)
                 throw new InvalidOperationException("Cannot determine next occurrence");
 
