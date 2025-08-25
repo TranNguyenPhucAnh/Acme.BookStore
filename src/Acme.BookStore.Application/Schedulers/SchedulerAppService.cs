@@ -68,8 +68,11 @@ namespace Acme.BookStore.Schedulers
             if (!nextOccurrenceLocal.HasValue)
                 throw new InvalidOperationException("Cannot determine next occurrence");
 
+            // Cronos trả về Unspecified, cần gán Kind = Unspecified cho đúng time zone
+            var localTime = DateTime.SpecifyKind(nextOccurrenceLocal.Value, DateTimeKind.Unspecified);
+
             // Chuyển đổi sang UTC
-            var nextOccurrenceUtc = TimeZoneInfo.ConvertTimeToUtc(nextOccurrenceLocal.Value, localTimeZone);
+            var nextOccurrenceUtc = TimeZoneInfo.ConvertTimeToUtc(localTime, localTimeZone);
 
             // Tạo biểu thức cron mới cho UTC
             var utcHour = nextOccurrenceUtc.Hour;
