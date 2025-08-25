@@ -38,14 +38,14 @@ namespace Acme.BookStore.Schedulers
 
         public override Task<SchedulerDto> CreateAsync(CreateUpdateSchedulerDto input)
         {
-            input.CronExpression = ConvertLocalCronToUtcCron(input.CronExpression, input.TimeZone);
+            //input.CronExpression = ConvertLocalCronToUtcCron(input.CronExpression, input.TimeZone);
 
             return base.CreateAsync(input);
         }
 
         public override Task<SchedulerDto> UpdateAsync(Guid id, CreateUpdateSchedulerDto input)
         {
-            input.CronExpression = ConvertLocalCronToUtcCron(input.CronExpression, input.TimeZone);
+            //input.CronExpression = ConvertLocalCronToUtcCron(input.CronExpression, input.TimeZone);
 
             return base.UpdateAsync(id, input);
         }
