@@ -32,7 +32,7 @@ public class BookStoreApplicationAutoMapperProfile : Profile
             )
             .ForMember(
                 dest => dest.Description,
-                opt => opt.MapFrom(src => ExpressionDescriptor.GetDescription(src.CronExpression))
+                opt => opt.MapFrom(src => ExpressionDescriptor.GetDescription(CronHelper.ConvertUtcCronToLocalCron(src.CronExpression, src.TimeZone)))
             );
 
         CreateMap<CreateUpdateSchedulerDto, Scheduler>().ReverseMap();
