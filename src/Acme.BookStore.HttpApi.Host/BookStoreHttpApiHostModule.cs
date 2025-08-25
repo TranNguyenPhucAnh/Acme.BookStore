@@ -238,20 +238,13 @@ public class BookStoreHttpApiHostModule : AbpModule
             app.UseDeveloperExceptionPage();
         }
 
-        app.UseForwardedHeaders(new ForwardedHeadersOptions
-        {
-            ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
-            KnownNetworks = { },
-            KnownProxies = { }
-        });
-
         //restore request scheme to https as it is required by OpenIddict, due to the TLS termination at the reverse proxy level
-        // app.Use((context, next) =>
-        // {
-        //     context.Request.Scheme = "https";
+        app.Use((context, next) =>
+        {
+            context.Request.Scheme = "https";
 
-        //     return next();
-        // });
+            return next();
+        });
 
         app.UseAbpRequestLocalization();
 
