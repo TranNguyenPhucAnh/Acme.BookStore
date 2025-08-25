@@ -50,45 +50,32 @@ namespace Acme.BookStore.Schedulers
             return base.UpdateAsync(id, input);
         }
 
-        public static string ConvertLocalCronToUtcCron(string localCronExpression, string localTimeZoneId)
+        private static string ConvertLocalCronToUtcCron(string localCronExpression, string localTimeZoneId)
         {
-            // Kiểm tra tính hợp lệ của biểu thức cron
-            var cron = CronExpression.Parse(localCronExpression, CronFormat.Standard);
             var parts = localCronExpression.Split(' ');
             if (parts.Length < 5)
                 throw new ArgumentException("Invalid cron expression");
 
-            // Lấy múi giờ địa phương
+            // Lấy timezone
             var localTimeZone = TimeZoneInfo.FindSystemTimeZoneById(localTimeZoneId);
 
-            // Tạo thời điểm tham chiếu (00:00 hôm nay) trong múi giờ địa phương
-            var nowLocal = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, localTimeZone);
-            var referenceTime = new DateTime(nowLocal.Year, nowLocal.Month, nowLocal.Day, 0, 0, 0, DateTimeKind.Unspecified);
-
-            // Tính thời điểm xảy ra tiếp theo trong múi giờ địa phương
-            var nextOccurrenceLocal = cron.GetNextOccurrence(referenceTime, localTimeZone);
-            if (!nextOccurrenceLocal.HasValue)
-                throw new InvalidOperationException("Cannot determine next occurrence");
-
-            // Chuyển đổi sang UTC
-            var localTime = DateTime.SpecifyKind(nextOccurrenceLocal.Value, DateTimeKind.Unspecified);
-            var nextOccurrenceUtc = TimeZoneInfo.ConvertTimeToUtc(localTime, localTimeZone);
-
-            // Cập nhật phút, giờ và thứ (nếu cần)
-            parts[0] = nextOccurrenceUtc.Minute.ToString(); // Phút
-            parts[1] = nextOccurrenceUtc.Hour.ToString();   // Giờ
-            if (parts[4] != "*") // Chỉ cập nhật nếu trường thứ không phải "*"
+            // Giả sử cron chỉ có minute hour day month dayOfWeek
+            if (!int.TryParse(parts[0], out var minute) ||
+                !int.TryParse(parts[1], out var hour))
             {
-                var utcDayOfWeek = ((int)nextOccurrenceUtc.DayOfWeek + 6) % 7; // Định dạng cron (0=Chủ nhật)
-                var localDayOfWeek = ((int)nextOccurrenceLocal.Value.DayOfWeek + 6) % 7;
-                var dayOfWeekShift = (utcDayOfWeek - localDayOfWeek + 7) % 7;
-                if (int.TryParse(parts[4], out var originalDayOfWeek))
-                {
-                    var newDayOfWeek = (originalDayOfWeek + dayOfWeekShift) % 7;
-                    parts[4] = newDayOfWeek.ToString();
-                }
-                // Lưu ý: Với các biểu thức phức tạp (như 1-5, */2), cần xử lý thêm
+                throw new NotSupportedException("Chỉ hỗ trợ cron số đơn giản (không có */5, 1-5)");
             }
+
+            // Tạo thời gian local mẫu
+            var localSample = new DateTime(2025, 1, 6, hour, minute, 0, DateTimeKind.Unspecified);
+            var localWithKind = DateTime.SpecifyKind(localSample, DateTimeKind.Unspecified);
+
+            // Chuyển sang UTC
+            var utcTime = TimeZoneInfo.ConvertTimeToUtc(localWithKind, localTimeZone);
+
+            // Cập nhật lại cron parts
+            parts[0] = utcTime.Minute.ToString();
+            parts[1] = utcTime.Hour.ToString();
 
             return string.Join(" ", parts);
         }
