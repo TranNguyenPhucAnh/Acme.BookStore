@@ -2,9 +2,8 @@ using Acme.BookStore.Authors;
 using Acme.BookStore.Books;
 using Acme.BookStore.Notifications;
 using Acme.BookStore.Schedulers;
-using Acme.BookStore.Users;
 using AutoMapper;
-using System.Linq;
+using CronExpressionDescriptor;
 using Volo.Abp.Identity;
 
 namespace Acme.BookStore;
@@ -26,7 +25,11 @@ public class BookStoreApplicationAutoMapperProfile : Profile
         CreateMap<Author, AuthorLookupDto>().ReverseMap();
         CreateMap<CreateAuthorDto, AuthorDto>().ReverseMap();
 
-        CreateMap<Scheduler, SchedulerDto>().ReverseMap();
+        CreateMap<Scheduler, SchedulerDto>().ForMember(
+            dest => dest.Description,
+            opt => opt.MapFrom(src => ExpressionDescriptor.GetDescription(src.CronExpression))
+        );;
+
         CreateMap<CreateUpdateSchedulerDto, Scheduler>().ReverseMap();
 
         CreateMap<Notification, NotificationDto>().ReverseMap();

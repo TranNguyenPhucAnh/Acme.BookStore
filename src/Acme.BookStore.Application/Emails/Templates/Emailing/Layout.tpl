@@ -49,10 +49,10 @@
                     <!-- Footer -->
                     <tr>
                         <td class="footer">
-                            <p>&copy; {{model.year}} My Company. All rights reserved.</p>
+                            <p>&copy; {{model.year}} Book Store Demo. All rights reserved.</p>
                             <p>
-                                <a href="https://www.mycompany.com">Visit our website</a> | 
-                                <a href="mailto:phucanhatt@gmail.com">Contact Us</a> | 
+                                <a href="https://bookstore-demo.online">Visit my demo</a> | 
+                                <a href="mailto:phucanhatt@gmail.com">Contact Me</a> | 
                             </p>
                             <p>Ho Chi Minh City, Vietnam</p>
                         </td>
