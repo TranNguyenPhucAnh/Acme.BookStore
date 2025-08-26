@@ -60,6 +60,16 @@ namespace Acme.BookStore.BackgroundWorker
 
             var schedulers = await _schedulerAppService.GetAllAsync();
 
+            var test = CronHelper.ConvertLocalCronToUtcCron(
+                schedulers.Items.First().CronExpression,
+                schedulers.Items.First().TimeZone);
+
+            Logger.LogInformation($"Local Cron: {schedulers.Items.First().CronExpression}.");
+
+            Logger.LogInformation($"UTC Cron: {test}.");
+
+            Logger.LogInformation($"Cron Tab Schedules {CrontabSchedule.Parse(test)}.");
+
             var nextOccurences = schedulers.Items
                 .SelectMany(s => CrontabSchedule.Parse(CronHelper.ConvertLocalCronToUtcCron(s.CronExpression, s.TimeZone))
                 .GetNextOccurrences(utcNow.AddSeconds(-1), DateTime.UtcNow.AddMonths(1))
