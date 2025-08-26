@@ -55,14 +55,13 @@ namespace Acme.BookStore.BackgroundWorker
 
         public override async Task Execute(IJobExecutionContext context)
         {
-            var now = DateTime.UtcNow;
-            Logger.LogInformation($"Executed Background Worker At {now}.");
-            Logger.LogInformation($"Executed Background Worker At UTC {DateTime.UtcNow}.");
+            var utcNow = DateTime.UtcNow;
+            Logger.LogInformation($"Executed Background Worker At {utcNow}.");
 
             var schedulers = await _schedulerAppService.GetAllAsync();
             var nextOccurences = schedulers.Items
                 .SelectMany(s => CrontabSchedule.Parse(s.CronExpression)
-                .GetNextOccurrences(now.AddSeconds(-1), DateTime.Now.AddMonths(1))
+                .GetNextOccurrences(utcNow.AddSeconds(-1), DateTime.UtcNow.AddMonths(1))
                 .Select(occurrence => new SchedulerOccurenceDto(
                     s.RecipientEntityId,
                     s.RecipientEntity,
@@ -75,7 +74,7 @@ namespace Acme.BookStore.BackgroundWorker
             if (nextOccurences.Any())
             {
                 var currentTriggers = nextOccurences
-                    .Where(x => x.NextOccurrence.IsBetween(now.AddSeconds(-1), DateTime.Now.AddSeconds(15))).ToList();
+                    .Where(x => x.NextOccurrence.IsBetween(utcNow.AddSeconds(-1), DateTime.UtcNow.AddSeconds(15))).ToList();
                 if (currentTriggers.Count > 0)
                 {
                     await SendMailsAsync(currentTriggers);
