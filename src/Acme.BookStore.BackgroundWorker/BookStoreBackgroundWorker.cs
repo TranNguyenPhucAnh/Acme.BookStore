@@ -55,8 +55,9 @@ namespace Acme.BookStore.BackgroundWorker
 
         public override async Task Execute(IJobExecutionContext context)
         {
-            var now = DateTime.Now;
+            var now = DateTime.UtcNow;
             Logger.LogInformation($"Executed Background Worker At {now}.");
+            Logger.LogInformation($"Executed Background Worker At UTC {DateTime.UtcNow}.");
 
             var schedulers = await _schedulerAppService.GetAllAsync();
             var nextOccurences = schedulers.Items
