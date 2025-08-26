@@ -7,6 +7,7 @@ public static class CronHelper
 {
     public static string ConvertUtcCronToLocalCron(string utcCronExpression, string localTimeZoneId)
     {
+        // Kiểm tra tính hợp lệ của biểu thức cron
         var cron = CronExpression.Parse(utcCronExpression, CronFormat.Standard);
         var parts = utcCronExpression.Split(' ');
         if (parts.Length < 5)
@@ -21,23 +22,20 @@ public static class CronHelper
         if (!nextOccurrenceUtc.HasValue)
             throw new InvalidOperationException("Cannot determine next occurrence");
 
-        // Convert sang local
+        // Chuyển đổi sang múi giờ local
         var nextOccurrenceLocal = TimeZoneInfo.ConvertTimeFromUtc(nextOccurrenceUtc.Value, localTimeZone);
 
-        // Double offset (cộng thêm lần nữa)
-        var offset = localTimeZone.GetUtcOffset(nextOccurrenceUtc.Value);
-        var doubleShifted = nextOccurrenceLocal.Add(offset);
+        // Tạo biểu thức cron mới cho local time
+        var localHour = nextOccurrenceLocal.Hour;
+        var localMinute = nextOccurrenceLocal.Minute;
+        var localDayOfWeek = ((int)nextOccurrenceLocal.DayOfWeek + 6) % 7; // Chuyển sang định dạng cron (0=Chủ nhật)
 
-        // Build cron mới dựa trên double-shifted
-        var localHour = doubleShifted.Hour;
-        var localMinute = doubleShifted.Minute;
-        var localDayOfWeek = ((int)doubleShifted.DayOfWeek + 6) % 7;
-
-        parts[0] = localMinute.ToString(); // phút
-        parts[1] = localHour.ToString();   // giờ
-
-        if (parts[4] != "*")
+        // Cập nhật giờ, phút và thứ
+        parts[0] = localMinute.ToString(); // Phút
+        parts[1] = localHour.ToString();   // Giờ
+        if (parts[4] != "*") // Chỉ cập nhật nếu trường thứ không phải "*"
         {
+            // Điều chỉnh trường thứ dựa trên chênh lệch ngày
             var utcDayOfWeek = ((int)nextOccurrenceUtc.Value.DayOfWeek + 6) % 7;
             var dayOfWeekShift = (localDayOfWeek - utcDayOfWeek + 7) % 7;
             if (int.TryParse(parts[4], out var originalDayOfWeek))
@@ -45,6 +43,7 @@ public static class CronHelper
                 var newDayOfWeek = (originalDayOfWeek + dayOfWeekShift) % 7;
                 parts[4] = newDayOfWeek.ToString();
             }
+            // Lưu ý: Với các biểu thức phức tạp (như 1-5, */2), cần xử lý thêm
         }
 
         return string.Join(" ", parts);
