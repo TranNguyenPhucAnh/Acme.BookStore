@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
-using CronExpressionDescriptor;
 using System.Collections.Generic;
 using Volo.Abp;
 
@@ -31,23 +30,10 @@ namespace Acme.BookStore.Schedulers
         [RemoteService(IsEnabled = false)]
         public async Task<ListResultDto<SchedulerDto>> GetAllAsync()
         {
+            //ListResultDto instead of PagedResultDto avoid handling pagination
             var list = await Repository.GetListAsync();
             return new ListResultDto<SchedulerDto>(
                 ObjectMapper.Map<List<Scheduler>, List<SchedulerDto>>(list));
-        }
-
-        public override Task<SchedulerDto> CreateAsync(CreateUpdateSchedulerDto input)
-        {
-            input.Description = ExpressionDescriptor.GetDescription(input.CronExpression);
-
-            return base.CreateAsync(input);
-        }
-
-        public override Task<SchedulerDto> UpdateAsync(Guid id, CreateUpdateSchedulerDto input)
-        {
-            input.Description = ExpressionDescriptor.GetDescription(input.CronExpression);
-
-            return base.UpdateAsync(id, input);
         }
     }
 }

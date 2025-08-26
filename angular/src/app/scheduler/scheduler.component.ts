@@ -90,9 +90,11 @@ export class SchedulerComponent implements OnInit, OnDestroy {
     modalRef.componentInstance.selectedSchedule = this.selectedSchedule;
     modalRef.result.then(
       (result) => {
+        result.timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        console.log('Modal closed with result:', result);
         const request = isEdit ? this.schedulerService.update(
-          this.selectedSchedule.id, {...result, description: this.selectedSchedule.description } as CreateUpdateSchedulerDto) :
-          this.schedulerService.create({...result, description: '' } as CreateUpdateSchedulerDto);
+          this.selectedSchedule.id, result as CreateUpdateSchedulerDto) :
+          this.schedulerService.create(result as CreateUpdateSchedulerDto);
         request.pipe(
           catchError((error) => {
             //console.log(error);

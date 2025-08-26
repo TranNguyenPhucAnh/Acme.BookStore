@@ -7,7 +7,6 @@ using Volo.Abp.Identity;
 using Volo.Abp.Modularity;
 using Volo.Abp.PermissionManagement.HttpApi;
 using Volo.Abp.Localization;
-using Volo.Abp.TenantManagement;
 
 namespace Acme.BookStore;
 

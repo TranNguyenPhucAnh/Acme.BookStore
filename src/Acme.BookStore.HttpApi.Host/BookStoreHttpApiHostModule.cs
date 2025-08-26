@@ -105,12 +105,19 @@ public class BookStoreHttpApiHostModule : AbpModule
             {
                 options.DisableTransportSecurityRequirement = true;
             });
-            
+
             Configure<ForwardedHeadersOptions>(options =>
             {
                 options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
             });
         }
+
+        Configure<ForwardedHeadersOptions>(o =>
+        {
+            o.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+            o.KnownNetworks.Clear(); // tin proxy trong private network/CF
+            o.KnownProxies.Clear();
+        });
 
         ConfigureAuthentication(context);
         ConfigureUrls(configuration);
@@ -197,10 +204,11 @@ public class BookStoreHttpApiHostModule : AbpModule
     }
     private void ConfigureCors(ServiceConfigurationContext context, IConfiguration configuration)
     {
-    Configure<AbpAntiForgeryOptions>(options =>
-    {
-        options.AutoValidate = false;
-    });
+        Configure<AbpAntiForgeryOptions>(options =>
+        {
+            options.AutoValidate = false;
+        });
+        
         context.Services.AddCors(options =>
         {
             options.AddDefaultPolicy(builder =>
@@ -232,23 +240,20 @@ public class BookStoreHttpApiHostModule : AbpModule
         var app = context.GetApplicationBuilder();
         var env = context.GetEnvironment();
 
-        // app.UseForwardedHeaders(new ForwardedHeadersOptions
-        // {
-        //     ForwardedHeaders = ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedFor
-        // });
-
-        //restore request scheme to https as it is required by OpenIddict, due to the TLS termination at the reverse proxy level
-        app.Use((context, next) =>
-        {
-            context.Request.Scheme = "https";
-
-            return next();
-        });
-
         if (env.IsDevelopment())
         {
             app.UseDeveloperExceptionPage();
         }
+
+        //restore request scheme to https as it is required by OpenIddict, due to the TLS termination at the reverse proxy level
+        // app.Use((context, next) =>
+        // {
+        //     context.Request.Scheme = "https";
+
+        //     return next();
+        // });
+
+        app.UseForwardedHeaders();   // đặt trước UseRouting/UseAuthentication/...
 
         app.UseAbpRequestLocalization();
 
