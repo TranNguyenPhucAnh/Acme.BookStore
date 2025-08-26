@@ -25,15 +25,10 @@ public class BookStoreApplicationAutoMapperProfile : Profile
         CreateMap<Author, AuthorLookupDto>().ReverseMap();
         CreateMap<CreateAuthorDto, AuthorDto>().ReverseMap();
 
-        CreateMap<Scheduler, SchedulerDto>()
-            .ForMember(
-                dest => dest.CronExpression,
-                opt => opt.MapFrom(src => CronHelper.ConvertUtcCronToLocalCron(src.CronExpression, src.TimeZone))
-            )
-            .ForMember(
-                dest => dest.Description,
-                opt => opt.MapFrom(src => ExpressionDescriptor.GetDescription(CronHelper.ConvertUtcCronToLocalCron(src.CronExpression, src.TimeZone)))
-            );
+        CreateMap<Scheduler, SchedulerDto>().ForMember(
+            dest => dest.Description,
+            opt => opt.MapFrom(src => ExpressionDescriptor.GetDescription(src.CronExpression))
+        );;
 
         CreateMap<CreateUpdateSchedulerDto, Scheduler>().ReverseMap();
 

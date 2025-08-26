@@ -59,8 +59,9 @@ namespace Acme.BookStore.BackgroundWorker
             Logger.LogInformation($"Executed Background Worker At {utcNow}.");
 
             var schedulers = await _schedulerAppService.GetAllAsync();
+
             var nextOccurences = schedulers.Items
-                .SelectMany(s => CrontabSchedule.Parse(s.CronExpression)
+                .SelectMany(s => CrontabSchedule.Parse(CronHelper.ConvertLocalCronToUtcCron(s.CronExpression, s.TimeZone))
                 .GetNextOccurrences(utcNow.AddSeconds(-1), DateTime.UtcNow.AddMonths(1))
                 .Select(occurrence => new SchedulerOccurenceDto(
                     s.RecipientEntityId,

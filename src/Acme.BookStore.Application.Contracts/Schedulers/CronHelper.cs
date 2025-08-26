@@ -1,43 +1,46 @@
 using System;
 using Cronos;
 /// <summary>
-/// Helper class to convert cron expressions between UTC and local time zones.
+/// Helper class to convert cron expressions between local and UTC time zones.
 /// </summary>
 public static class CronHelper
 {
-    public static string ConvertUtcCronToLocalCron(string utcCronExpression, string localTimeZoneId)
+    public static string ConvertLocalCronToUtcCron(string localCronExpression, string localTimeZoneId)
     {
         // Kiểm tra tính hợp lệ của biểu thức cron
-        var cron = CronExpression.Parse(utcCronExpression, CronFormat.Standard);
-        var parts = utcCronExpression.Split(' ');
+        var cron = CronExpression.Parse(localCronExpression, CronFormat.Standard);
+        var parts = localCronExpression.Split(' ');
         if (parts.Length < 5)
             throw new ArgumentException("Invalid cron expression");
 
         // Lấy múi giờ local
         var localTimeZone = TimeZoneInfo.FindSystemTimeZoneById(localTimeZoneId);
 
-        // Tính thời điểm xảy ra tiếp theo trong UTC
+        // Tính thời điểm xảy ra tiếp theo trong múi giờ local
         var nowUtc = DateTime.UtcNow;
-        var nextOccurrenceUtc = cron.GetNextOccurrence(nowUtc, TimeZoneInfo.Utc);
-        if (!nextOccurrenceUtc.HasValue)
+        var nextOccurrenceLocal = cron.GetNextOccurrence(nowUtc, localTimeZone);
+        if (!nextOccurrenceLocal.HasValue)
             throw new InvalidOperationException("Cannot determine next occurrence");
 
-        // Chuyển đổi sang múi giờ local
-        var nextOccurrenceLocal = TimeZoneInfo.ConvertTimeFromUtc(nextOccurrenceUtc.Value, localTimeZone);
+        // Cronos trả về Unspecified, cần gán Kind = Unspecified cho đúng time zone
+        var localTime = DateTime.SpecifyKind(nextOccurrenceLocal.Value, DateTimeKind.Unspecified);
 
-        // Tạo biểu thức cron mới cho local time
-        var localHour = nextOccurrenceLocal.Hour;
-        var localMinute = nextOccurrenceLocal.Minute;
-        var localDayOfWeek = ((int)nextOccurrenceLocal.DayOfWeek + 6) % 7; // Chuyển sang định dạng cron (0=Chủ nhật)
+        // Chuyển đổi sang UTC
+        var nextOccurrenceUtc = TimeZoneInfo.ConvertTimeToUtc(localTime, localTimeZone);
+
+        // Tạo biểu thức cron mới cho UTC
+        var utcHour = nextOccurrenceUtc.Hour;
+        var utcMinute = nextOccurrenceUtc.Minute;
+        var utcDayOfWeek = ((int)nextOccurrenceUtc.DayOfWeek + 6) % 7; // Chuyển sang định dạng cron (0=Chủ nhật)
 
         // Cập nhật giờ, phút và thứ
-        parts[0] = localMinute.ToString(); // Phút
-        parts[1] = localHour.ToString();   // Giờ
+        parts[0] = utcMinute.ToString(); // Phút
+        parts[1] = utcHour.ToString();   // Giờ
         if (parts[4] != "*") // Chỉ cập nhật nếu trường thứ không phải "*"
         {
             // Điều chỉnh trường thứ dựa trên chênh lệch ngày
-            var utcDayOfWeek = ((int)nextOccurrenceUtc.Value.DayOfWeek + 6) % 7;
-            var dayOfWeekShift = (localDayOfWeek - utcDayOfWeek + 7) % 7;
+            var localDayOfWeek = ((int)nextOccurrenceLocal.Value.DayOfWeek + 6) % 7;
+            var dayOfWeekShift = (utcDayOfWeek - localDayOfWeek + 7) % 7;
             if (int.TryParse(parts[4], out var originalDayOfWeek))
             {
                 var newDayOfWeek = (originalDayOfWeek + dayOfWeekShift) % 7;
