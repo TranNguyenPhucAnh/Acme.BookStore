@@ -10,6 +10,7 @@ using Volo.Abp.Security.Claims;
 using System.Security.Claims;
 using Volo.Abp.TextTemplating;
 using Volo.Abp.Emailing.Templates;
+using Acme.BookStore.Notifications;
 
 namespace Acme.BookStore.BackgroundWorker
 {
@@ -102,9 +103,9 @@ namespace Acme.BookStore.BackgroundWorker
 
                     var file = await _bookAppService.ExportAsync();
 
-                    var model = new
+                    var model = new EmailTemplateModel
                     {
-                        Username = admin.UserName,
+                        Username = string.Empty,
                         LocalizedMessage = "Hi, please find the attachment in this email.",
                         Year = DateTime.Now.Year
                     };

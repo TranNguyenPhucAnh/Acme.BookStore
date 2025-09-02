@@ -1,6 +1,4 @@
 using Acme.BookStore.FeatureManagements;
-using Acme.BookStore.Users;
-using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Account;
 using Volo.Abp.AutoMapper;
 using Volo.Abp.BackgroundJobs;
