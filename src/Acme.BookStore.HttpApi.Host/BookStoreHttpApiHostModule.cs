@@ -112,12 +112,12 @@ public class BookStoreHttpApiHostModule : AbpModule
             });
         }
 
-        Configure<ForwardedHeadersOptions>(options =>
-        {
-            options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-            options.KnownNetworks.Clear(); // trust proxy from private network/CF
-            options.KnownProxies.Clear();
-        });
+        // Configure<ForwardedHeadersOptions>(options =>
+        // {
+        //     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+        //     options.KnownNetworks.Clear(); // trust proxy from private network/CF
+        //     options.KnownProxies.Clear();
+        // });
 
         ConfigureAuthentication(context);
         ConfigureUrls(configuration);
@@ -246,14 +246,14 @@ public class BookStoreHttpApiHostModule : AbpModule
         }
 
         //restore request scheme to https as it is required by OpenIddict, due to the TLS termination at the reverse proxy level
-        // app.Use((context, next) =>
-        // {
-        //     context.Request.Scheme = "https";
+        app.Use((context, next) =>
+        {
+            context.Request.Scheme = "https";
 
-        //     return next();
-        // });
+            return next();
+        });
 
-        app.UseForwardedHeaders();   // đặt trước UseRouting/UseAuthentication/...
+        //app.UseForwardedHeaders();   // đặt trước UseRouting/UseAuthentication/...
 
         app.UseAbpRequestLocalization();
 
