@@ -189,20 +189,26 @@ public class AuthorAppService(
 
     private async Task<IQueryable<AuthorDto>> GetListWithoutPaginationAsync(GetAuthorListDto? input)
     {
-        var query = await _authorRepository.GetQueryableAsync();
+        var query = (await _authorRepository.GetQueryableAsync())
+        .AsNoTracking()
+        .OrderBy(NormalizeSorting(input?.Sorting))
+        .Select(author => new AuthorDto
+        {
+            Id = author.Id,
+            Name = author.Name,
+            BirthDate = author.BirthDate
+        });
+
+        if (input == null)
+        {
+            return query;
+        }
 
         query = query.ApplyFilter(input);
 
         _logger.LogInformation($"Book Query From ApplyFilter(): {query.ToQueryString()}");
 
-        return query
-            .OrderBy(NormalizeSorting(input?.Sorting))
-            .Select(author => new AuthorDto
-            {
-                Id = author.Id,
-                Name = author.Name,
-                BirthDate = author.BirthDate
-            });
+        return query;
     }
 
     private static string NormalizeSorting(string sorting)
