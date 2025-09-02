@@ -250,6 +250,8 @@ public class BookStoreHttpApiHostModule : AbpModule
 
         app.UseForwardedHeaders();   // đặt trước UseRouting/UseAuthentication/...
 
+        app.UseMiddleware<RequestLoggingMiddleware>();
+
         app.UseAbpRequestLocalization();
 
         if (!env.IsDevelopment())
