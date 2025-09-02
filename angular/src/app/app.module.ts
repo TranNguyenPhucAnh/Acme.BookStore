@@ -18,7 +18,6 @@ import { AppComponent } from './app.component';
 import { APP_ROUTE_PROVIDER } from './route.provider';
 import { HTTP_INTERCEPTOR_PROVIDER } from './interceptors/http-interceptors.provider';
 import { MatProgressSpinnerModule} from '@angular/material/progress-spinner';
-import { HttpClientXsrfModule } from '@angular/common/http';
 
 @NgModule({
   declarations: [AppComponent],
@@ -30,11 +29,7 @@ import { HttpClientXsrfModule } from '@angular/common/http';
     CoreModule,
     MatProgressSpinnerModule,
     ThemeLeptonXModule.forRoot(),
-    SideMenuLayoutModule.forRoot(),
-    HttpClientXsrfModule.withOptions({
-      cookieName: 'XSRF-TOKEN',
-      headerName: 'RequestVerificationToken'
-    })
+    SideMenuLayoutModule.forRoot()
   ],
   providers: [
     APP_ROUTE_PROVIDER,
