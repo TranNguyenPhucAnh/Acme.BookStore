@@ -112,11 +112,11 @@ public class BookStoreHttpApiHostModule : AbpModule
             });
         }
 
-        Configure<ForwardedHeadersOptions>(o =>
+        Configure<ForwardedHeadersOptions>(options =>
         {
-            o.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-            o.KnownNetworks.Clear(); // tin proxy trong private network/CF
-            o.KnownProxies.Clear();
+            options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+            options.KnownNetworks.Clear(); // trust proxy from private network/CF
+            options.KnownProxies.Clear();
         });
 
         ConfigureAuthentication(context);
@@ -204,10 +204,10 @@ public class BookStoreHttpApiHostModule : AbpModule
     }
     private void ConfigureCors(ServiceConfigurationContext context, IConfiguration configuration)
     {
-        Configure<AbpAntiForgeryOptions>(options =>
-        {
-            options.AutoValidate = false;
-        });
+        // Configure<AbpAntiForgeryOptions>(options =>
+        // {
+        //     options.AutoValidate = false;
+        // });
         
         context.Services.AddCors(options =>
         {
