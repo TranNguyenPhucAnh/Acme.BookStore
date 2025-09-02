@@ -57,8 +57,7 @@ namespace Acme.BookStore.Notifications
 
             var model = new EmailTemplateModel
             {
-                Year = DateTime.Now.Year,
-                Username = _currentUser.UserName,
+                Year = DateTime.UtcNow.Year,
                 LocalizedMessage = L[entity.GetLocalizationKey("Body", type), entity.GetLocalizationBodyArgs(crudAction)]
             };
 

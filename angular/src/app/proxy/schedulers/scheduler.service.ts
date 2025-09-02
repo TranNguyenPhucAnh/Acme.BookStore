@@ -9,7 +9,6 @@ import { Injectable } from '@angular/core';
 export class SchedulerService {
   apiName = 'Default';
   
-
   create = (input: CreateUpdateSchedulerDto, config?: Partial<Rest.Config>) =>
     this.restService.request<any, SchedulerDto>({
       method: 'POST',
@@ -18,7 +17,6 @@ export class SchedulerService {
     },
     { apiName: this.apiName,...config });
   
-
   delete = (id: string, config?: Partial<Rest.Config>) =>
     this.restService.request<any, any>({
       method: 'DELETE',
@@ -26,7 +24,6 @@ export class SchedulerService {
     },
     { apiName: this.apiName,...config });
   
-
   get = (id: string, config?: Partial<Rest.Config>) =>
     this.restService.request<any, SchedulerDto>({
       method: 'GET',
@@ -34,7 +31,6 @@ export class SchedulerService {
     },
     { apiName: this.apiName,...config });
   
-
   getList = (input: PagedAndSortedResultRequestDto, config?: Partial<Rest.Config>) =>
     this.restService.request<any, PagedResultDto<SchedulerDto>>({
       method: 'GET',
@@ -43,7 +39,6 @@ export class SchedulerService {
     },
     { apiName: this.apiName,...config });
   
-
   update = (id: string, input: CreateUpdateSchedulerDto, config?: Partial<Rest.Config>) =>
     this.restService.request<any, SchedulerDto>({
       method: 'PUT',
