@@ -2,9 +2,14 @@
 using Acme.BookStore.Notifications;
 using Acme.BookStore.Permissions;
 using AutoFilterer.Extensions;
+using ClosedXML.Excel;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Linq.Dynamic.Core;
 using System.Threading.Tasks;
@@ -22,7 +27,8 @@ public class AuthorAppService(
     AuthorManager authorManager,
     ICurrentUser currentUser,
     INotificationAppService notificationAppService,
-    IRepository<Book, Guid> bookRepository
+    IRepository<Book, Guid> bookRepository,
+    ILogger<AuthorAppService> logger
     ) : BookStoreAppService, IAuthorAppService
 {
     private readonly IAuthorRepository _authorRepository = authorRepository;
@@ -30,6 +36,7 @@ public class AuthorAppService(
     private readonly ICurrentUser _currentUser = currentUser;
     private readonly INotificationAppService _notificationAppService = notificationAppService;
     private readonly IRepository<Book, Guid> _bookRepository = bookRepository;
+    private readonly ILogger<AuthorAppService> _logger = logger;
 
     public async Task<AuthorDto> GetAsync(Guid id)
     {
@@ -126,6 +133,76 @@ public class AuthorAppService(
     public async Task<DateTime> GetMinDateTimeAsync()
     {
         return await _authorRepository.MinAsync(author => author.BirthDate);
+    }
+
+    public async Task<FileContentResult> ExportAsync(GetAuthorListDto? input = null)
+    {
+        var query = await GetListWithoutPaginationAsync(input);
+        var list = await AsyncExecuter.ToListAsync(query);
+
+        if (list.Count == 0)
+        {
+            throw new UserFriendlyException("No items to be exported, please try again.");
+        }
+
+        var data = list.Select(author => new
+        {
+            author.Name,
+            author.BirthDate
+        });
+
+        using var memoryStream = new MemoryStream();
+        try
+        {
+            using var workbook = new XLWorkbook();
+            var worksheet = workbook.Worksheets.Add("Sheet1");
+
+            worksheet.Cell(1, 1).InsertTable(data);
+
+            var lastRow = worksheet.LastRowUsed().RowNumber();
+
+            var lastColumn = worksheet.LastColumnUsed().ColumnNumber();
+
+            worksheet.Range(1, 1, lastRow, lastColumn).Style.Border
+                    .SetOutsideBorder(XLBorderStyleValues.Thin).Border
+                    .SetInsideBorder(XLBorderStyleValues.Thin);
+
+            worksheet.Columns().AdjustToContents();
+
+            worksheet.Rows().AdjustToContents();
+
+            workbook.SaveAs(memoryStream);
+
+            workbook.Dispose();
+
+            return new FileContentResult(memoryStream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+            {
+                FileDownloadName = $"Authors_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx"
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error while creating Excel file");
+            throw new UserFriendlyException("An error occurred while exporting the authors. Please try again later.");
+        }
+    }
+
+    private async Task<IQueryable<AuthorDto>> GetListWithoutPaginationAsync(GetAuthorListDto? input)
+    {
+        var query = await _authorRepository.GetQueryableAsync();
+
+        query = query.ApplyFilter(input);
+
+        _logger.LogInformation($"Book Query From ApplyFilter(): {query.ToQueryString()}");
+
+        return query
+            .OrderBy(NormalizeSorting(input?.Sorting))
+            .Select(author => new AuthorDto
+            {
+                Id = author.Id,
+                Name = author.Name,
+                BirthDate = author.BirthDate
+            });
     }
 
     private static string NormalizeSorting(string sorting)
