@@ -19,7 +19,6 @@ using Volo.Abp;
 using Volo.Abp.Account;
 using Volo.Abp.Account.Web;
 using Volo.Abp.AspNetCore.Mvc;
-using Volo.Abp.AspNetCore.Mvc.AntiForgery;
 using Volo.Abp.AspNetCore.Mvc.UI.Bundling;
 using Volo.Abp.AspNetCore.Mvc.UI.Theme.LeptonXLite;
 using Volo.Abp.AspNetCore.Mvc.UI.Theme.LeptonXLite.Bundling;
@@ -112,12 +111,12 @@ public class BookStoreHttpApiHostModule : AbpModule
             });
         }
 
-        // Configure<ForwardedHeadersOptions>(options =>
-        // {
-        //     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-        //     options.KnownNetworks.Clear(); // trust proxy from private network/CF
-        //     options.KnownProxies.Clear();
-        // });
+        Configure<ForwardedHeadersOptions>(options =>
+        {
+            options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+            options.KnownNetworks.Clear(); // trust proxy from private network/CF
+            options.KnownProxies.Clear();
+        });
 
         ConfigureAuthentication(context);
         ConfigureUrls(configuration);
@@ -204,11 +203,6 @@ public class BookStoreHttpApiHostModule : AbpModule
     }
     private void ConfigureCors(ServiceConfigurationContext context, IConfiguration configuration)
     {
-        // Configure<AbpAntiForgeryOptions>(options =>
-        // {
-        //     options.AutoValidate = false;
-        // });
-        
         context.Services.AddCors(options =>
         {
             options.AddDefaultPolicy(builder =>
@@ -246,14 +240,15 @@ public class BookStoreHttpApiHostModule : AbpModule
         }
 
         //restore request scheme to https as it is required by OpenIddict, due to the TLS termination at the reverse proxy level
-        app.Use((context, next) =>
-        {
-            context.Request.Scheme = "https";
+        //might encounter 'antiforgery token validation failed' error if used it, use ForwardedHeaders middleware instead
+        // app.Use((context, next) =>
+        // {
+        //     context.Request.Scheme = "https";
 
-            return next();
-        });
+        //     return next();
+        // });
 
-        //app.UseForwardedHeaders();   // đặt trước UseRouting/UseAuthentication/...
+        app.UseForwardedHeaders();   // đặt trước UseRouting/UseAuthentication/...
 
         app.UseAbpRequestLocalization();
 
