@@ -106,7 +106,7 @@ namespace Acme.BookStore.BackgroundWorker
                     var model = new EmailTemplateModel
                     {
                         Username = string.Empty,
-                        LocalizedMessage = "Hi, please find the attachment in this email.",
+                        LocalizedMessage = "Please find the attachment in this email.",
                         Year = DateTime.Now.Year
                     };
 
