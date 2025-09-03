@@ -39,10 +39,10 @@ namespace Acme.BookStore.Migrations
 
             migrationBuilder.Sql(@"
                 CREATE TRIGGER `book_after_insert`
-                AFTER INSERT ON `Book`
+                AFTER INSERT ON `AppBooks`
                 FOR EACH ROW
                 BEGIN
-                    INSERT INTO BookHistory (
+                    INSERT INTO AppBookHistories (
                         Id, BookId, ISBN, Name, Type, PublishDate, Publisher, AuthorId,
                         ActionType, PreviousAuditId, Version, CreationTime
                     )
@@ -55,7 +55,7 @@ namespace Acme.BookStore.Migrations
 
             migrationBuilder.Sql(@"
                 CREATE TRIGGER `book_after_update`
-                AFTER UPDATE ON `Book`
+                AFTER UPDATE ON `AppBooks`
                 FOR EACH ROW
                 BEGIN
                     DECLARE lastVersion INT;
@@ -64,13 +64,13 @@ namespace Acme.BookStore.Migrations
                     -- Lấy version và Id của bản ghi history mới nhất
                     SELECT Version, Id
                     INTO lastVersion, lastAuditId
-                    FROM BookHistory
+                    FROM AppBookHistories
                     WHERE BookId = NEW.Id
                     ORDER BY Version DESC
                     LIMIT 1;
 
                     -- Thêm bản ghi mới
-                    INSERT INTO BookHistory (
+                    INSERT INTO AppBookHistories (
                         Id, BookId, ISBN, Name, Type, PublishDate, Publisher, AuthorId,
                         ActionType, PreviousAuditId, Version, CreationTime
                     )
@@ -83,7 +83,7 @@ namespace Acme.BookStore.Migrations
 
             migrationBuilder.Sql(@"
                 CREATE TRIGGER `book_after_delete`
-                AFTER DELETE ON `Book`
+                AFTER DELETE ON `AppBooks`
                 FOR EACH ROW
                 BEGIN
                     DECLARE lastVersion INT;
@@ -92,13 +92,13 @@ namespace Acme.BookStore.Migrations
                     -- Lấy version và Id của bản ghi history mới nhất
                     SELECT Version, Id
                     INTO lastVersion, lastAuditId
-                    FROM BookHistory
+                    FROM AppBookHistories
                     WHERE BookId = OLD.Id
                     ORDER BY Version DESC
                     LIMIT 1;
 
                     -- Thêm bản ghi mới để đánh dấu Delete
-                    INSERT INTO BookHistory (
+                    INSERT INTO AppBookHistories (
                         Id, BookId, ISBN, Name, Type, PublishDate, Publisher, AuthorId,
                         ActionType, PreviousAuditId, Version, CreationTime
                     )
@@ -115,6 +115,12 @@ namespace Acme.BookStore.Migrations
         {
             migrationBuilder.DropTable(
                 name: "AppBookHistories");
+
+            migrationBuilder.Sql("DROP TRIGGER IF EXISTS `book_after_insert`;");
+
+            migrationBuilder.Sql("DROP TRIGGER IF EXISTS `book_after_update`;");
+            
+            migrationBuilder.Sql("DROP TRIGGER IF EXISTS `book_after_delete`;");
         }
     }
 }
