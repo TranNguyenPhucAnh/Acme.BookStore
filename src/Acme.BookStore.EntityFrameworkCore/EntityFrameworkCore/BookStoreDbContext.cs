@@ -85,6 +85,16 @@ public class BookStoreDbContext : AbpDbContext<BookStoreDbContext>
             .OnDelete(DeleteBehavior.Restrict);
         });
 
+        builder.Entity<BookHistory>(b =>
+        {
+            b.ToTable(BookStoreConsts.DbTablePrefix + "BookHistories", BookStoreConsts.DbSchema);
+            b.ConfigureByConvention(); //auto configure for the base class props
+            b.Property(x => x.PreviousAuditId).IsRequired(false);
+            //IsConcurrencyToken(), or rowversion/timestamp will add a where clause in the SQL update statement
+            //used for optimistic concurrency check against updating entity/aggregate root, no need for history
+            //b.Property(x => x.Version).IsConcurrencyToken();
+        });
+
         builder.Entity<Author>(b =>
         {
             b.ToTable(BookStoreConsts.DbTablePrefix + "Authors",
