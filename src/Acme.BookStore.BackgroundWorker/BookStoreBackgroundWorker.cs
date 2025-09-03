@@ -11,6 +11,8 @@ using System.Security.Claims;
 using Volo.Abp.TextTemplating;
 using Volo.Abp.Emailing.Templates;
 using Acme.BookStore.Notifications;
+using Acme.BookStore.Authors;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Acme.BookStore.BackgroundWorker
 {
@@ -20,6 +22,7 @@ namespace Acme.BookStore.BackgroundWorker
         private readonly IEmailSender _emailSender;
         private readonly IUserAppService _userAppService;
         private readonly IBookAppService _bookAppService;
+        private readonly IAuthorAppService _authorAppService;
         private readonly ICurrentPrincipalAccessor _currentPrincipalAccessor;
         private readonly ITemplateRenderer _templateRenderer;
         private readonly ILogger<BookStoreBackgroundWorker> _logger;
@@ -29,6 +32,7 @@ namespace Acme.BookStore.BackgroundWorker
             IEmailSender emailSender,
             IUserAppService userAppService,
             IBookAppService bookAppService,
+            IAuthorAppService authorAppService,
             ICurrentPrincipalAccessor currentPrincipalAccessor,
             ITemplateRenderer templateRenderer,
             ILogger<BookStoreBackgroundWorker> logger
@@ -38,6 +42,7 @@ namespace Acme.BookStore.BackgroundWorker
             _emailSender = emailSender;
             _userAppService = userAppService;
             _bookAppService = bookAppService;
+            _authorAppService = authorAppService;
             _currentPrincipalAccessor = currentPrincipalAccessor;
             _templateRenderer = templateRenderer;
             _logger = logger;
@@ -100,8 +105,27 @@ namespace Acme.BookStore.BackgroundWorker
                 using (_currentPrincipalAccessor.Change(newPrincipal))
                 {
                     _logger.LogInformation($"Current user is set to {admin.UserName} with ID {admin.Id}.");
+                    var files = new Dictionary<WorkerOutputTypeEnum, FileContentResult>();
 
-                    var file = await _bookAppService.ExportAsync();
+                    var outputTypes = currentTriggers
+                        .Select(t => t.WorkerOutputType)
+                        .Distinct();
+
+                    foreach (var type in outputTypes)
+                    {
+                        switch (type)
+                        {
+                            case WorkerOutputTypeEnum.BookReport:
+                                files[type] = await _bookAppService.ExportAsync();
+                                break;
+
+                            case WorkerOutputTypeEnum.AuthorReport:
+                                files[type] = await _authorAppService.ExportAsync();
+                                break;
+
+                            // thêm case khác nếu có loại report mới
+                        }
+                    }
 
                     var model = new EmailTemplateModel
                     {
@@ -123,7 +147,7 @@ namespace Acme.BookStore.BackgroundWorker
                             case RecipientTypeEnum.Individual:
                                 var user = (await _userAppService.GetUsersAsync(new List<Guid>() { s.RecipientEntityId })).FirstOrDefault();
 
-                                _logger.LogInformation($"Sending email attachment {file.FileDownloadName} to {user.Email} at {s.NextOccurrence} with body as {body}");
+                                _logger.LogInformation($"Sending email attachment {files[s.WorkerOutputType].FileDownloadName} to {user.Email} at {s.NextOccurrence} with body as {body}");
 
                                 await _emailSender.QueueAsync(
                                     user.Email,
@@ -136,14 +160,14 @@ namespace Acme.BookStore.BackgroundWorker
                                         {
                                             new EmailAttachment
                                             {
-                                                Name = file.FileDownloadName,
-                                                File = file.FileContents,
+                                                Name = files[s.WorkerOutputType].FileDownloadName,
+                                                File = files[s.WorkerOutputType].FileContents,
                                             }
                                         }
                                     }
                                 );
 
-                                _logger.LogInformation($"Email attachment {file.FileDownloadName} is sent to {user.Email} at {s.NextOccurrence}.");
+                                _logger.LogInformation($"Email attachment {files[s.WorkerOutputType].FileDownloadName} is sent to {user.Email} at {s.NextOccurrence}.");
                                 break;
 
                             case RecipientTypeEnum.OrganizationBased:
@@ -162,8 +186,8 @@ namespace Acme.BookStore.BackgroundWorker
                                         {
                                             new EmailAttachment
                                             {
-                                                Name = file.FileDownloadName,
-                                                File = file.FileContents,
+                                                Name = files[s.WorkerOutputType].FileDownloadName,
+                                                File = files[s.WorkerOutputType].FileContents,
                                             }
                                         },
                                         CC = [.. usersByOrg.Select(s => s.Email)]
@@ -187,8 +211,8 @@ namespace Acme.BookStore.BackgroundWorker
                                         {
                                             new EmailAttachment
                                             {
-                                                Name = file.FileDownloadName,
-                                                File = file.FileContents,
+                                                Name = files[s.WorkerOutputType].FileDownloadName,
+                                                File = files[s.WorkerOutputType].FileContents,
                                             }
                                         },
                                         CC = [.. usersByRole.Select(s => s.Email)]

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 
@@ -18,4 +19,6 @@ public interface IAuthorAppService : IApplicationService
     Task DeleteAsync(Guid id);
 
     Task<DateTime> GetMinDateTimeAsync();
+
+    Task<FileContentResult> ExportAsync(GetAuthorListDto? input = null);
 }
