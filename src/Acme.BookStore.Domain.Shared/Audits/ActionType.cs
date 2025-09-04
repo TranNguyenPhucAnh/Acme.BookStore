@@ -4,5 +4,6 @@ public enum ActionType
 {
     INSERT,
     UPDATE,
-    DELETE
+    DELETE,
+    SNAPSHOT
 }

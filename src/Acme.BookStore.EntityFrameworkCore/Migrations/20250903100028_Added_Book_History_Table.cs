@@ -69,6 +69,11 @@ namespace Acme.BookStore.Migrations
                     ORDER BY Version DESC
                     LIMIT 1;
 
+                    -- Data cũ trước khi có trigger thì bỏ qua không audit
+                    -- IF lastVersion IS NULL THEN
+                    --    LEAVE BEGIN;
+                    -- END IF;
+
                     -- Thêm bản ghi mới
                     INSERT INTO AppBookHistories (
                         Id, BookId, ISBN, Name, Type, PublishDate, Publisher, AuthorId,
@@ -96,6 +101,11 @@ namespace Acme.BookStore.Migrations
                     WHERE BookId = OLD.Id
                     ORDER BY Version DESC
                     LIMIT 1;
+
+                    -- Data cũ trước khi có trigger thì bỏ qua không audit
+                    -- IF lastVersion IS NULL THEN
+                    --    LEAVE BEGIN;
+                    -- END IF;
 
                     -- Thêm bản ghi mới để đánh dấu Delete
                     INSERT INTO AppBookHistories (
