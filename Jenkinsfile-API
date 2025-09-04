@@ -37,6 +37,27 @@ pipeline {
             }
         }
 
+        stage('Build DbMigrator') {
+            steps {
+                sh """
+                    docker build -t acme/bookstore-db-migrator:latest -f src/Acme.BookStore.DbMigrator/Dockerfile.local .
+                """
+            }
+        }
+
+        stage('Run DbMigrator') {
+            steps {
+                sh """
+                    docker run --rm \
+                        --network net \
+                        -e OpenIddict__Applications__BookStore_App__RootUrl=https://bookstore-demo.online \
+                        -e OpenIddict__Applications__BookStore_Swagger__RootUrl=https://bookstore-demo.online/swagger \
+                        -e ConnectionStrings__Default="Server=mysql;Port=3306;Database=BookStore;Uid=root;Pwd=root;" \
+                        acme/bookstore-db-migrator:latest
+                """
+            }
+        }
+
         stage('Run Container') {
             steps {
                 sh """
