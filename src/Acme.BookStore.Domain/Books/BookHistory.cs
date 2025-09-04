@@ -23,7 +23,7 @@ public class BookHistory : Entity<Guid>
 
     public Guid? PreviousAuditId { get; set; }
 
-    public int? Version { get; set; }
+    public int Version { get; set; }
 
     public DateTime CreationTime { get; set; }
 
