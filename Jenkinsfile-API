@@ -49,7 +49,7 @@ pipeline {
             steps {
                 sh """
                     docker run --rm \
-                        --network net \
+                        --network cloudflare-net \
                         -e OpenIddict__Applications__BookStore_App__RootUrl=https://bookstore-demo.online \
                         -e OpenIddict__Applications__BookStore_Swagger__RootUrl=https://bookstore-demo.online/swagger \
                         -e ConnectionStrings__Default="Server=mysql;Port=3306;Database=BookStore;Uid=root;Pwd=root;" \
@@ -68,7 +68,7 @@ pipeline {
                     docker run -d --name bookstore-backend \
                     -p 8080:8080 \
                     -v /var/lib/docker/volumes/jenkins_home/_data/workspace/api/certs:/app/certs \
-                    --network net \
+                    --network cloudflare-net \
                     acme-bookstore-httpapi-host:latest
                 """
             }
