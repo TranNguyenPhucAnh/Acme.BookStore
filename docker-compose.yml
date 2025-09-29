@@ -77,21 +77,22 @@ services:
       - /var/lib/docker/volumes/jenkins_home/_data/workspace/frontend/angular/dist/BookStore:/usr/share/nginx/html
     networks:
       - cloudflare-net
-  dockflare:
-    image: alplat/dockflare:stable
-    container_name: dockflare
-    restart: unless-stopped
-    ports:
-      - "5050:5000"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro  # Required to monitor Docker events
-      - dockflare_data:/app/data  # Persistent storage for state
-    networks:
-      - cloudflare-net  # Network for communication with other containers
-    #labels: # Optional
-    #- dockflare.enable=true
-    #- dockflare.hostname=dockflare.yourdomain.tld
-    #- dockflare.service=http://dockflare:5000  
+  # dockflare:
+  #   image: alplat/dockflare:stable
+  #   container_name: dockflare
+  #   restart: unless-stopped
+  #   ports:
+  #     - "5050:5000"
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock:ro  # Required to monitor Docker events
+  #     - dockflare_data:/app/data  # Persistent storage for state
+  #   networks:
+  #     # - net, a service can be in multiple networks, in case you can't change the current network
+  #     - cloudflare-net  # Network for communication with other containers
+  #   #labels: # Optional
+  #   #- dockflare.enable=true
+  #   #- dockflare.hostname=dockflare.yourdomain.tld
+  #   #- dockflare.service=http://dockflare:5000  
 volumes:
   mysql_data:
     name: mysql_data
@@ -103,3 +104,5 @@ networks:
   cloudflare-net:  # Đổi từ net sang cloudflare-net
     name: cloudflare-net
     external: true  # Quan trọng: Đánh dấu external vì Dockflare đã tạo sẵn
+    # net:
+    # external: true
