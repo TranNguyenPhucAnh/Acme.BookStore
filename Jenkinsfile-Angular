@@ -2,7 +2,7 @@ pipeline {
     agent {
         docker {
             image 'node:18-alpine'
-            args '-u root -v /var/lib/docker/volumes/jenkins_home/_data/workspace/frontend/angular/dist/BookStore:/dist/BookStore'
+            args '-u root'
         }
     }
 
@@ -30,6 +30,30 @@ pipeline {
                         yarn build:prod
                         cp dynamic-env.json /dist/BookStore/dynamic-env.json
                         """
+                }
+            }
+        }
+
+        stage("Deploy to S3 & Invalidate Cache") {
+            steps {
+                script {
+                    // 1. Cấu hình biến môi trường AWS (Giả định bạn đã cấu hình Credentials)
+                    // Hoặc sử dụng Jenkins AWS Credentials plugin
+                    
+                    // CÁCH 1: Sử dụng AWS CLI để đồng bộ thư mục build lên S3
+                    // Thay thế YOUR_S3_BUCKET_NAME bằng tên Bucket thực tế của bạn
+                    sh """
+                        # Đồng bộ hóa nội dung thư mục dist lên S3
+                        # --delete: Xóa các file trong S3 không còn tồn tại trong thư mục nguồn (để giữ cho bucket sạch)
+                        aws s3 sync ${ANGULAR_DIR}/dist/BookStore/ s3://abp-frontend-angular-book-store/ --delete
+                    """
+
+                    // 2. Vô hiệu hóa Cache trên CloudFront (quan trọng để người dùng thấy bản mới)
+                    // Thay thế YOUR_CLOUDFRONT_DISTRIBUTION_ID
+                    // Lệnh này buộc CloudFront phải tải lại toàn bộ nội dung từ S3
+                    //sh """
+                        //aws cloudfront create-invalidation --distribution-id YOUR_CLOUDFRONT_DISTRIBUTION_ID --paths "/*"
+                    //"""
                 }
             }
         }
