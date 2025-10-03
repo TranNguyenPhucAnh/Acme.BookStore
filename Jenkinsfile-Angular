@@ -22,6 +22,7 @@ pipeline {
                     sh """
                         corepack enable yarn
                         yarn install
+                        rm -rf dist
                         yarn build:prod
                         cp dynamic-env.json dist/BookStore/
                         """
