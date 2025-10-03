@@ -42,10 +42,13 @@ pipeline {
                     
                     // CÁCH 1: Sử dụng AWS CLI để đồng bộ thư mục build lên S3
                     // Thay thế YOUR_S3_BUCKET_NAME bằng tên Bucket thực tế của bạn
+                    // Đồng bộ hóa nội dung thư mục dist lên S3
+                    // --delete: Xóa các file trong S3 không còn tồn tại trong thư mục nguồn (để giữ cho bucket sạch)
+
                     sh """
-                        # Đồng bộ hóa nội dung thư mục dist lên S3
-                        # --delete: Xóa các file trong S3 không còn tồn tại trong thư mục nguồn (để giữ cho bucket sạch)
-                        /usr/local/aws-cli/v2/current/dist/aws s3 sync ${ANGULAR_DIR}/dist/BookStore/ s3://abp-frontend-angular-book-store/ --delete
+                    #!/bin/bash
+                    aws --version
+                    aws s3 sync ${ANGULAR_DIR}/dist/BookStore/ s3://abp-frontend-angular-book-store/ --delete
                     """
 
                     // 2. Vô hiệu hóa Cache trên CloudFront (quan trọng để người dùng thấy bản mới)
