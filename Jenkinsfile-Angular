@@ -46,16 +46,22 @@ pipeline {
                     // --delete: Xóa các file trong S3 không còn tồn tại trong thư mục nguồn (để giữ cho bucket sạch)
 
                     sh """
-                    #!/bin/bash
-                    aws --version
-                    aws s3 sync ${ANGULAR_DIR}/dist/BookStore/ s3://abp-frontend-angular-book-store/ --delete
+                        echo "Current user: $(whoami)"
+                        echo "PATH: $PATH"
+                        echo "Which aws: $(which aws || echo 'not in PATH')"
+                        echo "LS /usr/local/bin/aws:"
+                        ls -l /usr/local/bin/aws || true
+                        echo "LS dist/aws:"
+                        ls -l /usr/local/aws-cli/v2/dist/aws || true
+                        echo "Test binary version:"
+                        /usr/local/aws-cli/v2/dist/aws --version || echo "Failed to run binary"
                     """
 
                     // 2. Vô hiệu hóa Cache trên CloudFront (quan trọng để người dùng thấy bản mới)
                     // Thay thế YOUR_CLOUDFRONT_DISTRIBUTION_ID
                     // Lệnh này buộc CloudFront phải tải lại toàn bộ nội dung từ S3
                     //sh """
-                        ///usr/local/bin/aws cloudfront create-invalidation --distribution-id YOUR_CLOUDFRONT_DISTRIBUTION_ID --paths "/*"
+                        // aws cloudfront create-invalidation --distribution-id YOUR_CLOUDFRONT_DISTRIBUTION_ID --paths "/*"
                     //"""
                 }
             }
