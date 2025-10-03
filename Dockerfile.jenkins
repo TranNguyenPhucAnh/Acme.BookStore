@@ -3,6 +3,8 @@ FROM jenkins/jenkins:lts
 USER root
 
 # Cài Docker CLI, Node.js 18, Yarn (Corepack), và .NET SDK 9.0
+RUN mkdir -p /var/jenkins_home/workspace/frontend/angular \
+    && chown -R jenkins:jenkins /var/jenkins_home/workspace
 
 # Node.js 18 & Corepack (Yarn)
 RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
