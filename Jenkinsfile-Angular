@@ -1,7 +1,7 @@
 pipeline {
     agent {
         docker {
-            image '408279620390.dkr.ecr.ap-southeast-1.amazonaws.com/abp/bookstore:angular-agent'
+            image 'bourgeoisie/bookstore-angular:lts'
             args '-u root'
         }
     }
