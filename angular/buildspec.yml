@@ -1,0 +1,33 @@
+version: 0.2
+
+env:
+  variables:
+    ANGULAR_DIR: "angular"
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 18
+    commands:
+      - echo "Enable corepack & install yarn"
+      - corepack enable yarn
+  pre_build:
+    commands:
+      - echo "Cloning repository and checking out branch $GIT_BRANCH"
+      # CodePipeline/CodeBuild sẽ thực hiện clone repo và checkout branch, lệnh này có thể bỏ qua nếu đã có sẵn source trong môi trường build
+  build:
+    commands:
+      - cd $ANGULAR_DIR
+      - yarn install
+      - yarn build:prod
+      - cp dynamic-env.json dist/BookStore/dynamic-env.json
+  post_build:
+    commands:
+      - echo "Build & Deploy succeeded!"
+
+artifacts:
+  files:
+    - angular/dist/BookStore/**/*
+    - angular/dist/BookStore/dynamic-env.json
+  base-directory: angular/dist/BookStore
+  discard-paths: no
