@@ -6,12 +6,11 @@ on:
       git_branch:
         description: 'Branch to build'
         required: true
-        default: 'develop'
+        default: 'aws'
   push:
     branches:
-      - develop
-      - prod
-
+      - aws
+      
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
