@@ -1,0 +1,53 @@
+name: Build Angular
+
+on:
+  workflow_dispatch:
+    inputs:
+      git_branch:
+        description: 'Branch to build'
+        required: true
+        default: 'develop'
+  push:
+    branches:
+      - develop
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.git_branch || github.ref_name }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Enable corepack and setup Yarn
+        run: |
+          corepack enable yarn
+
+      - name: Install dependencies & build
+        working-directory: ./angular
+        run: |
+          yarn install
+          yarn build:prod
+          cp dynamic-env.json dist/BookStore/dynamic-env.json
+
+      - name: Archive Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-BookStore
+          path: angular/dist/BookStore/**
+
+      - name: Success Email Notification
+        if: success()
+        run: echo "Build & Deploy succeeded!"
+
+      - name: Failure Email Notification
+        if: failure()
+        run: echo "Build failed!"
