@@ -7,9 +7,9 @@ on:
         description: 'Branch to build'
         required: true
         default: 'aws'
-  push:
-    branches:
-      - aws
+  #push:
+    #branches:
+      #- aws
       
 jobs:
   build-and-deploy:
