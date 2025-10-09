@@ -1,0 +1,59 @@
+name: Build and Deploy to ECS Fargate
+
+on:
+  push:
+    branches:
+      - aws
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      AWS_REGION: ap-southeast-1
+      ECR_REPOSITORY: acme/bookstore
+      ECS_CLUSTER: ecs-bookstore-cluster
+      ECS_SERVICE: bookstore-dotnet-service
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get branch name
+        id: branch_name
+        run: echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/})" >> $GITHUB_ENV
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build Docker image
+        run: |
+          docker build -t $ECR_REPOSITORY:${{ env.BRANCH_NAME }} .
+          docker tag $ECR_REPOSITORY:${{ env.BRANCH_NAME }} ${{ steps.ecr-login.outputs.registry }}/${ECR_REPOSITORY}:${{ env.BRANCH_NAME }}
+
+      - name: Push image to Amazon ECR
+        run: |
+          docker push ${{ steps.ecr-login.outputs.registry }}/${ECR_REPOSITORY}:${{ env.BRANCH_NAME }}
+
+      - name: Fill in new image in ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v2
+        with:
+          task-definition: ecs-task-def.json
+          container-name: dotnet
+          image: ${{ steps.ecr-login.outputs.registry }}/${ECR_REPOSITORY}:${{ env.BRANCH_NAME }}
+
+      - name: Deploy ECS Service
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
