@@ -45,14 +45,14 @@ jobs:
 
       - name: Fill in new image in ECS task definition
         id: task-def
-        uses: aws-actions/amazon-ecs-render-task-definition@v2
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
           task-definition: ecs-task-def.json
           container-name: dotnet
           image: ${{ steps.ecr-login.outputs.registry }}/${ECR_REPOSITORY}:${{ env.BRANCH_NAME }}
 
       - name: Deploy ECS Service
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
           service: ${{ env.ECS_SERVICE }}
