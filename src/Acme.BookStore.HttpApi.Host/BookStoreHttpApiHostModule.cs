@@ -1,6 +1,9 @@
 using Acme.BookStore.BackgroundWorker;
 using Acme.BookStore.EntityFrameworkCore;
 using Acme.BookStore.HealthChecks;
+using Amazon;
+using Amazon.SecretsManager;
+using Amazon.SecretsManager.Model;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Extensions.DependencyInjection;
@@ -15,6 +18,7 @@ using OpenIddict.Validation.AspNetCore;
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Volo.Abp;
 using Volo.Abp.Account;
 using Volo.Abp.Account.Web;
@@ -50,7 +54,7 @@ namespace Acme.BookStore;
 
 public class BookStoreHttpApiHostModule : AbpModule
 {
-    public override void PreConfigureServices(ServiceConfigurationContext context)
+    public async override void PreConfigureServices(ServiceConfigurationContext context)
     {
         var hostingEnvironment = context.Services.GetHostingEnvironment();
         var configuration = context.Services.GetConfiguration();
@@ -72,11 +76,13 @@ public class BookStoreHttpApiHostModule : AbpModule
                 options.AddDevelopmentEncryptionAndSigningCertificate = false;
             });
 
+            var awsSecrets = await GetAWSSecrets();
+
             PreConfigure<OpenIddictServerBuilder>(serverBuilder =>
             {
                 // In production, it is recommended to use two RSA certificates, one for encryption, one for signing
-                OpenIddictServerBuilderExtension.AddProductionEncryptionAndSigningCertificate(serverBuilder, configuration);
-                
+                OpenIddictServerBuilderExtension.AddProductionEncryptionAndSigningCertificate(serverBuilder, awsSecrets, configuration);
+
                 serverBuilder.SetIssuer(new Uri(configuration["AuthServer:Authority"]!));
                 // Increased the lifetime of authorization code and access token
                 serverBuilder.SetAccessTokenLifetime(TimeSpan.FromDays(365));
@@ -85,6 +91,48 @@ public class BookStoreHttpApiHostModule : AbpModule
                 //serverBuilder.SetRefreshTokenLifetime(TimeSpan.FromDays(365));
             });
         }
+    }
+
+    private static async Task<Tuple<string, string>> GetAWSSecrets()
+    {
+        string encyptionSecretName = "enc.pfx.b64";
+        string signingSecretName = "sign.pfx.b64";
+        string region = "ap-southeast-1";
+
+        IAmazonSecretsManager client = new AmazonSecretsManagerClient(RegionEndpoint.GetBySystemName(region));
+
+        GetSecretValueRequest requestEnc = new GetSecretValueRequest
+        {
+            SecretId = encyptionSecretName,
+            VersionStage = "AWSCURRENT", // VersionStage defaults to AWSCURRENT if unspecified.
+        };
+
+        GetSecretValueRequest requestSign = new GetSecretValueRequest
+        {
+            SecretId = signingSecretName,
+            VersionStage = "AWSCURRENT", // VersionStage defaults to AWSCURRENT if unspecified.
+        };
+
+        GetSecretValueResponse responseEnc;
+        GetSecretValueResponse responseSign;
+
+        try
+        {
+            responseEnc = await client.GetSecretValueAsync(requestEnc);
+            responseSign = await client.GetSecretValueAsync(requestSign);
+        }
+        catch (Exception e)
+        {
+            throw e;
+        }
+
+        string secretEnc = responseEnc.SecretString;
+        string secretSign = responseSign.SecretString;
+
+        Console.WriteLine("AWS Secret retrieved enc.pfx.b64: " + secretEnc);
+        Console.WriteLine("AWS Secret retrieved sign.pfx.b64: " + secretSign);
+
+        return new Tuple<string, string>(secretEnc, secretSign);
     }
 
     public override void ConfigureServices(ServiceConfigurationContext context)
