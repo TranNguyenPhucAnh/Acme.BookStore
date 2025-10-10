@@ -61,9 +61,9 @@ jobs:
           aws ecs run-task \
             --cluster $ECS_CLUSTER \
             --launch-type FARGATE \
-            --task-definition ${{ fromJson(steps.taskdef.outputs.task-definition).family }} \
-            --network-configuration "awsvpcConfiguration={subnets=['subnet-0638e3d16889a182b', 'subnet-0fa34e25c32f84e92', 'subnet-0b00aa82132c2ace0'],securityGroups=['${{ env.SECURITY_GROUP_ID }}'],assignPublicIp='ENABLED'}" \
-            --overrides '{"containerOverrides": [{"name":"db-migrator","environment":[{"name":"BRANCH_NAME","value":"${{ env.BRANCH_NAME }}"}]}]}'
+            --task-definition ${{ steps.taskdef.outputs.task-definition }} \
+            --network-configuration "awsvpcConfiguration={subnets=[\"subnet-0638e3d16889a182b\",\"subnet-0fa34e25c32f84e92\",\"subnet-0b00aa82132c2ace0\"],securityGroups=[\"${{ env.SECURITY_GROUP_ID }}\"],assignPublicIp=\"ENABLED\"}" \
+            --overrides '{"containerOverrides":[{"name":"db-migrator","environment":[{"name":"BRANCH_NAME","value":"${{ env.BRANCH_NAME }}"}]}]}'
 
       - name: Check migration status
         run: echo "Migration ECS task launched. Check ECS console or use 'aws ecs describe-tasks' for status."
