@@ -55,13 +55,14 @@ jobs:
           task-definition: ${{ env.DB_MIGRATOR_TASK_DEF }}
           container-name: db-migrator
           image: ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.BRANCH_NAME }}
-          
-      - name: Register new ECS task definition
+                    
+      - name: Register ECS task definition
         id: register-task
-        uses: aws-actions/amazon-ecs-register-task-definition@v1
+        uses: icalia-actions/register-aws-ecs-task-definition@v1
         with:
+          family: bookstore-db-migrator
           task-definition: ${{ steps.taskdef.outputs.task-definition }}
-
+          
       - name: Run migration ECS task
         run: |
           aws ecs run-task \
