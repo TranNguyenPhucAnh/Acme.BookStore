@@ -17,7 +17,7 @@ jobs:
 
     env:
       AWS_REGION: ap-southeast-1
-      ECR_REPOSITORY: acme/bookstore
+      ECR_REPOSITORY: acme-bookstore
       ECS_CLUSTER: ecs-bookstore-cluster
       ECS_SERVICE: bookstore-dotnet-service
 
