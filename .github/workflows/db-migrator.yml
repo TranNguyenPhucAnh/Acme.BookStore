@@ -39,15 +39,14 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to Amazon ECR
+        id: ecr
         uses: aws-actions/amazon-ecr-login@v1
 
       - name: Build DB Migrator Docker image
-        run: |
-          docker build -f src/Acme.BookStore.DbMigrator/Dockerfile.local -t ${{ env.ECR_REPOSITORY }}:${{ env.BRANCH_NAME }} .
-          docker tag ${{ env.ECR_REPOSITORY }}:${{ env.BRANCH_NAME }} ${{ steps.ecr-login.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.BRANCH_NAME }}
+        run: docker build -f src/Acme.BookStore.DbMigrator/Dockerfile.local -t ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.BRANCH_NAME }} .
 
       - name: Push migration image to ECR
-        run: docker push ${{ steps.amazon-ecr-login.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.BRANCH_NAME }}
+        run: docker push ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.BRANCH_NAME }}
 
       - name: Update migrator task definition (set image)
         id: taskdef
@@ -55,7 +54,7 @@ jobs:
         with:
           task-definition: ${{ env.DB_MIGRATOR_TASK_DEF }}
           container-name: db-migrator
-          image: ${{ steps.amazon-ecr-login.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.BRANCH_NAME }}
+          image: ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.BRANCH_NAME }}
 
       - name: Run migration ECS task
         run: |
