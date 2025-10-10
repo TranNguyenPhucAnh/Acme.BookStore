@@ -1,0 +1,56 @@
+{
+    "family": "bookstore-db-migrator",
+    "containerDefinitions": [
+        {
+            "cpu": 0,
+            "environment": [
+                {
+                    "name": "ConnectionStrings__Default",
+                    "value": "Server=bookstore.cjk0smiumnr2.ap-southeast-1.rds.amazonaws.com;Port=3306;Database=BookStore;Uid=admin;Pwd=Hocon-181;"
+                },
+                {
+                    "name": "OpenIddict__Applications__BookStore_Swagger__RootUrl",
+                    "value": "https://bookstore-demo.online/swagger"
+                },
+                {
+                    "name": "OpenIddict__Applications__BookStore_App__RootUrl",
+                    "value": "https://bookstore-demo.online"
+                }
+            ],
+            "environmentFiles": [],
+            "essential": true,
+            "image": "211125699268.dkr.ecr.ap-southeast-1.amazonaws.com/acme-bookstore@sha256:ea5bd8588afe8dd1b5483770f6d02bf465148d887767a3cbc8dba73287d8d179",
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "/ecs/bookstore-db-migrator",
+                    "awslogs-create-group": "true",
+                    "awslogs-region": "ap-southeast-1",
+                    "awslogs-stream-prefix": "ecs"
+                },
+                "secretOptions": []
+            },
+            "mountPoints": [],
+            "name": "db-migrator",
+            "portMappings": [],
+            "systemControls": [],
+            "ulimits": [],
+            "volumesFrom": []
+        }
+    ],
+    "taskRoleArn": "arn:aws:iam::211125699268:role/ecsTaskExecutionRole",
+    "executionRoleArn": "arn:aws:iam::211125699268:role/ecsTaskExecutionRole",
+    "networkMode": "awsvpc",
+    "volumes": [],
+    "placementConstraints": [],
+    "requiresCompatibilities": [
+        "FARGATE"
+    ],
+    "cpu": "512",
+    "memory": "1024",
+    "runtimePlatform": {
+        "cpuArchitecture": "X86_64",
+        "operatingSystemFamily": "LINUX"
+    },
+    "enableFaultInjection": false
+}
