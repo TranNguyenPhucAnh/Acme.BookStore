@@ -55,6 +55,9 @@ jobs:
           task-definition: ${{ env.DB_MIGRATOR_TASK_DEF }}
           container-name: db-migrator
           image: ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.BRANCH_NAME }}
+          
+      - name: Debug taskdef output
+        run: echo "${{ steps.taskdef.outputs.task-definition }}"
 
       - name: Run migration ECS task
         run: |
