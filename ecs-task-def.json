@@ -3,7 +3,12 @@
     "containerDefinitions": [
         {
             "cpu": 0,
-            "environment": [],
+            "environment": [
+                {
+              "name": "ConnectionStrings__Default",
+              "value": "Server=bookstore.cjk0smiumnr2.ap-southeast-1.rds.amazonaws.com;Port=3306;Database=BookStore;Uid=admin;Pwd=Hocon-181;"
+                }
+            ],
             "essential": true,
             "image": "211125699268.dkr.ecr.ap-southeast-1.amazonaws.com/acme-bookstore:aws",
             "logConfiguration": {
