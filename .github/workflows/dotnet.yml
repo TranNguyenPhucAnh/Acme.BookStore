@@ -29,7 +29,7 @@ jobs:
         id: branch
         shell: bash
         run: |
-          RAW_BRANCH=${GITHUB_REF#refs/heads/}
+          RAW_BRANCH="${GITHUB_REF##*/}"
           SAFE_BRANCH=$(echo "$RAW_BRANCH" | tr '/' '-' | tr -cd '[:alnum:]._-')
           echo "BRANCH_NAME=$SAFE_BRANCH" >> $GITHUB_ENV
 
