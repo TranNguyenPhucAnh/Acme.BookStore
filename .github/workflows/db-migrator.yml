@@ -35,9 +35,7 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v1
 
       - name: Build DB Migrator Docker image
-        run: |
-          docker build -f src/Acme.BookStore.DbMigrator/Dockerfile.local -t ${{ env.ECR_REPOSITORY }}:${{ github.ref_name }} .
-          docker tag ${{ env.ECR_REPOSITORY }}:${{ github.ref_name }} ${{ steps.amazon-ecr-login.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.ref_name }}
+        run: docker build -f src/Acme.BookStore.DbMigrator/Dockerfile.local -t ${{ env.ECR_REPOSITORY }}:${{ github.ref_name }} src/Acme.BookStore.DbMigrator
 
       - name: Push migration image to ECR
         run: docker push ${{ steps.amazon-ecr-login.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.ref_name }}
