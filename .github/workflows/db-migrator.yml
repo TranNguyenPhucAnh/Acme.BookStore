@@ -56,15 +56,18 @@ jobs:
           container-name: db-migrator
           image: ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.BRANCH_NAME }}
           
-      - name: Debug taskdef output
-        run: echo "${{ steps.taskdef.outputs.task-definition }}"
+      - name: Register new ECS task definition
+        id: register-task
+        uses: aws-actions/amazon-ecs-register-task-definition@v1
+        with:
+          task-definition: ${{ steps.taskdef.outputs.task-definition }}
 
       - name: Run migration ECS task
         run: |
           aws ecs run-task \
             --cluster $ECS_CLUSTER \
             --launch-type FARGATE \
-            --task-definition ${{ steps.taskdef.outputs.task-definition }} \
+            --task-definition ${{ steps.register-task.outputs.task-definition-arn }} \
             --network-configuration "awsvpcConfiguration={subnets=[\"subnet-0638e3d16889a182b\",\"subnet-0fa34e25c32f84e92\",\"subnet-0b00aa82132c2ace0\"],securityGroups=[\"${{ env.SECURITY_GROUP_ID }}\"],assignPublicIp=\"ENABLED\"}" \
             --overrides '{"containerOverrides":[{"name":"db-migrator","environment":[{"name":"BRANCH_NAME","value":"${{ env.BRANCH_NAME }}"}]}]}'
 
