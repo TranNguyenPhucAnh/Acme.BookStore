@@ -42,7 +42,7 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -f src/Acme.BookStore.HttpApi.Host/Dockerfile -t $ECR_REPOSITORY:${{ env.BRANCH_NAME }} src/Acme.BookStore.HttpApi.Host
+          docker build -f src/Acme.BookStore.HttpApi.Host/Dockerfile -t $ECR_REPOSITORY:${{ env.BRANCH_NAME }} .
           docker tag $ECR_REPOSITORY:${{ env.BRANCH_NAME }} ${{ steps.ecr-login.outputs.registry }}/${ECR_REPOSITORY}:${{ env.BRANCH_NAME }}
 
       - name: Push image to Amazon ECR
