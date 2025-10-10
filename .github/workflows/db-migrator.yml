@@ -18,12 +18,19 @@ jobs:
       ECS_CLUSTER: ecs-bookstore-cluster
       DB_MIGRATOR_TASK_DEF: db-migrator-task-def.json
       SECURITY_GROUP_ID: sg-0ba5d7cb9f258c788
+      
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref_name }}
-
+          
+      - name: Get branch name (sanitize for Docker tag)
+        id: branch
+        shell: bash
+        run: |
+          RAW_BRANCH="${GITHUB_REF##*/}"
+          SAFE_BRANCH=$(echo "$RAW_BRANCH" | tr '/' '-' | tr -cd '[:alnum:]._-')
+          echo "BRANCH_NAME=$SAFE_BRANCH" >> $GITHUB_ENV
+          
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -35,10 +42,10 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v1
 
       - name: Build DB Migrator Docker image
-        run: docker build -f src/Acme.BookStore.DbMigrator/Dockerfile.local -t ${{ env.ECR_REPOSITORY }}:${{ github.ref_name }} .
+        run: docker build -f src/Acme.BookStore.DbMigrator/Dockerfile.local -t ${{ env.ECR_REPOSITORY }}:${{ env.BRANCH_NAME }} .
 
       - name: Push migration image to ECR
-        run: docker push ${{ steps.amazon-ecr-login.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.ref_name }}
+        run: docker push ${{ steps.amazon-ecr-login.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.BRANCH_NAME }}
 
       - name: Update migrator task definition (set image)
         id: taskdef
@@ -46,7 +53,7 @@ jobs:
         with:
           task-definition: ${{ env.DB_MIGRATOR_TASK_DEF }}
           container-name: db-migrator
-          image: ${{ steps.amazon-ecr-login.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.ref_name }}
+          image: ${{ steps.amazon-ecr-login.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.BRANCH_NAME }}
 
       - name: Run migration ECS task
         run: |
@@ -55,7 +62,7 @@ jobs:
             --launch-type FARGATE \
             --task-definition ${{ fromJson(steps.taskdef.outputs.task-definition).family }} \
             --network-configuration "awsvpcConfiguration={subnets=['subnet-0638e3d16889a182b', 'subnet-0fa34e25c32f84e92', 'subnet-0b00aa82132c2ace0'],securityGroups=['${{ env.SECURITY_GROUP_ID }}'],assignPublicIp='ENABLED'}" \
-            --overrides '{"containerOverrides": [{"name":"db-migrator","environment":[{"name":"BRANCH_NAME","value":"${{ github.ref_name }}"}]}]}'
+            --overrides '{"containerOverrides": [{"name":"db-migrator","environment":[{"name":"BRANCH_NAME","value":"${{ env.BRANCH_NAME }}"}]}]}'
 
       - name: Check migration status
         run: echo "Migration ECS task launched. Check ECS console or use 'aws ecs describe-tasks' for status."
