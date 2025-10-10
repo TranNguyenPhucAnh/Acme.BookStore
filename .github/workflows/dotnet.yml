@@ -46,12 +46,12 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -f src/Acme.BookStore.HttpApi.Host/Dockerfile -t $ECR_REPOSITORY:${{ BRANCH_NAME }} .
-          docker tag $ECR_REPOSITORY:${{ BRANCH_NAME }} ${{ steps.ecr-login.outputs.registry }}/${ECR_REPOSITORY}:${{ BRANCH_NAME }}
+          docker build -f src/Acme.BookStore.HttpApi.Host/Dockerfile -t $ECR_REPOSITORY:${{ env.BRANCH_NAME }} .
+          docker tag $ECR_REPOSITORY:${{ env.BRANCH_NAME }} ${{ steps.ecr-login.outputs.registry }}/${ECR_REPOSITORY}:${{ env.BRANCH_NAME }}
 
       - name: Push image to Amazon ECR
         run: |
-          docker push ${{ steps.ecr-login.outputs.registry }}/${ECR_REPOSITORY}:${{ BRANCH_NAME }}
+          docker push ${{ steps.ecr-login.outputs.registry }}/${ECR_REPOSITORY}:${{ env.BRANCH_NAME }}
 
       - name: Fill in new image in ECS task definition
         id: task-def
@@ -59,7 +59,7 @@ jobs:
         with:
           task-definition: ecs-task-def.json
           container-name: dotnet
-          image: ${{ steps.ecr-login.outputs.registry }}/${ECR_REPOSITORY}:${{ BRANCH_NAME }}
+          image: ${{ steps.ecr-login.outputs.registry }}/${ECR_REPOSITORY}:${{ env.BRANCH_NAME }}
 
       - name: Deploy ECS Service
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
