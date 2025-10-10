@@ -4,9 +4,8 @@
         {
             "cpu": 0,
             "environment": [],
-            "environmentFiles": [],
             "essential": true,
-            "image": "211125699268.dkr.ecr.ap-southeast-1.amazonaws.com/acme/bookstore@sha256:0d31c2829d11f31a02e410faf8f591b1e046543fd7a47546bd99ea7224d8085c",
+            "image": "211125699268.dkr.ecr.ap-southeast-1.amazonaws.com/acme-bookstore:aws",
             "logConfiguration": {
                 "logDriver": "awslogs",
                 "options": {
@@ -29,11 +28,10 @@
                 }
             ],
             "systemControls": [],
-            "ulimits": [],
             "volumesFrom": []
         }
     ],
-    "taskRoleArn": "arn:aws:iam::211125699268:role/ecsTaskExecutionRole",
+    "taskRoleArn": "arn:aws:iam::211125699268:role/ECSTaskToReadBookStoreSecretsRole",
     "executionRoleArn": "arn:aws:iam::211125699268:role/ecsTaskExecutionRole",
     "networkMode": "awsvpc",
     "volumes": [],
