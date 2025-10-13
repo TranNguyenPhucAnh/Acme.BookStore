@@ -36,7 +36,7 @@
                     <!-- Header -->
                     <tr>
                         <td class="header">
-                            <img src="https://d58j1vxq1cgpe.cloudfront.net/logo-light.png"
+                            <img src="https://d3ent8iwby5ohs.cloudfront.net/logo-light.png"
                                 alt="Company Logo" />
                         </td>
                     </tr>
