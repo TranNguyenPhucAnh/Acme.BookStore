@@ -4,6 +4,7 @@ import { NavItemsService } from '@abp/ng.theme.shared';
 import { SignalRService } from './signalR.service';
 import { LoadingService } from './shared/services/loading.service';
 import { AuthService } from '@abp/ng.core';
+import { environment as env } from '../environments/environment.prod';
 
 @Component({
   standalone: false,
