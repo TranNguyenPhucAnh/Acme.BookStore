@@ -34,7 +34,7 @@ jobs:
         run: |
           yarn install
           yarn build:prod
-          cp dynamic-env.json dist/BookStore/dynamic-env.json
+          cp dynamic-env.json dist/BookStore/getEnvConfig
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
