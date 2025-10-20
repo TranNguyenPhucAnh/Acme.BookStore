@@ -15,6 +15,7 @@ env:
   AWS_REGION: ap-southeast-1
   PROJECT_NAME: bookstore-demo
   DB_USERNAME: admin
+  DB_PASSWORD: Hocon-181
   APP_PORT: 8080
   
   # Các đường dẫn cần thiết
@@ -46,18 +47,23 @@ jobs:
             --stack-name ${{ env.PROJECT_NAME }}-Network-Stack \
             --parameter-overrides ProjectName=${{ env.PROJECT_NAME }} \
             --capabilities CAPABILITY_NAMED_IAM
+            
+          VPC_ID=$(aws cloudformation describe-stacks \
+            --stack-name ${{ env.PROJECT_NAME }}-Network-Stack \
+            --query "Stacks[0].Outputs[?ExportName=='${{ env.PROJECT_NAME }}-VPCId'].OutputValue" \
+            --output text)
+            
+          echo "VPCId=$VPCId" >> $GITHUB_ENV # Lưu VPCId vào môi trường
 
       - name: 2. Deploy SECURITY Stack
         run: |
-          # Cần lấy Output VPCId từ Network Stack (đã được export)
-          # Lưu ý: Vì đã dùng !ImportValue trong Child Templates nên không cần lấy thủ công
           aws cloudformation deploy \
             --template-file ${{ env.CFN_MODULES_PATH }}/security-stack.yml \
             --stack-name ${{ env.PROJECT_NAME }}-Security-Stack \
             --parameter-overrides \
                 ProjectName=${{ env.PROJECT_NAME }} \
                 AppPort=${{ env.APP_PORT }} \
-                # ... các tham số khác (MySQLPort, DBPassword)
+                VPCId=${{ env.VPCId }}
             --capabilities CAPABILITY_NAMED_IAM
             
       - name: 3. Deploy DATABASE Stack
@@ -68,7 +74,7 @@ jobs:
             --parameter-overrides \
                 ProjectName=${{ env.PROJECT_NAME }} \
                 DBUsername=${{ env.DB_USERNAME }} \
-                # ... (DBPassword)
+                DBPassword=${{ env.DB_PASSWORD }}
             --capabilities CAPABILITY_NAMED_IAM
 
       - name: 4. Deploy COMPUTE Stack (Tạo ECR/Cluster/TaskDefs)
@@ -147,9 +153,6 @@ jobs:
           aws cloudformation deploy \
             --template-file ${{ env.CFN_MODULES_PATH }}/alb-cf-stack.yml \
             --stack-name ${{ env.PROJECT_NAME }}-LoadBalancer-Stack \
-            --parameter-overrides \
-                ProjectName=${{ env.PROJECT_NAME }} \
-                # ... (Các tham số khác như AppDomain, Cert ARNs, HostedZoneId)
             --capabilities CAPABILITY_NAMED_IAM
 
       - name: 6. Deploy ECS SERVICE Stack
