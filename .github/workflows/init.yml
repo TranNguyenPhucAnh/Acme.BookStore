@@ -1,0 +1,170 @@
+name: Infrastructure and Application Initialization
+
+on:
+  workflow_dispatch: # Giữ lại: Cho phép chạy thủ công (Phát triển)
+    inputs:
+      git_branch:
+        description: 'Branch for migration'
+        required: true
+        default: 'aws'
+
+  repository_dispatch: # Bổ sung: Cho phép gọi từ workflow khác (Init)
+    types: [deploy_migration]
+
+env:
+  AWS_REGION: ap-southeast-1
+  PROJECT_NAME: bookstore-demo
+  DB_USERNAME: admin
+  APP_PORT: 8080
+  
+  # Các đường dẫn cần thiết
+  CFN_MODULES_PATH: ./cloudformation/modules
+  ECR_REPO_NAME: ${{ env.PROJECT_NAME }}-main-repo
+  DOTNET_IMAGE_TAG: latest
+
+jobs:
+  # =======================================================
+  # JOB 1: INFRA-SETUP (Tạo Network, Security, Database, Compute/ECR)
+  # =======================================================
+  infra-setup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: 1. Deploy NETWORK Stack
+        run: |
+          aws cloudformation deploy \
+            --template-file ${{ env.CFN_MODULES_PATH }}/network-stack.yml \
+            --stack-name ${{ env.PROJECT_NAME }}-Network-Stack \
+            --parameter-overrides ProjectName=${{ env.PROJECT_NAME }} \
+            --capabilities CAPABILITY_NAMED_IAM
+
+      - name: 2. Deploy SECURITY Stack
+        run: |
+          # Cần lấy Output VPCId từ Network Stack (đã được export)
+          # Lưu ý: Vì đã dùng !ImportValue trong Child Templates nên không cần lấy thủ công
+          aws cloudformation deploy \
+            --template-file ${{ env.CFN_MODULES_PATH }}/security-stack.yml \
+            --stack-name ${{ env.PROJECT_NAME }}-Security-Stack \
+            --parameter-overrides \
+                ProjectName=${{ env.PROJECT_NAME }} \
+                AppPort=${{ env.APP_PORT }} \
+                # ... các tham số khác (MySQLPort, DBPassword)
+            --capabilities CAPABILITY_NAMED_IAM
+            
+      - name: 3. Deploy DATABASE Stack
+        run: |
+          aws cloudformation deploy \
+            --template-file ${{ env.CFN_MODULES_PATH }}/database-stack.yml \
+            --stack-name ${{ env.PROJECT_NAME }}-Database-Stack \
+            --parameter-overrides \
+                ProjectName=${{ env.PROJECT_NAME }} \
+                DBUsername=${{ env.DB_USERNAME }} \
+                # ... (DBPassword)
+            --capabilities CAPABILITY_NAMED_IAM
+
+      - name: 4. Deploy COMPUTE Stack (Tạo ECR/Cluster/TaskDefs)
+        run: |
+          aws cloudformation deploy \
+            --template-file ${{ env.CFN_MODULES_PATH }}/compute-stack.yml \
+            --stack-name ${{ env.PROJECT_NAME }}-Compute-Stack \
+            --parameter-overrides \
+                ProjectName=${{ env.PROJECT_NAME }} \
+                AppPort=${{ env.APP_PORT }} \
+                DBUsername=${{ env.DB_USERNAME }}
+            --capabilities CAPABILITY_NAMED_IAM
+        
+  # =======================================================
+  # JOB 2: BUILD & PUSH DOCKER IMAGE
+  # =======================================================
+  build-push:
+    needs: infra-setup # Chỉ chạy sau khi infra-setup hoàn tất
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+          
+      - name: Set ECR URL and Image URI
+        id: ecr
+        run: |
+          # Lấy ID tài khoản AWS để tạo URI ECR
+          AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' --output text)
+          ECR_URI="$AWS_ACCOUNT_ID.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPO_NAME }}"
+          
+          echo "ECR_URI=$ECR_URI" >> $GITHUB_ENV
+          echo "IMAGE_URI=$ECR_URI:${{ env.DOTNET_IMAGE_TAG }}" >> $GITHUB_ENV
+
+      - name: Login to Amazon ECR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.ECR_URI }}
+          username: AWS
+          # Lấy token login từ ECR
+          password: ${{ steps.ecr.outputs.token }}
+          
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ env.IMAGE_URI }}
+          # Thêm cache nếu cần (type=gha)
+
+  # =======================================================
+  # JOB 3: SERVICE-DEPLOY (Tạo ALB/CF và ECS Service)
+  # =======================================================
+  service-deploy:
+    needs: [build-push] # Chỉ chạy sau khi image đã được đẩy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: 5. Deploy LOAD BALANCER / CLOUDFRONT Stack
+        run: |
+          aws cloudformation deploy \
+            --template-file ${{ env.CFN_MODULES_PATH }}/alb-cf-stack.yml \
+            --stack-name ${{ env.PROJECT_NAME }}-LoadBalancer-Stack \
+            --parameter-overrides \
+                ProjectName=${{ env.PROJECT_NAME }} \
+                # ... (Các tham số khác như AppDomain, Cert ARNs, HostedZoneId)
+            --capabilities CAPABILITY_NAMED_IAM
+
+      - name: 6. Deploy ECS SERVICE Stack
+        run: |
+          aws cloudformation deploy \
+            --template-file ${{ env.CFN_MODULES_PATH }}/service-stack.yml \
+            --stack-name ${{ env.PROJECT_NAME }}-Service-Stack \
+            --parameter-overrides \
+                ProjectName=${{ env.PROJECT_NAME }} \
+                AppPort=${{ env.APP_PORT }}
+            --capabilities CAPABILITY_NAMED_IAM
+
+      - name: 7. Trigger DB Migration Workflow
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          event-type: deploy_migration # Tên sự kiện đã định nghĩa
+          client-payload: '{ "ref": "${{ github.ref }}", "sha": "${{ github.sha }}" }'
