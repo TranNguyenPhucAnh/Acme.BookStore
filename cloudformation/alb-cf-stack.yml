@@ -1,0 +1,275 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Load Balancer, S3, and CloudFront Distribution Infrastructure
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: bookstore-demo
+    Description: Prefix used for all exported resource names.
+  
+  AppDomain:
+    Type: String
+    Default: bookstore-demo.online
+    Description: The primary domain name for the application (e.g., bookstore-demo.online).
+    
+  AppPort:
+    Type: Number
+    Default: 8080
+    Description: The port the Dotnet container listens on.
+
+  HostedZoneId: 
+    Type: String
+    Default: Z00108562GUIWSZXR6B6E
+    Description: Hosted Zone ID for the AppDomain (bookstore-demo.online).
+
+  CloudfrontHostedZoneId: 
+    Type: String
+    Default: Z2FDTNDATAQYW2
+    Description: Hosted Zone ID of Cloudfront.
+  
+  ALBCertificateArn:
+    Type: String
+    Default: arn:aws:acm:ap-southeast-1:211125699268:certificate/5a8c4030-882d-44de-9b02-a28e1cc5ceca
+    Description: ARN of the SSL/TLS certificate for the ALB HTTPS listener.
+    
+  CloudFrontCertificateArn:
+    Type: String
+    Default: arn:aws:acm:us-east-1:211125699268:certificate/e393ede3-6f85-4876-9fdd-f20a03c3ebc2
+    Description: ARN of the SSL/TLS certificate created in us-east-1 for CloudFront.
+
+Resources:
+  FrontendBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${AppDomain}"
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: index.html
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-FrontendBucket"
+
+  ALB:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: !Sub "${ProjectName}-ALB"
+      Scheme: internet-facing
+      Subnets:
+        Fn::Split:
+          - ","
+          - Fn::ImportValue:
+              Fn::Sub: "${ProjectName}-PublicSubnetIds"
+      SecurityGroups:
+        - Fn::ImportValue:
+            Fn::Sub: "${ProjectName}-ALBSGId"
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-ALB"
+
+  ALBTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub "${ProjectName}-TG"
+      Port: !Ref AppPort
+      Protocol: HTTP
+      VpcId:
+        Fn::ImportValue:
+          Fn::Sub: "${ProjectName}-VPCId"
+      TargetType: ip
+      HealthCheckIntervalSeconds: 30
+      HealthCheckPath: /health-status
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 2
+      Matcher:
+        HttpCode: '200'
+
+  HTTPListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref ALB
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: redirect
+          RedirectConfig:
+            Protocol: HTTPS
+            Port: 443
+            StatusCode: HTTP_301
+
+  HTTPSListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref ALB
+      Port: 443
+      Protocol: HTTPS
+      Certificates:
+        - CertificateArn: !Ref ALBCertificateArn
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref ALBTargetGroup
+
+  CloudFrontOAC:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub "${ProjectName}-OAC"
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  CloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        Comment: !Sub "CDN for ${AppDomain}"
+        Aliases: 
+          - !Ref AppDomain
+        ViewerCertificate:
+          AcmCertificateArn: !Ref CloudFrontCertificateArn
+          SslSupportMethod: sni-only
+          MinimumProtocolVersion: TLSv1.2_2018
+        DefaultRootObject: index.html
+        Origins:
+          - Id: S3Origin
+            DomainName: !GetAtt FrontendBucket.RegionalDomainName
+            OriginAccessControlId: !Ref CloudFrontOAC
+            S3OriginConfig: {}
+          - Id: ALBOrigin
+            DomainName: !GetAtt ALB.DNSName
+            CustomOriginConfig:
+              OriginProtocolPolicy: https-only
+              OriginReadTimeout: 30
+              OriginKeepaliveTimeout: 30
+              OriginSSLProtocols:
+                - TLSv1.2
+        DefaultCacheBehavior:
+          TargetOriginId: S3Origin
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods: 
+            - GET
+            - HEAD
+            - OPTIONS
+          Compress: true
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6 
+          OriginRequestPolicyId: 88a5eaf4-2fd4-4709-b370-b4c650ea3fcf
+        CacheBehaviors:
+          - TargetOriginId: ALBOrigin
+            PathPattern: /signalr-hubs/*
+            ViewerProtocolPolicy: redirect-to-https
+            AllowedMethods: [GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE]
+            CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
+            OriginRequestPolicyId: 216adef6-5c7f-47e4-b989-5492eafa07d3
+          - TargetOriginId: ALBOrigin
+            PathPattern: /.well-known/*
+            ViewerProtocolPolicy: redirect-to-https
+            AllowedMethods: [GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE]
+            CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
+            OriginRequestPolicyId: 216adef6-5c7f-47e4-b989-5492eafa07d3
+          - TargetOriginId: ALBOrigin
+            PathPattern: /connect/*
+            ViewerProtocolPolicy: redirect-to-https
+            AllowedMethods: [GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE]
+            CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
+            OriginRequestPolicyId: 216adef6-5c7f-47e4-b989-5492eafa07d3
+          - TargetOriginId: ALBOrigin
+            PathPattern: /api/*
+            ViewerProtocolPolicy: redirect-to-https
+            AllowedMethods: [GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE]
+            CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
+            OriginRequestPolicyId: 216adef6-5c7f-47e4-b989-5492eafa07d3
+          - TargetOriginId: ALBOrigin
+            PathPattern: /Account/*
+            ViewerProtocolPolicy: redirect-to-https
+            AllowedMethods: [GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE]
+            CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+            OriginRequestPolicyId: 216adef6-5c7f-47e4-b989-5492eafa07d3
+          - TargetOriginId: ALBOrigin
+            PathPattern: /Abp/*
+            ViewerProtocolPolicy: redirect-to-https
+            AllowedMethods: [GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE]
+            CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+            OriginRequestPolicyId: 216adef6-5c7f-47e4-b989-5492eafa07d3
+          - TargetOriginId: ALBOrigin
+            PathPattern: /Themes/*
+            ViewerProtocolPolicy: redirect-to-https
+            AllowedMethods: [GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE]
+            CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+            OriginRequestPolicyId: 216adef6-5c7f-47e4-b989-5492eafa07d3
+          - TargetOriginId: ALBOrigin
+            PathPattern: /__bundles/*
+            ViewerProtocolPolicy: redirect-to-https
+            AllowedMethods: [GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE]
+            CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+            OriginRequestPolicyId: 216adef6-5c7f-47e4-b989-5492eafa07d3
+          - TargetOriginId: ALBOrigin
+            PathPattern: /libs/*
+            ViewerProtocolPolicy: redirect-to-https
+            AllowedMethods: [GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE]
+            CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+            OriginRequestPolicyId: 216adef6-5c7f-47e4-b989-5492eafa07d3
+          - TargetOriginId: ALBOrigin
+            PathPattern: /images/*
+            ViewerProtocolPolicy: redirect-to-https
+            AllowedMethods: [GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE]
+            CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+            OriginRequestPolicyId: 216adef6-5c7f-47e4-b989-5492eafa07d3
+
+  CloudFrontDNSRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      Name: !Ref AppDomain
+      Type: A
+      AliasTarget:
+        DNSName: !GetAtt CloudFrontDistribution.DomainName
+        HostedZoneId: !Ref CloudfrontHostedZoneId
+
+  BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref FrontendBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowCloudFrontServicePrincipal
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: s3:GetObject
+            Resource: !Sub "${FrontendBucket.Arn}/*"
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}"
+
+Outputs:
+  CloudFrontDomain:
+    Description: CloudFront Distribution Domain Name
+    Value: !GetAtt CloudFrontDistribution.DomainName
+    Export:
+      Name: !Sub "${ProjectName}-CloudFrontDomain"
+
+  ALBDnsName:
+    Description: DNS name of the Application Load Balancer
+    Value: !GetAtt ALB.DNSName
+    Export:
+      Name: !Sub "${ProjectName}-ALBDnsName"
+
+  ALBTargetGroupArn:
+    Description: ARN of the Application Load Balancer Target Group
+    Value: !Ref ALBTargetGroup
+    Export:
+      Name: !Sub "${ProjectName}-ALBTargetGroupArn"
+
+  FrontendBucketName:
+    Description: Name of the S3 Bucket for the Angular frontend
+    Value: !Ref FrontendBucket
+    Export:
+      Name: !Sub "${ProjectName}-FrontendBucketName"
+
