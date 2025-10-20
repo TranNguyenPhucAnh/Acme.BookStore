@@ -1,0 +1,242 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Staging Network Infrastructure (VPC, Subnets, Routes, IGW, NAT Gateways for HA)
+
+### =================================================================
+### PARAMETERS
+### =================================================================
+Parameters:
+  VPCCIDR:
+    Type: String
+    Default: 10.0.0.0/16
+    Description: CIDR block for the VPC.
+  ProjectName:
+    Type: String
+    Default: bookstore-demo
+    Description: Name tag prefix for all resources.
+
+### =================================================================
+### RESOURCES
+### =================================================================
+Resources:
+  # -------------------------------------------------------------
+  # 1. VPC & IGW (Kh?ng thay ??i)
+  # -------------------------------------------------------------
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VPCCIDR
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-VPC"
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-IGW"
+
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+  # -------------------------------------------------------------
+  # 2. PUBLIC SUBNETS (AZ-A & AZ-B) (Kh?ng thay ??i)
+  # -------------------------------------------------------------
+  PublicSubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.1.0/24
+      AvailabilityZone: !Select [ 0, !GetAZs "" ]
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-Public-A"
+
+  PublicSubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.2.0/24
+      AvailabilityZone: !Select [ 1, !GetAZs "" ]
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-Public-B"
+
+  # -------------------------------------------------------------
+  # 3. PRIVATE SUBNETS (AZ-A & AZ-B) (Kh?ng thay ??i)
+  # -------------------------------------------------------------
+  PrivateSubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.10.0/24
+      AvailabilityZone: !Select [ 0, !GetAZs "" ]
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-Private-A"
+
+  PrivateSubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.20.0/24
+      AvailabilityZone: !Select [ 1, !GetAZs "" ]
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-Private-B"
+
+  # -------------------------------------------------------------
+  # 4. ELASTIC IP & NAT GATEWAYS (B? SUNG)
+  # -------------------------------------------------------------
+  # Elastic IP cho NAT Gateway A
+  EIPForNATA:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-NATA-EIP"
+          
+  # NAT Gateway A (??t trong Public Subnet A)
+  NATGatewayA:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt EIPForNATA.AllocationId
+      SubnetId: !Ref PublicSubnetA
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-NATA"
+
+  # Elastic IP cho NAT Gateway B
+  EIPForNATB:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-NATB-EIP"
+          
+  # NAT Gateway B (??t trong Public Subnet B)
+  NATGatewayB:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt EIPForNATB.AllocationId
+      SubnetId: !Ref PublicSubnetB
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-NATB"
+
+  # -------------------------------------------------------------
+  # 5. PUBLIC ROUTE TABLE & ROUTES (Kh?ng thay ??i)
+  # -------------------------------------------------------------
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-Public-RT"
+
+  PublicRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+    DependsOn: AttachGateway
+
+  PublicSubnetARouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnetA
+      RouteTableId: !Ref PublicRouteTable
+
+  PublicSubnetBRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnetB
+      RouteTableId: !Ref PublicRouteTable
+
+  # -------------------------------------------------------------
+  # 6. PRIVATE ROUTE TABLES & ROUTES (C?P NH?T ?? d?ng NAT)
+  # -------------------------------------------------------------
+  PrivateRouteTableA: # Private RT cho AZ-A
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-Private-RT-A"
+
+  PrivateRouteTableB: # Private RT cho AZ-B
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-Private-RT-B"
+
+  # Route cho Private Subnet A tr? t?i NAT Gateway A
+  PrivateRouteA:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTableA
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NATGatewayA
+
+  # Route cho Private Subnet B tr? t?i NAT Gateway B
+  PrivateRouteB:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTableB
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NATGatewayB
+
+  # G?n Route Table v?o Private Subnets (C?P NH?T)
+  PrivateSubnetARouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnetA
+      RouteTableId: !Ref PrivateRouteTableA # G?n v?i RT-A
+
+  PrivateSubnetBRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnetB
+      RouteTableId: !Ref PrivateRouteTableB # G?n v?i RT-B
+
+### =================================================================
+### OUTPUTS (??u ra cho c?c Stack kh?c)
+### =================================================================
+Outputs:
+  VPCId:
+    Description: ID of the newly created VPC
+    Value: !Ref VPC
+    Export:
+      Name: !Sub "${ProjectName}-VPCId"
+
+  PublicSubnetIds:
+    Description: List of Public Subnet IDs
+    Value: !Join [ ",", [!Ref PublicSubnetA, !Ref PublicSubnetB] ]
+    Export:
+      Name: !Sub "${ProjectName}-PublicSubnetIds"
+
+  PrivateSubnetIds:
+    Description: List of Private Subnet IDs
+    Value: !Join [ ",", [!Ref PrivateSubnetA, !Ref PrivateSubnetB] ]
+    Export:
+      Name: !Sub "${ProjectName}-PrivateSubnetIds"
+
+  AllSubnetIds:
+    Description: List of All Subnet IDs
+    Value: !Join [ ",", [!Ref PublicSubnetA, !Ref PublicSubnetB, !Ref PrivateSubnetA, !Ref PrivateSubnetB] ]
+    Export:
+      Name: !Sub "${ProjectName}-AllSubnetIds"
+

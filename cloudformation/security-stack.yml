@@ -1,0 +1,280 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Security Infrastructure (SG, IAM Roles, Secrets Manager)
+
+### =================================================================
+### PARAMETERS
+### =================================================================
+Parameters:
+  ProjectName:
+    Type: String
+    Default: bookstore-demo
+  
+  # Import VPC ID t? network-stack
+  VPCId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC ID imported from the network-stack.
+  
+  # Tham s? ?? ??nh ngh?a Port c?a ?ng d?ng
+  AppPort:
+    Type: Number
+    Default: 8080
+  
+  # Tham s? ?? ??nh ngh?a Port c?a RDS
+  MysqlPort:
+    Type: Number
+    Default: 3306
+
+### =================================================================
+### RESOURCES
+### =================================================================
+Resources:
+
+  # -------------------------------------------------------------
+  # 1. SECRETS MANAGER (??nh ngh?a c?u tr?c Secrets)
+  # -------------------------------------------------------------
+  SigningCertificateSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Description: Secret for OpenIddict Signing Certificate.
+      Name: !Sub "${ProjectName}-SigningCertSecret"
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-SigningCertSecret"
+
+  EncryptionCertificateSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Description: Secret for OpenIddict Encryption Certificate.
+      Name: !Sub "${ProjectName}-EncryptionCertSecret"
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-EncryptionCertSecret"
+
+  # -------------------------------------------------------------
+  # 2. IAM ROLES V? POLICIES
+  # -------------------------------------------------------------
+  ECSTaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-ECSTaskExecutionRole"
+
+  ECSTaskToReadBookStoreSecretsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-ECSTaskToReadSecretsRole"
+
+  SecretsReadPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub "${ProjectName}-SecretsReadPolicy"
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: 
+              - secretsmanager:GetSecretValue
+              - secretsmanager:DescribeSecret
+            Resource:
+              - !Ref SigningCertificateSecret
+              - !Ref EncryptionCertificateSecret
+      Roles:
+        - !Ref ECSTaskToReadBookStoreSecretsRole
+
+    # 3. SECURITY GROUPS (ALB, ECS, RDS)
+  # -------------------------------------------------------------
+  ALBSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VPCId
+      GroupDescription: SG for Application Load Balancer
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-ALBSG"
+
+  ECSDotnetServiceSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VPCId
+      GroupDescription: SG for ECS Dotnet Service
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-ECSDotnetServiceSG"
+
+  ECSDbMigratorSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VPCId
+      GroupDescription: SG for ECS Db-migrator Task
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-ECSDbMigratorSG"
+
+  RDSMysqlSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VPCId
+      GroupDescription: SG for RDS MySQL Database
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-RDSMysqlSG"
+
+  # ------------------------------
+  # Security Group Rules t?ch ri?ng
+  # ------------------------------
+
+  # ALB -> ECS
+  ALBToECSIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref ECSDotnetServiceSG
+      SourceSecurityGroupId: !Ref ALBSG
+      IpProtocol: tcp
+      FromPort: !Ref AppPort
+      ToPort: !Ref AppPort
+      Description: Allow ALB to access ECS Service
+
+  # ECS -> RDS
+  ECSToRDSIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref RDSMysqlSG
+      SourceSecurityGroupId: !Ref ECSDotnetServiceSG
+      IpProtocol: tcp
+      FromPort: !Ref MysqlPort
+      ToPort: !Ref MysqlPort
+      Description: Allow ECS Service to access RDS
+
+  # DbMigrator -> RDS
+  MigratorToRDSIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref RDSMysqlSG
+      SourceSecurityGroupId: !Ref ECSDbMigratorSG
+      IpProtocol: tcp
+      FromPort: !Ref MysqlPort
+      ToPort: !Ref MysqlPort
+      Description: Allow DbMigrator to access RDS
+
+  # Egress Rules
+  ALBEgress:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      GroupId: !Ref ALBSG
+      DestinationSecurityGroupId: !Ref ECSDotnetServiceSG
+      IpProtocol: tcp
+      FromPort: !Ref AppPort
+      ToPort: !Ref AppPort
+      Description: ALB forward traffic to ECS
+
+  ECSDotnetEgress443:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      GroupId: !Ref ECSDotnetServiceSG
+      CidrIp: 0.0.0.0/0
+      IpProtocol: tcp
+      FromPort: 443
+      ToPort: 443
+      Description: Allow ECS Dotnet service outbound HTTPS (443) to all IPv4
+
+  ECSMigratorEgress443:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      GroupId: !Ref ECSDbMigratorSG
+      CidrIp: 0.0.0.0/0
+      IpProtocol: tcp
+      FromPort: 443
+      ToPort: 443
+      Description: Allow ECS DbMigrator outbound HTTPS (443) to all IPv4
+
+  ECSEgressToRDS:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      GroupId: !Ref ECSDotnetServiceSG
+      DestinationSecurityGroupId: !Ref RDSMysqlSG
+      IpProtocol: tcp
+      FromPort: !Ref MysqlPort
+      ToPort: !Ref MysqlPort
+      Description: ECS connect to RDS
+
+### =================================================================
+### OUTPUTS
+### =================================================================
+Outputs:
+  ALBSGId:
+    Description: Security Group ID for ALB
+    Value: !Ref ALBSG
+    Export:
+      Name: !Sub "${ProjectName}-ALBSGId"
+
+  ECSDotnetServiceSGId:
+    Description: Security Group ID for ECS Dotnet Service
+    Value: !Ref ECSDotnetServiceSG
+    Export:
+      Name: !Sub "${ProjectName}-ECSDotnetServiceSGId"
+
+  ECSDbMigratorSGId:
+    Description: Security Group ID for ECS Db-migrator Task
+    Value: !Ref ECSDbMigratorSG
+    Export:
+      Name: !Sub "${ProjectName}-ECSDbMigratorSGId"
+
+  RDSMysqlSGId:
+    Description: Security Group ID for RDS MySQL Instance
+    Value: !Ref RDSMysqlSG
+    Export:
+      Name: !Sub "${ProjectName}-RDSMysqlSGId"
+
+  ECSTaskExecutionRoleArn:
+    Description: ARN for ECS Task Execution Role
+    Value: !GetAtt ECSTaskExecutionRole.Arn
+    Export:
+      Name: !Sub "${ProjectName}-ECSTaskExecutionRoleArn"
+
+  ECSTaskToReadSecretsRoleArn:
+    Description: ARN for ECS Task Role (used by Dotnet/Db-migrator)
+    Value: !GetAtt ECSTaskToReadBookStoreSecretsRole.Arn
+    Export:
+      Name: !Sub "${ProjectName}-ECSTaskToReadSecretsRoleArn"
+
+  SigningCertificateSecretArn:
+    Description: ARN for the OpenIddict Signing Certificate Secret
+    Value: !Ref SigningCertificateSecret
+    Export:
+      Name: !Sub "${ProjectName}-SigningCertSecretArn"
+
+  EncryptionCertificateSecretArn:
+    Description: ARN for the OpenIddict Encryption Certificate Secret
+    Value: !Ref EncryptionCertificateSecret
+    Export:
+      Name: !Sub "${ProjectName}-EncryptionCertSecretArn"
+
+

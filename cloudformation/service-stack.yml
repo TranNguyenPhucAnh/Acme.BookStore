@@ -1,0 +1,64 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: ECS Service and Auto Scaling for the Dotnet application (Modular Design).
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: bookstore-demo
+    Description: Prefix used for all resource names and ImportValue names.
+
+  AppPort:
+    Type: Number
+    Default: 8080
+    Description: The port the Dotnet container listens on.
+
+Resources:
+  DotnetService:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: !Sub "${ProjectName}-Dotnet-Service"
+
+      Cluster: 
+        Fn::ImportValue: 
+          Fn::Sub: "${ProjectName}-ECSClusterArn"
+
+      TaskDefinition: 
+        Fn::ImportValue: 
+          Fn::Sub: "${ProjectName}-DotnetTaskDefArn"
+
+      LaunchType: FARGATE
+      DesiredCount: 1
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: DISABLED
+          SecurityGroups:
+            - Fn::ImportValue: 
+                Fn::Sub: "${ProjectName}-ECSDotnetServiceSGId"
+          Subnets:
+            Fn::Split:
+              - ","
+              - Fn::ImportValue:
+                  Fn::Sub: "${ProjectName}-PrivateSubnetIds"
+
+      LoadBalancers:
+        - ContainerName: dotnet
+          ContainerPort: !Ref AppPort
+          TargetGroupArn:
+            Fn::ImportValue: 
+              Fn::Sub: "${ProjectName}-ALBTargetGroupArn"
+
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-Dotnet-Service"
+
+Outputs:
+  DotnetServiceArn:
+    Description: ARN of the ECS Dotnet Service
+    Value: !Ref DotnetService
+    Export:
+      Name: !Sub "${ProjectName}-DotnetServiceArn"
+
