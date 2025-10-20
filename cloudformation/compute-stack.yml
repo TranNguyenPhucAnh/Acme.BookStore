@@ -1,0 +1,159 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Compute Infrastructure (ECR, ECS Cluster, and Task Definitions)
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: bookstore-demo
+    Description: Prefix used for all exported resource names.
+  
+  AppPort:
+    Type: Number
+    Default: 8080
+    Description: The port the Dotnet container listens on.
+  
+  DBUsername:
+    Type: String
+    Description: Master username for the RDS instance (used for environment variable).
+
+Resources:
+  MainECRRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: !Sub "${ProjectName}-main-repo"
+      ImageScanningConfiguration:
+        ScanOnPush: true
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-Main-ECR"
+
+  ECSCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Sub "${ProjectName}-Cluster"
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-ECSCluster"
+          
+  ECSLogGroupDotnet:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/ecs/${ProjectName}-dotnet"
+      RetentionInDays: 7
+
+  ECSLogGroupDbMigrator:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/ecs/${ProjectName}-db-migrator"
+      RetentionInDays: 7
+
+  DotnetTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub "${ProjectName}-Dotnet-TaskDef"
+      RequiresCompatibilities:
+        - FARGATE
+      NetworkMode: awsvpc
+      Cpu: 512
+      Memory: 1024
+      ExecutionRoleArn:
+        Fn::ImportValue:
+          Fn::Sub: "${ProjectName}-ECSTaskExecutionRoleArn"
+      TaskRoleArn:
+        Fn::ImportValue:
+          Fn::Sub: "${ProjectName}-ECSTaskToReadSecretsRoleArn"
+      ContainerDefinitions:
+        - Name: dotnet
+          Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${ProjectName}-main-repo:latest"
+          PortMappings:
+            - ContainerPort: !Ref AppPort
+              HostPort: !Ref AppPort
+              Protocol: tcp
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref ECSLogGroupDotnet
+              awslogs-region: !Sub "${AWS::Region}"
+              awslogs-stream-prefix: ecs
+          Environment:
+            - Name: ConnectionStrings__Default
+              Value: !Sub
+                - "Server=${DBEndpointAddress};Port=${DBEndpointPort};Database=BookStore;Uid=${DBUsername};Pwd=SECRET_FETCHED_BY_CODE;"
+                - DBEndpointAddress:
+                    Fn::ImportValue:
+                      Fn::Sub: "${ProjectName}-DBEndpointAddress"
+                  DBEndpointPort:
+                    Fn::ImportValue:
+                      Fn::Sub: "${ProjectName}-DBEndpointPort"
+          Essential: true
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-Dotnet-TaskDef"
+
+  DbMigratorTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub "${ProjectName}-DbMigrator-TaskDef"
+      RequiresCompatibilities:
+        - FARGATE
+      NetworkMode: awsvpc
+      Cpu: 256
+      Memory: 512
+      ExecutionRoleArn:
+        Fn::ImportValue:
+          Fn::Sub: "${ProjectName}-ECSTaskExecutionRoleArn"
+      TaskRoleArn:
+        Fn::ImportValue:
+          Fn::Sub: "${ProjectName}-ECSTaskToReadSecretsRoleArn"
+      ContainerDefinitions:
+        - Name: db-migrator
+          Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${ProjectName}-main-repo:latest"
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref ECSLogGroupDbMigrator
+              awslogs-region: !Sub "${AWS::Region}"
+              awslogs-stream-prefix: ecs
+          Environment:
+            - Name: ConnectionStrings__Default
+              Value: !Sub
+                - "Server=${DBEndpointAddress};Port=${DBEndpointPort};Database=BookStore;Uid=${DBUsername};Pwd=SECRET_FETCHED_BY_CODE;"
+                - DBEndpointAddress:
+                    Fn::ImportValue:
+                      Fn::Sub: "${ProjectName}-DBEndpointAddress"
+                  DBEndpointPort:
+                    Fn::ImportValue:
+                      Fn::Sub: "${ProjectName}-DBEndpointPort"
+            - Name: OpenIddict__Applications__BookStore_Swagger__RootUrl
+              Value: "https://bookstore-demo.online/swagger"
+            - Name: OpenIddict__Applications__BookStore_App__RootUrl
+              Value: "https://bookstore-demo.online"
+          Essential: true
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-DbMigrator-TaskDef"
+
+Outputs:
+  ECSClusterArn:
+    Description: ARN of the ECS Cluster
+    Value: !Ref ECSCluster
+    Export:
+      Name: !Sub "${ProjectName}-ECSClusterArn"
+
+  DotnetTaskDefinitionArn:
+    Description: ARN of the Dotnet ECS Task Definition
+    Value: !Ref DotnetTaskDefinition
+    Export:
+      Name: !Sub "${ProjectName}-DotnetTaskDefArn"
+
+  DbMigratorTaskDefinitionArn:
+    Description: ARN of the DbMigrator ECS Task Definition
+    Value: !Ref DbMigratorTaskDefinition
+    Export:
+      Name: !Sub "${ProjectName}-DbMigratorTaskDefArn"
+
+  MainECRRepositoryName:
+    Description: Name of the main ECR repository.
+    Value: !Ref MainECRRepository
+    Export:
+      Name: !Sub "${ProjectName}-MainECRRepositoryName"
