@@ -6,7 +6,7 @@ on:
       git_branch:
         description: 'Branch for migration'
         required: true
-        default: 'aws'
+        default: 'aws' 
 
 jobs:
   run-migration:
@@ -14,20 +14,19 @@ jobs:
 
     env:
       AWS_REGION: ap-southeast-1
-      ECR_REPOSITORY: acme-bookstore
-      ECS_CLUSTER: ecs-bookstore-cluster
+      # Loại bỏ các biến hardcode cũ.
       DB_MIGRATOR_TASK_DEF: db-migrator-task-def.json
-      SECURITY_GROUP_ID: sg-0ba5d7cb9f258c788
+      DOTNET_IMAGE_TAG: latest # Giả định DbMigrator dùng cùng tag với ứng dụng chính
       
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-          
+        
       - name: Get branch name (sanitize for Docker tag)
         id: branch
         shell: bash
         run: |
-          RAW_BRANCH="${GITHUB_REF##*/}"
+          RAW_BRANCH="${{ github.event.inputs.git_branch || github.ref_name }}" # Lấy từ input hoặc ref_name
           SAFE_BRANCH=$(echo "$RAW_BRANCH" | tr '/' '-' | tr -cd '[:alnum:]._-')
           echo "BRANCH_NAME=$SAFE_BRANCH" >> $GITHUB_ENV
           
@@ -38,15 +37,39 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Get Dynamic Infrastructure Parameters (from CFN Exports)
+        id: cfn-params
+        run: |
+          # Dùng tên dự án chính xác
+          PROJECT_NAME="bookstore-demo" 
+          
+          # Lấy tất cả thông tin cần thiết từ CloudFormation Exports
+          ECS_CLUSTER_ARN=$(aws cloudformation describe-exports --query "Exports[?Name=='$PROJECT_NAME-ECSClusterArn'].Value" --output text --region ${{ env.AWS_REGION }})
+          MIGRATOR_SG_ID=$(aws cloudformation describe-exports --query "Exports[?Name=='$PROJECT_NAME-ECSDbMigratorSGId'].Value" --output text --region ${{ env.AWS_REGION }})
+          SUBNET_IDS=$(aws cloudformation describe-exports --query "Exports[?Name=='$PROJECT_NAME-PrivateSubnetIds'].Value" --output text --region ${{ env.AWS_REGION }})
+          ECR_REPOSITORY_NAME=$(aws cloudformation describe-exports --query "Exports[?Name=='$PROJECT_NAME-MainECRRepositoryName'].Value" --output text --region ${{ env.AWS_REGION }})
+          
+          AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' --output text)
+          ECR_URI="$AWS_ACCOUNT_ID.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/$ECR_REPOSITORY_NAME"
+          
+          # Lưu các biến vào môi trường
+          echo "ECS_CLUSTER_ARN=$ECS_CLUSTER_ARN" >> $GITHUB_ENV
+          echo "SECURITY_GROUP_ID=$MIGRATOR_SG_ID" >> $GITHUB_ENV
+          echo "SUBNET_IDS=$SUBNET_IDS" >> $GITHUB_ENV
+          echo "ECR_REPOSITORY=$ECR_REPOSITORY_NAME" >> $GITHUB_ENV
+          echo "ECR_URI=$ECR_URI" >> $GITHUB_ENV
+          echo "IMAGE_URI=$ECR_URI:${{ env.DOTNET_IMAGE_TAG }}" >> $GITHUB_ENV
+
       - name: Login to Amazon ECR
         id: ecr
         uses: aws-actions/amazon-ecr-login@v1
-
+        
       - name: Build DB Migrator Docker image
-        run: docker build -f src/Acme.BookStore.DbMigrator/Dockerfile.local -t ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.BRANCH_NAME }} .
+        # Giả định context là thư mục gốc và Dockerfile nằm ở đường dẫn tương ứng
+        run: docker build -f src/Acme.BookStore.DbMigrator/Dockerfile.local -t ${{ env.ECR_URI }}:${{ env.BRANCH_NAME }} .
 
       - name: Push migration image to ECR
-        run: docker push ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.BRANCH_NAME }}
+        run: docker push ${{ env.ECR_URI }}:${{ env.BRANCH_NAME }}
 
       - name: Update migrator task definition (set image)
         id: taskdef
@@ -54,8 +77,9 @@ jobs:
         with:
           task-definition: ${{ env.DB_MIGRATOR_TASK_DEF }}
           container-name: db-migrator
-          image: ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.BRANCH_NAME }}
-                    
+          # Sử dụng Image URI với tag của branch hiện tại
+          image: ${{ env.ECR_URI }}:${{ env.BRANCH_NAME }}
+          
       - name: Register ECS task definition
         id: register-task
         run: |
@@ -67,12 +91,14 @@ jobs:
           
       - name: Run migration ECS task
         run: |
+          # Chuyển chuỗi Subnets (subnet-x,subnet-y) thành mảng JSON ([ "subnet-x", "subnet-y" ])
+          SUBNETS_ARRAY=$(echo "${{ env.SUBNET_IDS }}" | tr ',' '\n' | jq -R . | jq -s .)
+          
           aws ecs run-task \
-            --cluster $ECS_CLUSTER \
+            --cluster ${{ env.ECS_CLUSTER_ARN }} \
             --launch-type FARGATE \
             --task-definition ${{ env.TASKDEF_ARN }} \
-            --network-configuration "awsvpcConfiguration={subnets=[\"subnet-0638e3d16889a182b\",\"subnet-0fa34e25c32f84e92\",\"subnet-0b00aa82132c2ace0\"],securityGroups=[\"${{ env.SECURITY_GROUP_ID }}\"],assignPublicIp=\"ENABLED\"}" \
-            --overrides '{"containerOverrides":[{"name":"db-migrator","environment":[{"name":"BRANCH_NAME","value":"${{ env.BRANCH_NAME }}"}]}]}'
-
+            --network-configuration "awsvpcConfiguration={subnets=$SUBNETS_ARRAY,securityGroups=[\"${{ env.SECURITY_GROUP_ID }}\"],assignPublicIp=\"DISABLED\"}"
+            
       - name: Check migration status
         run: echo "Migration ECS task launched. Check ECS console or use 'aws ecs describe-tasks' for status."
