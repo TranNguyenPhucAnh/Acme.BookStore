@@ -1,0 +1,67 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Database Infrastructure (RDS MySQL Instance)
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: bookstore-demo
+    Description: Prefix used for all exported resource names.
+  DBUsername:
+    Type: String
+    Default: admin
+    Description: Master username for the RDS instance.
+  DBPassword:
+    Type: String
+    NoEcho: true
+    Description: Master password for the RDS instance.
+
+Resources:
+  BookStoreDBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnet group for the BookStore RDS instance
+      SubnetIds:
+        Fn::Split:
+          - ","
+          - Fn::ImportValue:
+              Fn::Sub: "${ProjectName}-PrivateSubnetIds"
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-RDS-SubnetGroup"
+
+  BookStoreDBInstance:
+    Type: AWS::RDS::DBInstance
+    DeletionPolicy: Snapshot
+    Properties:
+      DBInstanceIdentifier: !Sub "${ProjectName}-DB"
+      DBInstanceClass: db.t3.micro
+      Engine: mysql
+      EngineVersion: 8.0
+      MasterUsername: !Ref DBUsername
+      MasterUserPassword: !Ref DBPassword
+      AllocatedStorage: 20
+      DBSubnetGroupName: !Ref BookStoreDBSubnetGroup
+      VPCSecurityGroups:
+        - Fn::ImportValue:
+            Fn::Sub: "${ProjectName}-RDSMysqlSGId"
+      PubliclyAccessible: false
+      MultiAZ: false
+      BackupRetentionPeriod: 7
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-RDS-Instance"
+
+Outputs:
+  DBEndpointAddress:
+    Description: RDS Endpoint Address for the application
+    Value: !GetAtt BookStoreDBInstance.Endpoint.Address
+    Export:
+      Name: !Sub "${ProjectName}-DBEndpointAddress"
+
+  DBEndpointPort:
+    Description: RDS Endpoint Port
+    Value: !GetAtt BookStoreDBInstance.Endpoint.Port
+    Export:
+      Name: !Sub "${ProjectName}-DBEndpointPort"
+
+
