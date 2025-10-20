@@ -19,7 +19,7 @@ env:
   
   # Các đường dẫn cần thiết
   CFN_MODULES_PATH: ./cloudformation/modules
-  ECR_REPO_NAME: ${{ env.PROJECT_NAME }}-main-repo
+  ECR_REPO_NAME: bookstore-demo-main-repo
   DOTNET_IMAGE_TAG: latest
 
 jobs:
