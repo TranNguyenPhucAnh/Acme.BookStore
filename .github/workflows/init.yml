@@ -64,7 +64,7 @@ jobs:
                 ProjectName=${{ env.PROJECT_NAME }} \
                 AppPort=${{ env.APP_PORT }} \
                 VPCId=${{ env.VPCId }}
-            --capabilities CAPABILITY_NAMED_IAM
+            --capabilities CAPABILITY_IAM
             
       - name: 3. Deploy DATABASE Stack
         run: |
