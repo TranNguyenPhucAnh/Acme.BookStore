@@ -6,7 +6,10 @@ on:
       git_branch:
         description: 'Branch for migration'
         required: true
-        default: 'aws' 
+        default: 'aws'
+
+  repository_dispatch: # Bổ sung: Cho phép gọi từ workflow khác (Init)
+    types: [deploy_migration]
 
 jobs:
   run-migration:
