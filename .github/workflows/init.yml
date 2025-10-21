@@ -72,7 +72,9 @@ jobs:
           aws cloudformation deploy \
             --template-file ${{ env.CFN_MODULES_PATH }}/database-stack.yml \
             --stack-name ${{ env.PROJECT_NAME }}-Database-Stack \
-            --parameter-overrides DBPassword=${{ env.DB_PASSWORD }} \
+            --parameter-overrides \
+                DBUsername=${{ env.DB_USERNAME }} \
+                DBPassword=${{ env.DB_PASSWORD }} \
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
 
       - name: 4. Deploy COMPUTE Stack (Tạo ECR/Cluster/TaskDefs)
