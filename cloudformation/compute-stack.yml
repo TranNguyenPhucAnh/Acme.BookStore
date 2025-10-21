@@ -16,6 +16,11 @@ Parameters:
     Type: String
     Description: Master username for the RDS instance (used for environment variable).
 
+  DBPassword:
+    Type: String
+    NoEcho: true
+    Description: Master password for the RDS instance.
+
 Resources:
   MainECRRepository:
     Type: AWS::ECR::Repository
@@ -78,7 +83,7 @@ Resources:
           Environment:
             - Name: ConnectionStrings__Default
               Value: !Sub
-                - "Server=${DBEndpointAddress};Port=${DBEndpointPort};Database=BookStore;Uid=${DBUsername};Pwd=SECRET_FETCHED_BY_CODE;"
+                - "Server=${DBEndpointAddress};Port=${DBEndpointPort};Database=BookStore;Uid=${DBUsername};Pwd=${DBPassword};"
                 - DBEndpointAddress:
                     Fn::ImportValue:
                       Fn::Sub: "${ProjectName}-DBEndpointAddress"
@@ -117,7 +122,7 @@ Resources:
           Environment:
             - Name: ConnectionStrings__Default
               Value: !Sub
-                - "Server=${DBEndpointAddress};Port=${DBEndpointPort};Database=BookStore;Uid=${DBUsername};Pwd=SECRET_FETCHED_BY_CODE;"
+                - "Server=${DBEndpointAddress};Port=${DBEndpointPort};Database=BookStore;Uid=${DBUsername};Pwd=${DBPassword};"
                 - DBEndpointAddress:
                     Fn::ImportValue:
                       Fn::Sub: "${ProjectName}-DBEndpointAddress"
