@@ -82,6 +82,7 @@ jobs:
           aws cloudformation deploy \
             --template-file ${{ env.CFN_MODULES_PATH }}/compute-stack.yml \
             --stack-name ${{ env.PROJECT_NAME }}-Compute-Stack \
+            --parameter-overrides DBUsername=${{ env.DB_USERNAME }} \
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
 
       - name: 5. Deploy LOAD BALANCER / CLOUDFRONT Stack
