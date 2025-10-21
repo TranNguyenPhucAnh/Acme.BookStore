@@ -143,6 +143,11 @@ jobs:
   service-deploy:
     if: ${{ github.event.inputs.runJob == '' || github.event.inputs.runJob == 'service-deploy' }}
     runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write    # cần thiết để được phép gửi repository_dispatch event
+      actions: write     # tùy optional, nhưng khuyến nghị thêm
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
