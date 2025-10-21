@@ -47,10 +47,10 @@ jobs:
           PROJECT_NAME="bookstore-demo" 
           
           # Lấy tất cả thông tin cần thiết từ CloudFormation Exports
-          ECS_CLUSTER_ARN=$(aws cloudformation describe-exports --query "Exports[?Name=='$PROJECT_NAME-ECSClusterArn'].Value" --output text --region ${{ env.AWS_REGION }})
-          MIGRATOR_SG_ID=$(aws cloudformation describe-exports --query "Exports[?Name=='$PROJECT_NAME-ECSDbMigratorSGId'].Value" --output text --region ${{ env.AWS_REGION }})
-          SUBNET_IDS=$(aws cloudformation describe-exports --query "Exports[?Name=='$PROJECT_NAME-PrivateSubnetIds'].Value" --output text --region ${{ env.AWS_REGION }})
-          ECR_REPOSITORY_NAME=$(aws cloudformation describe-exports --query "Exports[?Name=='$PROJECT_NAME-MainECRRepositoryName'].Value" --output text --region ${{ env.AWS_REGION }})
+          ECS_CLUSTER_ARN=$(aws cloudformation list-exports --query "Exports[?Name=='$PROJECT_NAME-ECSClusterArn'].Value" --output text --region ${{ env.AWS_REGION }})
+          MIGRATOR_SG_ID=$(aws cloudformation list-exports --query "Exports[?Name=='$PROJECT_NAME-ECSDbMigratorSGId'].Value" --output text --region ${{ env.AWS_REGION }})
+          SUBNET_IDS=$(aws cloudformation list-exports --query "Exports[?Name=='$PROJECT_NAME-PrivateSubnetIds'].Value" --output text --region ${{ env.AWS_REGION }})
+          ECR_REPOSITORY_NAME=$(aws cloudformation list-exports --query "Exports[?Name=='$PROJECT_NAME-MainECRRepositoryName'].Value" --output text --region ${{ env.AWS_REGION }})
           
           AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' --output text)
           ECR_URI="$AWS_ACCOUNT_ID.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/$ECR_REPOSITORY_NAME"
