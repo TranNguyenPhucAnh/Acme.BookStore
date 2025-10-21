@@ -7,6 +7,10 @@ on:
         description: 'Branch for migration'
         required: true
         default: 'aws'
+      runJob:
+        description: 'Job to run'
+        required: false
+        default: ''
 
   repository_dispatch: # Bổ sung: Cho phép gọi từ workflow khác (Init)
     types: [deploy_migration]
@@ -28,6 +32,7 @@ jobs:
   # JOB 1: INFRA-SETUP (Tạo Network, Security, Database, Compute/ECR)
   # =======================================================
   infra-setup:
+    if: ${{ github.event.inputs.runJob == '' || github.event.inputs.runJob == 'infra-setup' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -92,6 +97,7 @@ jobs:
   # JOB 2: BUILD & PUSH DOCKER IMAGE
   # =======================================================
   build-push:
+    if: ${{ github.event.inputs.runJob == '' || github.event.inputs.runJob == 'build-push' }}
     needs: infra-setup # Chỉ chạy sau khi infra-setup hoàn tất
     runs-on: ubuntu-latest
     steps:
@@ -137,6 +143,7 @@ jobs:
   # JOB 3: SERVICE-DEPLOY (Tạo ALB/CF và ECS Service)
   # =======================================================
   service-deploy:
+    if: ${{ github.event.inputs.runJob == '' || github.event.inputs.runJob == 'service-deploy' }}
     needs: [build-push] # Chỉ chạy sau khi image đã được đẩy
     runs-on: ubuntu-latest
     steps:
