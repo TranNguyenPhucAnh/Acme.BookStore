@@ -24,35 +24,25 @@ Parameters:
     Type: Number
     Default: 3306
 
+  SigningCertificateSecretArn:
+    Type: String
+    Default: arn:aws:secretsmanager:ap-southeast-1:211125699268:secret:sign.pfx.b64-*
+    Description: ARN of the Secrets Manager secret for OpenIddict Signing Certificate.
+
+  EncryptionCertificateSecretArn:
+    Type: String
+    Default: arn:aws:secretsmanager:ap-southeast-1:211125699268:secret:enc.pfx.b64-*
+    Description: ARN of the Secrets Manager secret for OpenIddict Encryption Certificate.
+
 ### =================================================================
 ### RESOURCES
 ### =================================================================
 Resources:
 
   # -------------------------------------------------------------
-  # 1. SECRETS MANAGER (??nh ngh?a c?u tr?c Secrets)
+  # 1. IAM ROLES V? POLICIES
   # -------------------------------------------------------------
-  SigningCertificateSecret:
-    Type: AWS::SecretsManager::Secret
-    Properties:
-      Description: Secret for OpenIddict Signing Certificate.
-      Name: !Sub "${ProjectName}-SigningCertSecret"
-      Tags:
-        - Key: Name
-          Value: !Sub "${ProjectName}-SigningCertSecret"
 
-  EncryptionCertificateSecret:
-    Type: AWS::SecretsManager::Secret
-    Properties:
-      Description: Secret for OpenIddict Encryption Certificate.
-      Name: !Sub "${ProjectName}-EncryptionCertSecret"
-      Tags:
-        - Key: Name
-          Value: !Sub "${ProjectName}-EncryptionCertSecret"
-
-  # -------------------------------------------------------------
-  # 2. IAM ROLES V? POLICIES
-  # -------------------------------------------------------------
   ECSTaskExecutionRole:
     Type: AWS::IAM::Role
     Properties:
@@ -95,12 +85,12 @@ Resources:
               - secretsmanager:GetSecretValue
               - secretsmanager:DescribeSecret
             Resource:
-              - !Ref SigningCertificateSecret
-              - !Ref EncryptionCertificateSecret
+              - !Ref SigningCertificateSecretArn
+              - !Ref EncryptionCertificateSecretArn
       Roles:
         - !Ref ECSTaskToReadBookStoreSecretsRole
 
-    # 3. SECURITY GROUPS (ALB, ECS, RDS)
+    # 2. SECURITY GROUPS (ALB, ECS, RDS)
   # -------------------------------------------------------------
   ALBSG:
     Type: AWS::EC2::SecurityGroup
@@ -264,17 +254,3 @@ Outputs:
     Value: !GetAtt ECSTaskToReadBookStoreSecretsRole.Arn
     Export:
       Name: !Sub "${ProjectName}-ECSTaskToReadSecretsRoleArn"
-
-  SigningCertificateSecretArn:
-    Description: ARN for the OpenIddict Signing Certificate Secret
-    Value: !Ref SigningCertificateSecret
-    Export:
-      Name: !Sub "${ProjectName}-SigningCertSecretArn"
-
-  EncryptionCertificateSecretArn:
-    Description: ARN for the OpenIddict Encryption Certificate Secret
-    Value: !Ref EncryptionCertificateSecret
-    Export:
-      Name: !Sub "${ProjectName}-EncryptionCertSecretArn"
-
-
