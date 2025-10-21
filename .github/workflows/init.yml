@@ -63,8 +63,8 @@ jobs:
             --parameter-overrides \
                 ProjectName=${{ env.PROJECT_NAME }} \
                 AppPort=${{ env.APP_PORT }} \
-                VPCId=${{ env.VPCId }}
-            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM
+                VPCId=${{ env.VPCId }} \
+            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
             
       - name: 3. Deploy DATABASE Stack
         run: |
@@ -74,7 +74,7 @@ jobs:
             --parameter-overrides \
                 ProjectName=${{ env.PROJECT_NAME }} \
                 DBUsername=${{ env.DB_USERNAME }} \
-                DBPassword=${{ env.DB_PASSWORD }}
+                DBPassword=${{ env.DB_PASSWORD }} \
            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
 
       - name: 4. Deploy COMPUTE Stack (Tạo ECR/Cluster/TaskDefs)
@@ -85,7 +85,7 @@ jobs:
             --parameter-overrides \
                 ProjectName=${{ env.PROJECT_NAME }} \
                 AppPort=${{ env.APP_PORT }} \
-                DBUsername=${{ env.DB_USERNAME }}
+                DBUsername=${{ env.DB_USERNAME }} \
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
         
   # =======================================================
@@ -162,7 +162,7 @@ jobs:
             --stack-name ${{ env.PROJECT_NAME }}-Service-Stack \
             --parameter-overrides \
                 ProjectName=${{ env.PROJECT_NAME }} \
-                AppPort=${{ env.APP_PORT }}
+                AppPort=${{ env.APP_PORT }} \
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
 
       - name: 7. Trigger DB Migration Workflow
