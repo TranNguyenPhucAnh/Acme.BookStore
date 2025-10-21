@@ -126,9 +126,10 @@ jobs:
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v6
         with:
-          context: .
+          context: src/Acme.BookStore.HttpApi.Host/
           push: true
           tags: ${{ env.IMAGE_URI }}
+          platforms: linux/amd64
           # Thêm cache nếu cần (type=gha)
 
   # =======================================================
