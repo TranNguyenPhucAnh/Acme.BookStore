@@ -46,7 +46,7 @@ jobs:
             --template-file ${{ env.CFN_MODULES_PATH }}/network-stack.yml \
             --stack-name ${{ env.PROJECT_NAME }}-Network-Stack \
             --parameter-overrides ProjectName=${{ env.PROJECT_NAME }} \
-            --capabilities CAPABILITY_NAMED_IAM
+            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM
             
           VPC_ID=$(aws cloudformation describe-stacks \
             --stack-name ${{ env.PROJECT_NAME }}-Network-Stack \
@@ -64,7 +64,7 @@ jobs:
                 ProjectName=${{ env.PROJECT_NAME }} \
                 AppPort=${{ env.APP_PORT }} \
                 VPCId=${{ env.VPCId }}
-            --capabilities CAPABILITY_IAM
+            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM
             
       - name: 3. Deploy DATABASE Stack
         run: |
@@ -75,7 +75,7 @@ jobs:
                 ProjectName=${{ env.PROJECT_NAME }} \
                 DBUsername=${{ env.DB_USERNAME }} \
                 DBPassword=${{ env.DB_PASSWORD }}
-            --capabilities CAPABILITY_NAMED_IAM
+           --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM
 
       - name: 4. Deploy COMPUTE Stack (Tạo ECR/Cluster/TaskDefs)
         run: |
@@ -86,7 +86,7 @@ jobs:
                 ProjectName=${{ env.PROJECT_NAME }} \
                 AppPort=${{ env.APP_PORT }} \
                 DBUsername=${{ env.DB_USERNAME }}
-            --capabilities CAPABILITY_NAMED_IAM
+            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM
         
   # =======================================================
   # JOB 2: BUILD & PUSH DOCKER IMAGE
@@ -153,7 +153,7 @@ jobs:
           aws cloudformation deploy \
             --template-file ${{ env.CFN_MODULES_PATH }}/alb-cf-stack.yml \
             --stack-name ${{ env.PROJECT_NAME }}-LoadBalancer-Stack \
-            --capabilities CAPABILITY_NAMED_IAM
+            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM
 
       - name: 6. Deploy ECS SERVICE Stack
         run: |
@@ -163,7 +163,7 @@ jobs:
             --parameter-overrides \
                 ProjectName=${{ env.PROJECT_NAME }} \
                 AppPort=${{ env.APP_PORT }}
-            --capabilities CAPABILITY_NAMED_IAM
+            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM
 
       - name: 7. Trigger DB Migration Workflow
         uses: peter-evans/repository-dispatch@v3
