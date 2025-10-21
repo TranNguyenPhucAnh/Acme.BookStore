@@ -1,0 +1,75 @@
+name: Rollback AWS Infrastructure
+
+on:
+  workflow_dispatch:
+    inputs:
+      runJob:
+        description: 'Job to run'
+        required: false
+        default: ''
+      ecr_cleanup:
+        description: 'Cleanup ECR images before remove repo?'
+        type: boolean
+        required: false
+        default: true
+
+env:
+  AWS_REGION: ap-southeast-1
+  PROJECT_NAME: bookstore-demo
+  ECR_REPO_NAME: bookstore-demo-main-repo
+
+jobs:
+  rollback-stack:
+    if: ${{ github.event.inputs.runJob == '' || github.event.inputs.runJob == 'rollback-stack' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # Optional ECR cleanup, chỉ chạy nếu được chọn hoặc luôn chạy
+      - name: Cleanup ECR images before stack deletion
+        if: ${{ github.event.inputs.ecr_cleanup == 'true' || github.event.inputs.ecr_cleanup == '' }}
+        run: |
+          REPO="${{ env.ECR_REPO_NAME }}"
+          IMAGE_IDS=$(aws ecr list-images --repository-name $REPO --region ${{ env.AWS_REGION }} --query 'imageIds[*]' --output json)
+          if [ "$IMAGE_IDS" != "[]" ]; then
+            aws ecr batch-delete-image --repository-name $REPO --region ${{ env.AWS_REGION }} --image-ids "$IMAGE_IDS"
+            echo "Deleted all images in ECR repo $REPO"
+          else
+            echo "ECR repo $REPO is already empty"
+          fi
+
+      # Delete ECS Service Stack
+      - name: Delete ECS Service Stack
+        run: aws cloudformation delete-stack --stack-name ${{ env.PROJECT_NAME }}-Service-Stack
+
+      # Delete Compute (ECR/Cluster/TaskDef) Stack
+      - name: Delete Compute Stack
+        run: aws cloudformation delete-stack --stack-name ${{ env.PROJECT_NAME }}-Compute-Stack
+
+      # Delete Database Stack
+      - name: Delete Database Stack
+        run: aws cloudformation delete-stack --stack-name ${{ env.PROJECT_NAME }}-Database-Stack
+
+      # Delete Security Stack
+      - name: Delete Security Stack
+        run: aws cloudformation delete-stack --stack-name ${{ env.PROJECT_NAME }}-Security-Stack
+
+      # Delete Load Balancer / CloudFront Stack
+      - name: Delete LoadBalancer / CloudFront Stack
+        run: aws cloudformation delete-stack --stack-name ${{ env.PROJECT_NAME }}-LoadBalancer-Stack
+
+      # Delete Network Stack
+      - name: Delete Network Stack
+        run: aws cloudformation delete-stack --stack-name ${{ env.PROJECT_NAME }}-Network-Stack
+
+      # Optionally: Check/delete orphaned resources (S3 bucket, logs, etc)
+      # - name: Cleanup orphan S3 buckets/log groups if needed
+      #   run: aws s3api delete-bucket ... / aws logs delete-log-group ...
