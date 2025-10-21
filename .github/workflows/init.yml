@@ -154,16 +154,16 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: 6. Deploy ECS SERVICE Stack
-        run: |
-          aws cloudformation deploy \
-            --template-file ${{ env.CFN_MODULES_PATH }}/service-stack.yml \
-            --stack-name ${{ env.PROJECT_NAME }}-Service-Stack \
-            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
-
-      - name: 7. Trigger DB Migration Workflow
+      - name: 6. Trigger DB Migration Workflow
         uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           event-type: deploy_migration # Tên sự kiện đã định nghĩa
           client-payload: '{ "ref": "${{ github.ref }}", "sha": "${{ github.sha }}" }'
+
+      - name: 7. Deploy ECS SERVICE Stack
+        run: |
+          aws cloudformation deploy \
+            --template-file ${{ env.CFN_MODULES_PATH }}/service-stack.yml \
+            --stack-name ${{ env.PROJECT_NAME }}-Service-Stack \
+            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
