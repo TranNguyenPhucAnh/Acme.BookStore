@@ -53,7 +53,7 @@ jobs:
             --query "Stacks[0].Outputs[?ExportName=='${{ env.PROJECT_NAME }}-VPCId'].OutputValue" \
             --output text)
             
-          echo "VPCId=$VPCId" >> $GITHUB_ENV # Lưu VPCId vào môi trường
+          echo "VPC_ID=$VPC_ID" >> $GITHUB_ENV # Lưu VPC_ID vào môi trường
 
       - name: 2. Deploy SECURITY Stack
         run: |
@@ -63,7 +63,7 @@ jobs:
             --parameter-overrides \
                 ProjectName=${{ env.PROJECT_NAME }} \
                 AppPort=${{ env.APP_PORT }} \
-                VPCId=${{ env.VPCId }} \
+                VPCId=${{ env.VPC_ID }} \
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
             
       - name: 3. Deploy DATABASE Stack
