@@ -50,7 +50,6 @@ jobs:
           aws cloudformation deploy \
             --template-file ${{ env.CFN_MODULES_PATH }}/network-stack.yml \
             --stack-name ${{ env.PROJECT_NAME }}-Network-Stack \
-            --parameter-overrides ProjectName=${{ env.PROJECT_NAME }} \
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
             
           VPC_ID=$(aws cloudformation describe-stacks \
@@ -65,10 +64,7 @@ jobs:
           aws cloudformation deploy \
             --template-file ${{ env.CFN_MODULES_PATH }}/security-stack.yml \
             --stack-name ${{ env.PROJECT_NAME }}-Security-Stack \
-            --parameter-overrides \
-                ProjectName=${{ env.PROJECT_NAME }} \
-                AppPort=${{ env.APP_PORT }} \
-                VPCId=${{ env.VPC_ID }} \
+            --parameter-overrides VPCId=${{ env.VPC_ID }} \
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
             
       - name: 3. Deploy DATABASE Stack
@@ -76,10 +72,6 @@ jobs:
           aws cloudformation deploy \
             --template-file ${{ env.CFN_MODULES_PATH }}/database-stack.yml \
             --stack-name ${{ env.PROJECT_NAME }}-Database-Stack \
-            --parameter-overrides \
-                ProjectName=${{ env.PROJECT_NAME }} \
-                DBUsername=${{ env.DB_USERNAME }} \
-                DBPassword=${{ env.DB_PASSWORD }} \
            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
 
       - name: 4. Deploy COMPUTE Stack (Tạo ECR/Cluster/TaskDefs)
@@ -87,10 +79,13 @@ jobs:
           aws cloudformation deploy \
             --template-file ${{ env.CFN_MODULES_PATH }}/compute-stack.yml \
             --stack-name ${{ env.PROJECT_NAME }}-Compute-Stack \
-            --parameter-overrides \
-                ProjectName=${{ env.PROJECT_NAME }} \
-                AppPort=${{ env.APP_PORT }} \
-                DBUsername=${{ env.DB_USERNAME }} \
+            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
+
+      - name: 5. Deploy LOAD BALANCER / CLOUDFRONT Stack
+        run: |
+          aws cloudformation deploy \
+            --template-file ${{ env.CFN_MODULES_PATH }}/alb-cf-stack.yml \
+            --stack-name ${{ env.PROJECT_NAME }}-LoadBalancer-Stack \
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
         
   # =======================================================
@@ -155,21 +150,11 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: 5. Deploy LOAD BALANCER / CLOUDFRONT Stack
-        run: |
-          aws cloudformation deploy \
-            --template-file ${{ env.CFN_MODULES_PATH }}/alb-cf-stack.yml \
-            --stack-name ${{ env.PROJECT_NAME }}-LoadBalancer-Stack \
-            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
-
       - name: 6. Deploy ECS SERVICE Stack
         run: |
           aws cloudformation deploy \
             --template-file ${{ env.CFN_MODULES_PATH }}/service-stack.yml \
             --stack-name ${{ env.PROJECT_NAME }}-Service-Stack \
-            --parameter-overrides \
-                ProjectName=${{ env.PROJECT_NAME }} \
-                AppPort=${{ env.APP_PORT }} \
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
 
       - name: 7. Trigger DB Migration Workflow
