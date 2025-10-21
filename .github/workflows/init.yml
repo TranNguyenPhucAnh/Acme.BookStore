@@ -12,9 +12,6 @@ on:
         required: false
         default: ''
 
-  repository_dispatch: # Bổ sung: Cho phép gọi từ workflow khác (Init)
-    types: [deploy_migration]
-
 env:
   AWS_REGION: ap-southeast-1
   PROJECT_NAME: bookstore-demo
