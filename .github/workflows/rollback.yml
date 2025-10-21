@@ -48,27 +48,39 @@ jobs:
 
       # Delete ECS Service Stack
       - name: Delete ECS Service Stack
-        run: aws cloudformation delete-stack --stack-name ${{ env.PROJECT_NAME }}-Service-Stack
+        run: |
+          aws cloudformation delete-stack --stack-name ${{ env.PROJECT_NAME }}-Service-Stack
+          aws cloudformation wait stack-delete-complete --stack-name ${{ env.PROJECT_NAME }}-Service-Stack
 
       # Delete Compute (ECR/Cluster/TaskDef) Stack
       - name: Delete Compute Stack
-        run: aws cloudformation delete-stack --stack-name ${{ env.PROJECT_NAME }}-Compute-Stack
+        run: |
+          aws cloudformation delete-stack --stack-name ${{ env.PROJECT_NAME }}-Compute-Stack
+          aws cloudformation wait stack-delete-complete --stack-name ${{ env.PROJECT_NAME }}-Compute-Stack
 
       # Delete Database Stack
       - name: Delete Database Stack
-        run: aws cloudformation delete-stack --stack-name ${{ env.PROJECT_NAME }}-Database-Stack
+        run: |
+          aws cloudformation delete-stack --stack-name ${{ env.PROJECT_NAME }}-Database-Stack
+          aws cloudformation wait stack-delete-complete --stack-name ${{ env.PROJECT_NAME }}-Database-Stack
 
       # Delete Security Stack
       - name: Delete Security Stack
-        run: aws cloudformation delete-stack --stack-name ${{ env.PROJECT_NAME }}-Security-Stack
+        run: |
+          aws cloudformation delete-stack --stack-name ${{ env.PROJECT_NAME }}-Security-Stack
+          aws cloudformation wait stack-delete-complete --stack-name ${{ env.PROJECT_NAME }}-Security-Stack
 
       # Delete Load Balancer / CloudFront Stack
       - name: Delete LoadBalancer / CloudFront Stack
-        run: aws cloudformation delete-stack --stack-name ${{ env.PROJECT_NAME }}-LoadBalancer-Stack
+        run: |
+          aws cloudformation delete-stack --stack-name ${{ env.PROJECT_NAME }}-LoadBalancer-Stack
+          aws cloudformation wait stack-delete-complete --stack-name ${{ env.PROJECT_NAME }}-LoadBalancer-Stack
 
       # Delete Network Stack
       - name: Delete Network Stack
-        run: aws cloudformation delete-stack --stack-name ${{ env.PROJECT_NAME }}-Network-Stack
+        run: |
+          aws cloudformation delete-stack --stack-name ${{ env.PROJECT_NAME }}-Network-Stack
+          aws cloudformation wait stack-delete-complete --stack-name ${{ env.PROJECT_NAME }}-Network-Stack
 
       # Optionally: Check/delete orphaned resources (S3 bucket, logs, etc)
       # - name: Cleanup orphan S3 buckets/log groups if needed
