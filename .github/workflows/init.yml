@@ -97,7 +97,6 @@ jobs:
   # JOB 2: BUILD & PUSH DOCKER IMAGE
   # =======================================================
   build-push:
-    needs: infra-setup # Chỉ chạy sau khi infra-setup hoàn tất
     if: ${{ github.event.inputs.runJob == '' || github.event.inputs.runJob == 'build-push' }}
     runs-on: ubuntu-latest
     steps:
@@ -143,7 +142,6 @@ jobs:
   # JOB 3: SERVICE-DEPLOY (Tạo ALB/CF và ECS Service)
   # =======================================================
   service-deploy:
-    needs: build-push # Chỉ chạy sau khi image đã được đẩy
     if: ${{ github.event.inputs.runJob == '' || github.event.inputs.runJob == 'service-deploy' }}
     runs-on: ubuntu-latest
     steps:
