@@ -56,9 +56,11 @@ jobs:
           ECR_URI="$AWS_ACCOUNT_ID.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/$ECR_REPOSITORY_NAME"
 
           # Lưu vào môi trường cho các bước sau
+          echo "TASK_DEF=$TASK_DEF" >> $GITHUB_ENV
           echo "DB_ENDPOINT=$DB_ENDPOINT" >> $GITHUB_ENV
           echo "DB_PORT=$DB_PORT" >> $GITHUB_ENV
-          echo "TASK_DEF=$TASK_DEF" >> $GITHUB_ENV
+          echo "DB_USER=admin" >> $GITHUB_ENV
+          echo "DB_PASSWORD=${{ secrets.MYSQL_BOOKSTORE_DB_PASSWORD }}" >> $GITHUB_ENV
           echo "IMAGE_URI=$ECR_URI:${{ env.MIGRATOR_IMAGE_TAG }}" >> $GITHUB_ENV
           echo "TASK_EXECUTION_ROLE_ARN=$TASK_EXECUTION_ROLE_ARN" >> $GITHUB_ENV
           echo "ECS_CLUSTER_ARN=$ECS_CLUSTER_ARN" >> $GITHUB_ENV
@@ -70,12 +72,12 @@ jobs:
       - name: Render ECS task definition
         run: |
           cat db-migrator-task-def.json | \
+            sed "s|\${TASK_DEF}|${TASK_DEF}|g" | 
             sed "s|\${DB_ENDPOINT}|${DB_ENDPOINT}|g" | \
             sed "s|\${DB_PORT}|${DB_PORT}|g" | \
             sed "s|\${DB_USER}|${DB_USER}|g" | \
             sed "s|\${DB_PASSWORD}|${DB_PASSWORD}|g" | \
             sed "s|\${IMAGE_URI}|${IMAGE_URI}|g" | \
-            sed "s|\${TASK_DEF}|${TASK_DEF}|g" | \
             sed "s|\${TASK_EXECUTION_ROLE_ARN}|${TASK_EXECUTION_ROLE_ARN}|g" \
             > db-migrator-task-def.rendered.json
 
