@@ -17,9 +17,9 @@ jobs:
 
     env:
       AWS_REGION: ap-southeast-1
-      # Loại bỏ các biến hardcode cũ.
+      PROJECT_NAME: bookstore-demo
       DB_MIGRATOR_TASK_DEF: db-migrator-task-def.json
-      DOTNET_IMAGE_TAG: latest # Giả định DbMigrator dùng cùng tag với ứng dụng chính
+      MIGRATOR_IMAGE_TAG: db-migrator
       
     steps:
       - name: Checkout code
@@ -42,26 +42,42 @@ jobs:
 
       - name: Get Dynamic Infrastructure Parameters (from CFN Exports)
         id: cfn-params
-        run: |
-          # Dùng tên dự án chính xác
-          PROJECT_NAME="bookstore-demo" 
-          
-          # Lấy tất cả thông tin cần thiết từ CloudFormation Exports
-          ECS_CLUSTER_ARN=$(aws cloudformation list-exports --query "Exports[?Name=='$PROJECT_NAME-ECSClusterArn'].Value" --output text --region ${{ env.AWS_REGION }})
-          MIGRATOR_SG_ID=$(aws cloudformation list-exports --query "Exports[?Name=='$PROJECT_NAME-ECSDbMigratorSGId'].Value" --output text --region ${{ env.AWS_REGION }})
-          SUBNET_IDS=$(aws cloudformation list-exports --query "Exports[?Name=='$PROJECT_NAME-PrivateSubnetIds'].Value" --output text --region ${{ env.AWS_REGION }})
-          ECR_REPOSITORY_NAME=$(aws cloudformation list-exports --query "Exports[?Name=='$PROJECT_NAME-MainECRRepositoryName'].Value" --output text --region ${{ env.AWS_REGION }})
-          
+        run: |      
+          # Endpoint, port, role từ CloudFormation exports
+          TASK_DEF="${{env.PROJECT_NAME}}-DbMigrator-TaskDef"
+          DB_ENDPOINT=$(aws cloudformation list-exports --query "Exports[?Name=='${{env.PROJECT_NAME}}-DBEndpointAddress'].Value" --output text --region ${{ env.AWS_REGION }})
+          DB_PORT=$(aws cloudformation list-exports --query "Exports[?Name=='${{env.PROJECT_NAME}}-DBEndpointPort'].Value" --output text --region ${{ env.AWS_REGION }})
+          TASK_EXECUTION_ROLE_ARN=$(aws cloudformation list-exports --query "Exports[?Name=='${{env.PROJECT_NAME}}-ECSTaskExecutionRoleArn'].Value" --output text --region ${{ env.AWS_REGION }})
+          ECS_CLUSTER_ARN=$(aws cloudformation list-exports --query "Exports[?Name=='${{env.PROJECT_NAME}}-ECSClusterArn'].Value" --output text --region ${{ env.AWS_REGION }})
+          MIGRATOR_SG_ID=$(aws cloudformation list-exports --query "Exports[?Name=='${{env.PROJECT_NAME}}-ECSDbMigratorSGId'].Value" --output text --region ${{ env.AWS_REGION }})
+          SUBNET_IDS=$(aws cloudformation list-exports --query "Exports[?Name=='${{env.PROJECT_NAME}}-PrivateSubnetIds'].Value" --output text --region ${{ env.AWS_REGION }})
+          ECR_REPOSITORY_NAME=$(aws cloudformation list-exports --query "Exports[?Name=='${{env.PROJECT_NAME}}-MainECRRepositoryName'].Value" --output text --region ${{ env.AWS_REGION }})  
           AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' --output text)
           ECR_URI="$AWS_ACCOUNT_ID.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/$ECR_REPOSITORY_NAME"
-          
-          # Lưu các biến vào môi trường
+
+          # Lưu vào môi trường cho các bước sau
+          echo "DB_ENDPOINT=$DB_ENDPOINT" >> $GITHUB_ENV
+          echo "DB_PORT=$DB_PORT" >> $GITHUB_ENV
+          echo "TASK_DEF=$TASK_DEF" >> $GITHUB_ENV
+          echo "IMAGE_URI=$ECR_URI:${{ env.MIGRATOR_IMAGE_TAG }}" >> $GITHUB_ENV
+          echo "TASK_EXECUTION_ROLE_ARN=$TASK_EXECUTION_ROLE_ARN" >> $GITHUB_ENV
           echo "ECS_CLUSTER_ARN=$ECS_CLUSTER_ARN" >> $GITHUB_ENV
           echo "SECURITY_GROUP_ID=$MIGRATOR_SG_ID" >> $GITHUB_ENV
           echo "SUBNET_IDS=$SUBNET_IDS" >> $GITHUB_ENV
           echo "ECR_REPOSITORY=$ECR_REPOSITORY_NAME" >> $GITHUB_ENV
           echo "ECR_URI=$ECR_URI" >> $GITHUB_ENV
-          echo "IMAGE_URI=$ECR_URI:${{ env.DOTNET_IMAGE_TAG }}" >> $GITHUB_ENV
+
+      - name: Render ECS task definition
+        run: |
+          cat db-migrator-task-def.json | \
+            sed "s|\${DB_ENDPOINT}|${DB_ENDPOINT}|g" | \
+            sed "s|\${DB_PORT}|${DB_PORT}|g" | \
+            sed "s|\${DB_USER}|${DB_USER}|g" | \
+            sed "s|\${DB_PASSWORD}|${DB_PASSWORD}|g" | \
+            sed "s|\${IMAGE_URI}|${IMAGE_URI}|g" | \
+            sed "s|\${TASK_DEF}|${TASK_DEF}|g" | \
+            sed "s|\${TASK_EXECUTION_ROLE_ARN}|${TASK_EXECUTION_ROLE_ARN}|g" \
+            > db-migrator-task-def.rendered.json
 
       - name: Login to Amazon ECR
         id: ecr
