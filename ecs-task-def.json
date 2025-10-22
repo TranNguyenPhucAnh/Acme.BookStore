@@ -1,20 +1,20 @@
 {
-    "family": "bookstore-dotnet",
+    "family": "${TASK_DEF}",
     "containerDefinitions": [
         {
             "cpu": 0,
             "environment": [
                 {
                     "name": "ConnectionStrings__Default",
-                    "value": "Server=bookstore.cjk0smiumnr2.ap-southeast-1.rds.amazonaws.com;Port=3306;Database=BookStore;Uid=admin;Pwd=Hocon-181;"
+                    "value": "Server=${DB_ENDPOINT};Port=${DB_PORT};Database=BookStore;Uid=${DB_USER};Pwd=${DB_PASSWORD};"
                 }
             ],
             "essential": true,
-            "image": "211125699268.dkr.ecr.ap-southeast-1.amazonaws.com/acme-bookstore:aws",
+            "image": "${IMAGE_URI}",
             "logConfiguration": {
                 "logDriver": "awslogs",
                 "options": {
-                    "awslogs-group": "/ecs/bookstore-dotnet",
+                    "awslogs-group": "/ecs/${TASK_DEF}",
                     "awslogs-create-group": "true",
                     "awslogs-region": "ap-southeast-1",
                     "awslogs-stream-prefix": "ecs"
@@ -36,8 +36,8 @@
             "volumesFrom": []
         }
     ],
-    "taskRoleArn": "arn:aws:iam::211125699268:role/ECSTaskToReadBookStoreSecretsRole",
-    "executionRoleArn": "arn:aws:iam::211125699268:role/ecsTaskExecutionRole",
+    "taskRoleArn": "${TASK_ROLE_ARN}",
+    "executionRoleArn": "${TASK_EXECUTION_ROLE_ARN}",
     "networkMode": "awsvpc",
     "volumes": [],
     "placementConstraints": [],
