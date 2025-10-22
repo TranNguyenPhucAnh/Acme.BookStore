@@ -7,9 +7,6 @@ on:
         description: 'Branch to build'
         required: true
         default: 'aws'
-  #push:
-    #branches:
-      #- aws
 
 jobs:
   build_and_deploy:
@@ -17,9 +14,8 @@ jobs:
 
     env:
       AWS_REGION: ap-southeast-1
-      ECR_REPOSITORY: acme-bookstore
-      ECS_CLUSTER: ecs-bookstore-cluster
-      ECS_SERVICE: bookstore-dotnet-service
+      PROJECT_NAME: bookstore-demo
+      DOTNET_IMAGE_TAG: dotnet
 
     steps:
       - name: Checkout code
@@ -40,18 +36,41 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Get Dynamic Infrastructure Parameters (from CFN Exports)
+        run: |
+          TASK_DEF=$"{{ env.PROJECT_NAME }}-DotnetTaskDefArn"
+          DB_ENDPOINT=$(aws cloudformation list-exports --query "Exports[?Name=='${{env.PROJECT_NAME}}-DBEndpointAddress'].Value" --output text --region ${{ env.AWS_REGION }})
+          DB_PORT=$(aws cloudformation list-exports --query "Exports[?Name=='${{env.PROJECT_NAME}}-DBEndpointPort'].Value" --output text --region ${{ env.AWS_REGION }})
+          TASK_ROLE_ARN=$(aws cloudformation list-exports --query "Exports[?Name=='${{env.PROJECT_NAME}}-ECSTaskToReadBookStoreSecretsRoleArn'].Value" --output text --region ${{ env.AWS_REGION }})
+          TASK_EXECUTION_ROLE_ARN=$(aws cloudformation list-exports --query "Exports[?Name=='${{env.PROJECT_NAME}}-ECSTaskExecutionRoleArn'].Value" --output text --region ${{ env.AWS_REGION }})
+          ECR_REPOSITORY_NAME=$(aws cloudformation list-exports --query "Exports[?Name=='${{env.PROJECT_NAME}}-MainECRRepositoryName'].Value" --output text --region ${{ env.AWS_REGION }})  
+          ECR_URI="$AWS_ACCOUNT_ID.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/$ECR_REPOSITORY_NAME"
+          ECS_SERVICE=$"{{ env.PROJECT_NAME }}-Dotnet-Service"
+          ECS_CLUSTER=$"{{ env.PROJECT_NAME }}-ECSCluster"
+
+          echo "TASK_DEF=$TASK_DEF" >> $GITHUB_ENV
+          echo "DB_ENDPOINT=$DB_ENDPOINT" >> $GITHUB_ENV
+          echo "DB_PORT=$DB_PORT" >> $GITHUB_ENV
+          echo "DB_USER=admin" >> $GITHUB_ENV
+          echo "DB_PASSWORD=${{ secrets.MYSQL_BOOKSTORE_DB_PASSWORD }}" >> $GITHUB_ENV
+          echo "TASK_ROLE_ARN=$TASK_ROLE_ARN" >> $GITHUB_ENV
+          echo "TASK_EXECUTION_ROLE_ARN=$TASK_EXECUTION_ROLE_ARN" >> $GITHUB_ENV
+          echo "IMAGE_URI=$ECR_URI:${{ env.DOTNET_IMAGE_TAG }}" >> $GITHUB_ENV
+          echo "ECS_SERVICE=$ECS_SERVICE" >> $GITHUB_ENV
+          echo "ECS_CLUSTER=$ECS_CLUSTER" >> $GITHUB_ENV
+
       - name: Login to Amazon ECR
         id: ecr-login
         uses: aws-actions/amazon-ecr-login@v1
 
       - name: Build Docker image
         run: |
-          docker build -f src/Acme.BookStore.HttpApi.Host/Dockerfile -t ${{ env.ECR_REPOSITORY }}:${{ env.BRANCH_NAME }} .
-          docker tag ${{ env.ECR_REPOSITORY }}:${{ env.BRANCH_NAME }} ${{ steps.ecr-login.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.BRANCH_NAME }}
+          docker build -f src/Acme.BookStore.HttpApi.Host/Dockerfile -t ${{ env.ECR_REPOSITORY_NAME }}:${{ env.BRANCH_NAME }} .
+          docker tag ${{ env.ECR_REPOSITORY_NAME }}:${{ env.BRANCH_NAME }} ${{ steps.ecr-login.outputs.registry }}/${{ env.ECR_REPOSITORY_NAME }}:${{ env.BRANCH_NAME }}
 
       - name: Push image to Amazon ECR
         run: |
-          docker push ${{ steps.ecr-login.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.BRANCH_NAME }}
+          docker push ${{ steps.ecr-login.outputs.registry }}/${{ env.ECR_REPOSITORY_NAME }}:${{ env.BRANCH_NAME }}
 
       - name: Fill in new image in ECS task definition
         id: task-def
@@ -59,7 +78,7 @@ jobs:
         with:
           task-definition: ecs-task-def.json
           container-name: dotnet
-          image: ${{ steps.ecr-login.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.BRANCH_NAME }}
+          image: ${{ steps.ecr-login.outputs.registry }}/${{ env.ECR_REPOSITORY_NAME }}:${{ env.BRANCH_NAME }}
 
       - name: Deploy ECS Service
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
