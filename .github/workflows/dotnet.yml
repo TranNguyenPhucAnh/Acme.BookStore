@@ -59,6 +59,19 @@ jobs:
           echo "ECS_SERVICE=$ECS_SERVICE" >> $GITHUB_ENV
           echo "ECS_CLUSTER=$ECS_CLUSTER" >> $GITHUB_ENV
 
+      - name: Render ECS task definition
+        run: |
+          cat ecs-task-def.json | \
+            sed "s|\${TASK_DEF}|${TASK_DEF}|g" | 
+            sed "s|\${DB_ENDPOINT}|${DB_ENDPOINT}|g" | \
+            sed "s|\${DB_PORT}|${DB_PORT}|g" | \
+            sed "s|\${DB_USER}|${DB_USER}|g" | \
+            sed "s|\${DB_PASSWORD}|${DB_PASSWORD}|g" | \
+            sed "s|\${IMAGE_URI}|${IMAGE_URI}|g" | \
+            sed "s|\${TASK_ROLE_ARN}|${TASK_ROLE_ARN}|g" | \
+            sed "s|\${TASK_EXECUTION_ROLE_ARN}|${TASK_EXECUTION_ROLE_ARN}|g" | \
+            > ecs-task-def.rendered.json
+
       - name: Login to Amazon ECR
         id: ecr-login
         uses: aws-actions/amazon-ecr-login@v1
@@ -76,7 +89,7 @@ jobs:
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
-          task-definition: ecs-task-def.json
+          task-definition: ecs-task-def.rendered.json
           container-name: dotnet
           image: ${{ steps.ecr-login.outputs.registry }}/${{ env.ECR_REPOSITORY_NAME }}:${{ env.BRANCH_NAME }}
 
