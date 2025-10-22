@@ -103,7 +103,7 @@ jobs:
         id: register-task
         run: |
           TASKDEF_ARN=$(aws ecs register-task-definition \
-            --cli-input-json file://${{ steps.taskdef.outputs.task-definition }} \
+            --cli-input-json file://db-migrator-task-def.rendered.json \
             --query 'taskDefinition.taskDefinitionArn' \
             --output text)
           echo "TASKDEF_ARN=$TASKDEF_ARN" >> $GITHUB_ENV
