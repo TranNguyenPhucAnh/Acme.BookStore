@@ -223,6 +223,16 @@ Resources:
       ToPort: !Ref MysqlPort
       Description: ECS connect to RDS
 
+  ECSMigratorEgressToRDS:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      GroupId: !Ref ECSDbMigratorSG
+      DestinationSecurityGroupId: !Ref RDSMysqlSG
+      IpProtocol: tcp
+      FromPort: !Ref MysqlPort
+      ToPort: !Ref MysqlPort
+      Description: ECSMigrator connect to RDS
+
 ### =================================================================
 ### OUTPUTS
 ### =================================================================
