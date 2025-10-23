@@ -21,6 +21,10 @@ Parameters:
     NoEcho: true
     Description: Master password for the RDS instance.
 
+  BranchName:
+    Type: String
+    Description: Current build branch.
+    
 Resources:
   MainECRRepository:
     Type: AWS::ECR::Repository
@@ -69,7 +73,7 @@ Resources:
           Fn::Sub: "${ProjectName}-ECSTaskToReadSecretsRoleArn"
       ContainerDefinitions:
         - Name: dotnet
-          Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${ProjectName}-main-repo:latest"
+          Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${ProjectName}-main-repo:${BranchName}"
           PortMappings:
             - ContainerPort: !Ref AppPort
               HostPort: !Ref AppPort
@@ -112,7 +116,7 @@ Resources:
           Fn::Sub: "${ProjectName}-ECSTaskToReadSecretsRoleArn"
       ContainerDefinitions:
         - Name: db-migrator
-          Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${ProjectName}-main-repo:latest"
+          Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${ProjectName}-main-repo:${BranchName}"
           LogConfiguration:
             LogDriver: awslogs
             Options:
