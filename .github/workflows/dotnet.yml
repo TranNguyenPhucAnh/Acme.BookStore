@@ -54,7 +54,7 @@ jobs:
           echo "DB_PASSWORD=${{ secrets.MYSQL_BOOKSTORE_DB_PASSWORD }}" >> $GITHUB_ENV
           echo "TASK_ROLE_ARN=$TASK_ROLE_ARN" >> $GITHUB_ENV
           echo "TASK_EXECUTION_ROLE_ARN=$TASK_EXECUTION_ROLE_ARN" >> $GITHUB_ENV
-          echo "IMAGE_URI=$ECR_URI:${{ env.BRANCH_NAME }}" >> $GITHUB_ENV
+          echo "IMAGE_URI=$ECR_URI:$dotnet-{{ env.BRANCH_NAME }}" >> $GITHUB_ENV
           echo "ECS_SERVICE=$ECS_SERVICE" >> $GITHUB_ENV
           echo "ECS_CLUSTER=$ECS_CLUSTER" >> $GITHUB_ENV
 
@@ -77,12 +77,12 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -f src/Acme.BookStore.HttpApi.Host/Dockerfile -t ${{ env.ECR_REPOSITORY_NAME }}:${{ env.BRANCH_NAME }} .
-          docker tag ${{ env.ECR_REPOSITORY_NAME }}:${{ env.BRANCH_NAME }} ${{ steps.ecr-login.outputs.registry }}/${{ env.ECR_REPOSITORY_NAME }}:${{ env.BRANCH_NAME }}
+          docker build -f src/Acme.BookStore.HttpApi.Host/Dockerfile -t ${{ env.ECR_REPOSITORY_NAME }}:dotnet-${{ env.BRANCH_NAME }} .
+          docker tag ${{ env.ECR_REPOSITORY_NAME }}:${{ env.BRANCH_NAME }} ${{ steps.ecr-login.outputs.registry }}/${{ env.ECR_REPOSITORY_NAME }}:dotnet-${{ env.BRANCH_NAME }}
 
       - name: Push image to Amazon ECR
         run: |
-          docker push ${{ steps.ecr-login.outputs.registry }}/${{ env.ECR_REPOSITORY_NAME }}:${{ env.BRANCH_NAME }}
+          docker push ${{ steps.ecr-login.outputs.registry }}/${{ env.ECR_REPOSITORY_NAME }}:dotnet-${{ env.BRANCH_NAME }}
 
       - name: Fill in new image in ECS task definition
         id: task-def
@@ -90,7 +90,7 @@ jobs:
         with:
           task-definition: ecs-task-def.rendered.json
           container-name: dotnet
-          image: ${{ steps.ecr-login.outputs.registry }}/${{ env.ECR_REPOSITORY_NAME }}:${{ env.BRANCH_NAME }}
+          image: ${{ steps.ecr-login.outputs.registry }}/${{ env.ECR_REPOSITORY_NAME }}:dotnet-${{ env.BRANCH_NAME }}
 
       - name: Deploy ECS Service
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
