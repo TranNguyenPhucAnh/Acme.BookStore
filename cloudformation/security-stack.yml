@@ -62,7 +62,7 @@ Resources:
             Statement:
               - Effect: Allow
                 Action: logs:CreateLogGroup
-                Resource: "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/ecs/*"
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/ecs/*"
       Tags:
         - Key: Name
           Value: !Sub "${ProjectName}-ECSTaskExecutionRole"
