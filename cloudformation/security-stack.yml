@@ -55,6 +55,14 @@ Resources:
             Action: sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+      Policies:
+        - PolicyName: AllowCreateCloudWatchLogGroup
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: logs:CreateLogGroup
+                Resource: "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/ecs/*"
       Tags:
         - Key: Name
           Value: !Sub "${ProjectName}-ECSTaskExecutionRole"
