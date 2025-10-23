@@ -64,17 +64,17 @@ jobs:
           aws cloudformation delete-stack --stack-name ${{ env.PROJECT_NAME }}-Database-Stack
           aws cloudformation wait stack-delete-complete --stack-name ${{ env.PROJECT_NAME }}-Database-Stack
 
-      # Delete Security Stack
-      - name: Delete Security Stack
-        run: |
-          aws cloudformation delete-stack --stack-name ${{ env.PROJECT_NAME }}-Security-Stack
-          aws cloudformation wait stack-delete-complete --stack-name ${{ env.PROJECT_NAME }}-Security-Stack
-
       # Delete Load Balancer / CloudFront Stack
       - name: Delete LoadBalancer / CloudFront Stack
         run: |
           aws cloudformation delete-stack --stack-name ${{ env.PROJECT_NAME }}-LoadBalancer-Stack
           aws cloudformation wait stack-delete-complete --stack-name ${{ env.PROJECT_NAME }}-LoadBalancer-Stack
+
+      # Delete Security Stack
+      - name: Delete Security Stack
+        run: |
+          aws cloudformation delete-stack --stack-name ${{ env.PROJECT_NAME }}-Security-Stack
+          aws cloudformation wait stack-delete-complete --stack-name ${{ env.PROJECT_NAME }}-Security-Stack
 
       # Delete Network Stack
       - name: Delete Network Stack
