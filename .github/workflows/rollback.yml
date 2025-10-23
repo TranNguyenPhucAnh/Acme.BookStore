@@ -7,20 +7,13 @@ on:
         description: 'Job to run'
         required: false
         default: ''
-      ecr_cleanup:
-        description: 'Cleanup ECR images before remove repo?'
-        type: boolean
-        required: false
-        default: true
 
 env:
   AWS_REGION: ap-southeast-1
   PROJECT_NAME: bookstore-demo
-  ECR_REPO_NAME: bookstore-demo-main-repo
 
 jobs:
   rollback-stack:
-    if: ${{ github.event.inputs.runJob == '' || github.event.inputs.runJob == 'rollback-stack' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -32,6 +25,11 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
+
+      - name: Get Dynamic Infrastructure Parameters (from CFN Exports)
+        run: |
+          ECR_REPO_NAME=$(aws cloudformation list-exports --query "Exports[?Name=='${{env.PROJECT_NAME}}-MainECRRepositoryName'].Value" --output text --region ${{ env.AWS_REGION }})  
+          echo "ECR_REPO_NAME=$ECR_REPO_NAME" >> $GITHUB_ENV
 
       # Optional ECR cleanup, chỉ chạy nếu được chọn hoặc luôn chạy
       - name: Cleanup ECR images before stack deletion
