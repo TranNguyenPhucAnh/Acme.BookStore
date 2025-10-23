@@ -73,7 +73,7 @@ Resources:
           Fn::Sub: "${ProjectName}-ECSTaskToReadSecretsRoleArn"
       ContainerDefinitions:
         - Name: dotnet
-          Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${ProjectName}-main-repo:${BranchName}"
+          Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${ProjectName}-main-repo:dotnet-${BranchName}"
           PortMappings:
             - ContainerPort: !Ref AppPort
               HostPort: !Ref AppPort
@@ -116,7 +116,7 @@ Resources:
           Fn::Sub: "${ProjectName}-ECSTaskToReadSecretsRoleArn"
       ContainerDefinitions:
         - Name: db-migrator
-          Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${ProjectName}-main-repo:${BranchName}"
+          Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${ProjectName}-main-repo:db-migrator-${BranchName}"
           LogConfiguration:
             LogDriver: awslogs
             Options:
