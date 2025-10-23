@@ -82,6 +82,7 @@ jobs:
             --parameter-overrides \
                 DBUsername=${{ env.DB_USERNAME }} \
                 DBPassword=${{ env.DB_PASSWORD }} \
+                BranchName=${{ github.ref_name }} \
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
 
       - name: 5. Deploy LOAD BALANCER / CLOUDFRONT Stack
