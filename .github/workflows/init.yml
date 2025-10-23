@@ -8,16 +8,16 @@ on:
         required: true
         default: 'aws'
 
+permissions:
+  contents: write    # cần thiết để được phép gửi repository_dispatch event
+  actions: write     # tùy optional, nhưng khuyến nghị thêm
+
 env:
   AWS_REGION: ap-southeast-1
   PROJECT_NAME: bookstore-demo
   DB_USERNAME: admin
-  DB_PASSWORD: Hocon-181
   APP_PORT: 8080
-  
-  # Các đường dẫn cần thiết
   CFN_MODULES_PATH: ./cloudformation/
-  ECR_REPO_NAME: bookstore-demo-main-repo
 
 jobs:
   # =======================================================
@@ -25,6 +25,7 @@ jobs:
   # =======================================================
   infra-setup:
     runs-on: ubuntu-latest
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -47,8 +48,14 @@ jobs:
             --stack-name ${{ env.PROJECT_NAME }}-Network-Stack \
             --query "Stacks[0].Outputs[?ExportName=='${{ env.PROJECT_NAME }}-VPCId'].OutputValue" \
             --output text)
+
+          ECR_REPO_NAME=$(aws cloudformation describe-stacks \
+            --stack-name ${{ env.PROJECT_NAME }}-Compute-Stack \
+            --query "Stacks[0].Outputs[?ExportName=='${{ env.PROJECT_NAME }}-MainECRRepositoryName'].OutputValue" \
+            --output text)
             
           echo "VPC_ID=$VPC_ID" >> $GITHUB_ENV # Lưu VPC_ID vào môi trường
+          echo "ECR_REPO_NAME=$ECR_REPO_NAME" >> $GITHUB_ENV
 
       - name: 2. Deploy SECURITY Stack
         run: |
@@ -65,7 +72,7 @@ jobs:
             --stack-name ${{ env.PROJECT_NAME }}-Database-Stack \
             --parameter-overrides \
                 DBUsername=${{ env.DB_USERNAME }} \
-                DBPassword=${{ env.DB_PASSWORD }} \
+                DBPassword=${{ secrets.MYSQL_BOOKSTORE_DB_PASSWORD }} \
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
 
       - name: 4. Deploy COMPUTE Stack (Tạo ECR/Cluster/TaskDefs)
@@ -75,7 +82,7 @@ jobs:
             --stack-name ${{ env.PROJECT_NAME }}-Compute-Stack \
             --parameter-overrides \
                 DBUsername=${{ env.DB_USERNAME }} \
-                DBPassword=${{ env.DB_PASSWORD }} \
+                DBPassword=${{ secrets.MYSQL_BOOKSTORE_DB_PASSWORD }} \
                 BranchName=${{ github.ref_name }} \
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
 
@@ -92,44 +99,14 @@ jobs:
   build-push-dotnet-docker:
     needs: infra-setup
     runs-on: ubuntu-latest
+    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+      - name: Dispatch dotnet build/push workflow
+        uses: peter-evans/repository-dispatch@v3
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-          
-      - name: Set ECR URL and Image URI
-        id: ecr
-        run: |
-          # Lấy ID tài khoản AWS để tạo URI ECR
-          AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' --output text)
-          ECR_URI="$AWS_ACCOUNT_ID.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPO_NAME }}"
-          
-          echo "ECR_URI=$ECR_URI" >> $GITHUB_ENV
-          echo "IMAGE_URI=$ECR_URI:dotnet-${{ github.ref_name }}" >> $GITHUB_ENV
-
-      - name: Login to Amazon ECR
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.ECR_URI }}
-          username: AWS
-          # Lấy token login từ ECR
-          password: ${{ steps.ecr.outputs.token }}
-          
-      - name: Build and Push Docker Image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: src/Acme.BookStore.HttpApi.Host/Dockerfile
-          push: true
-          tags: ${{ env.IMAGE_URI }}
-          platforms: linux/amd64
-          # Thêm cache nếu cần (type=gha)
+          token: ${{ secrets.GITHUB_TOKEN }}
+          event-type: deploy_dotnet
+          client-payload: '{ "git_branch": "${{ github.ref_name }}" }'
           
   # =======================================================
   # JOB 3: BUILD & PUSH ANGULAR OUTPUT
@@ -137,10 +114,6 @@ jobs:
   frontend-deploy:
     needs: build-push-dotnet-docker
     runs-on: ubuntu-latest
-
-    permissions:
-      contents: write
-      actions: write
 
     steps:
       - name: Checkout code
@@ -159,11 +132,7 @@ jobs:
   service-deploy:
     needs: frontend-deploy
     runs-on: ubuntu-latest
-    
-    permissions:
-      contents: write    # cần thiết để được phép gửi repository_dispatch event
-      actions: write     # tùy optional, nhưng khuyến nghị thêm
-    
+        
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
