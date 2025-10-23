@@ -7,10 +7,6 @@ on:
         description: 'Branch for migration'
         required: true
         default: 'aws'
-      runJob:
-        description: 'Job to run'
-        required: false
-        default: ''
 
 env:
   AWS_REGION: ap-southeast-1
