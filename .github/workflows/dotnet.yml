@@ -15,7 +15,6 @@ jobs:
     env:
       AWS_REGION: ap-southeast-1
       PROJECT_NAME: bookstore-demo
-      DOTNET_IMAGE_TAG: dotnet
 
     steps:
       - name: Checkout code
@@ -55,7 +54,7 @@ jobs:
           echo "DB_PASSWORD=${{ secrets.MYSQL_BOOKSTORE_DB_PASSWORD }}" >> $GITHUB_ENV
           echo "TASK_ROLE_ARN=$TASK_ROLE_ARN" >> $GITHUB_ENV
           echo "TASK_EXECUTION_ROLE_ARN=$TASK_EXECUTION_ROLE_ARN" >> $GITHUB_ENV
-          echo "IMAGE_URI=$ECR_URI:${{ env.DOTNET_IMAGE_TAG }}" >> $GITHUB_ENV
+          echo "IMAGE_URI=$ECR_URI:${{ env.BRANCH_NAME }}" >> $GITHUB_ENV
           echo "ECS_SERVICE=$ECS_SERVICE" >> $GITHUB_ENV
           echo "ECS_CLUSTER=$ECS_CLUSTER" >> $GITHUB_ENV
 
