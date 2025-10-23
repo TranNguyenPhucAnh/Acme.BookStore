@@ -19,7 +19,6 @@ jobs:
       AWS_REGION: ap-southeast-1
       PROJECT_NAME: bookstore-demo
       DB_MIGRATOR_TASK_DEF: db-migrator-task-def.json
-      MIGRATOR_IMAGE_TAG: db-migrator
       
     steps:
       - name: Checkout code
@@ -61,7 +60,7 @@ jobs:
           echo "DB_PORT=$DB_PORT" >> $GITHUB_ENV
           echo "DB_USER=admin" >> $GITHUB_ENV
           echo "DB_PASSWORD=${{ secrets.MYSQL_BOOKSTORE_DB_PASSWORD }}" >> $GITHUB_ENV
-          echo "IMAGE_URI=$ECR_URI:${{ env.MIGRATOR_IMAGE_TAG }}" >> $GITHUB_ENV
+          echo "IMAGE_URI=$ECR_URI:${{ env.BRANCH_NAME }}" >> $GITHUB_ENV
           echo "TASK_EXECUTION_ROLE_ARN=$TASK_EXECUTION_ROLE_ARN" >> $GITHUB_ENV
           echo "ECS_CLUSTER_ARN=$ECS_CLUSTER_ARN" >> $GITHUB_ENV
           echo "SECURITY_GROUP_ID=$MIGRATOR_SG_ID" >> $GITHUB_ENV
