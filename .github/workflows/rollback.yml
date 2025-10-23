@@ -3,10 +3,10 @@ name: Rollback AWS Infrastructure
 on:
   workflow_dispatch:
     inputs:
-      runJob:
-        description: 'Job to run'
-        required: false
-        default: ''
+      git_branch:
+        description: 'Branch to rollback'
+        required: true
+        default: 'aws'
 
 env:
   AWS_REGION: ap-southeast-1
