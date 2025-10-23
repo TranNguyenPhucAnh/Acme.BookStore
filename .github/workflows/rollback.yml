@@ -31,9 +31,7 @@ jobs:
           ECR_REPO_NAME=$(aws cloudformation list-exports --query "Exports[?Name=='${{env.PROJECT_NAME}}-MainECRRepositoryName'].Value" --output text --region ${{ env.AWS_REGION }})  
           echo "ECR_REPO_NAME=$ECR_REPO_NAME" >> $GITHUB_ENV
 
-      # Optional ECR cleanup, chỉ chạy nếu được chọn hoặc luôn chạy
       - name: Cleanup ECR images before stack deletion
-        if: ${{ github.event.inputs.ecr_cleanup == 'true' || github.event.inputs.ecr_cleanup == '' }}
         run: |
           REPO="${{ env.ECR_REPO_NAME }}"
           IMAGE_IDS=$(aws ecr list-images --repository-name $REPO --region ${{ env.AWS_REGION }} --query 'imageIds[*]' --output json)
@@ -43,6 +41,20 @@ jobs:
           else
             echo "ECR repo $REPO is already empty"
           fi
+
+      - name: Get S3 Bucket name from CFN output
+        id: get-s3-bucket
+        run: |
+          BUCKET_NAME=$(aws cloudformation list-exports \
+            --query "Exports[?Name=='${{env.PROJECT_NAME}}-FrontendBucketName'].Value" \
+            --output text \
+            --region ${{ env.AWS_REGION }})
+          echo "BUCKET_NAME=$BUCKET_NAME" >> $GITHUB_ENV
+      
+      - name: Empty S3 Bucket before stack deletion
+        run: |
+          aws s3 rm s3://$BUCKET_NAME --recursive
+          echo "Emptied S3 bucket $BUCKET_NAME"
 
       # Delete ECS Service Stack
       - name: Delete ECS Service Stack
