@@ -22,7 +22,6 @@ env:
   # Các đường dẫn cần thiết
   CFN_MODULES_PATH: ./cloudformation/
   ECR_REPO_NAME: bookstore-demo-main-repo
-  DOTNET_IMAGE_TAG: latest
 
 jobs:
   # =======================================================
@@ -117,7 +116,7 @@ jobs:
           ECR_URI="$AWS_ACCOUNT_ID.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPO_NAME }}"
           
           echo "ECR_URI=$ECR_URI" >> $GITHUB_ENV
-          echo "IMAGE_URI=$ECR_URI:${{ env.DOTNET_IMAGE_TAG }}" >> $GITHUB_ENV
+          echo "IMAGE_URI=$ECR_URI:dotnet-${{ github.ref_name }}" >> $GITHUB_ENV
 
       - name: Login to Amazon ECR
         uses: docker/login-action@v3
