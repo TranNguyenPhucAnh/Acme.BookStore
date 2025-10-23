@@ -52,6 +52,12 @@ jobs:
           aws cloudformation delete-stack --stack-name ${{ env.PROJECT_NAME }}-Service-Stack
           aws cloudformation wait stack-delete-complete --stack-name ${{ env.PROJECT_NAME }}-Service-Stack
 
+      # Delete Load Balancer / CloudFront Stack
+      - name: Delete LoadBalancer / CloudFront Stack
+        run: |
+          aws cloudformation delete-stack --stack-name ${{ env.PROJECT_NAME }}-LoadBalancer-Stack
+          aws cloudformation wait stack-delete-complete --stack-name ${{ env.PROJECT_NAME }}-LoadBalancer-Stack
+
       # Delete Compute (ECR/Cluster/TaskDef) Stack
       - name: Delete Compute Stack
         run: |
@@ -63,12 +69,6 @@ jobs:
         run: |
           aws cloudformation delete-stack --stack-name ${{ env.PROJECT_NAME }}-Database-Stack
           aws cloudformation wait stack-delete-complete --stack-name ${{ env.PROJECT_NAME }}-Database-Stack
-
-      # Delete Load Balancer / CloudFront Stack
-      - name: Delete LoadBalancer / CloudFront Stack
-        run: |
-          aws cloudformation delete-stack --stack-name ${{ env.PROJECT_NAME }}-LoadBalancer-Stack
-          aws cloudformation wait stack-delete-complete --stack-name ${{ env.PROJECT_NAME }}-LoadBalancer-Stack
 
       # Delete Security Stack
       - name: Delete Security Stack
