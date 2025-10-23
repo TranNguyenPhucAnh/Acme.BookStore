@@ -9,6 +9,10 @@ on:
         default: 'aws'
   repository_dispatch: # Bổ sung: Cho phép gọi từ workflow khác (Init)
     types: [deploy_frontend]
+
+env:
+  AWS_REGION: ap-southeast-1
+  PROJECT_NAME: bookstore-demo
     
 jobs:
   build-and-deploy:
@@ -46,9 +50,9 @@ jobs:
         id: s3bucket
         run: |
           BUCKET_NAME=$(aws cloudformation list-exports \
-            --query "Exports[?Name=='bookstore-demo-FrontendBucketName'].Value" \
+            --query "Exports[?Name=='${{env.PROJECT_NAME}}-FrontendBucketName'].Value" \
             --output text \
-            --region ap-southeast-1)
+            --region ${{ env.AWS_REGION }})
           echo "BUCKET_NAME=$BUCKET_NAME" >> $GITHUB_ENV
 
       - name: Upload to S3
