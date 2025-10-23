@@ -60,7 +60,7 @@ jobs:
           echo "DB_PORT=$DB_PORT" >> $GITHUB_ENV
           echo "DB_USER=admin" >> $GITHUB_ENV
           echo "DB_PASSWORD=${{ secrets.MYSQL_BOOKSTORE_DB_PASSWORD }}" >> $GITHUB_ENV
-          echo "IMAGE_URI=$ECR_URI:${{ env.BRANCH_NAME }}" >> $GITHUB_ENV
+          echo "IMAGE_URI=$ECR_URI:db-migrator-${{ env.BRANCH_NAME }}" >> $GITHUB_ENV
           echo "TASK_EXECUTION_ROLE_ARN=$TASK_EXECUTION_ROLE_ARN" >> $GITHUB_ENV
           echo "ECS_CLUSTER_ARN=$ECS_CLUSTER_ARN" >> $GITHUB_ENV
           echo "SECURITY_GROUP_ID=$MIGRATOR_SG_ID" >> $GITHUB_ENV
@@ -86,10 +86,10 @@ jobs:
         
       - name: Build DB Migrator Docker image
         # Giả định context là thư mục gốc và Dockerfile nằm ở đường dẫn tương ứng
-        run: docker build -f src/Acme.BookStore.DbMigrator/Dockerfile.local -t ${{ env.ECR_URI }}:${{ env.BRANCH_NAME }} .
+        run: docker build -f src/Acme.BookStore.DbMigrator/Dockerfile.local -t ${{ env.ECR_URI }}:db-migrator-${{ env.BRANCH_NAME }} .
 
       - name: Push migration image to ECR
-        run: docker push ${{ env.ECR_URI }}:${{ env.BRANCH_NAME }}
+        run: docker push ${{ env.ECR_URI }}:db-migrator-${{ env.BRANCH_NAME }}
 
       - name: Update migrator task definition (set image)
         id: taskdef
@@ -98,7 +98,7 @@ jobs:
           task-definition: ${{ env.DB_MIGRATOR_TASK_DEF }}
           container-name: db-migrator
           # Sử dụng Image URI với tag của branch hiện tại
-          image: ${{ env.ECR_URI }}:${{ env.BRANCH_NAME }}
+          image: ${{ env.ECR_URI }}:db-migrator-${{ env.BRANCH_NAME }}
           
       - name: Register ECS task definition
         id: register-task
