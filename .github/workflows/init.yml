@@ -28,7 +28,6 @@ jobs:
   # JOB 1: INFRA-SETUP (Tạo Network, Security, Database, Compute/ECR, ALB/CF)
   # =======================================================
   infra-setup:
-    if: ${{ github.event.inputs.runJob == '' || github.event.inputs.runJob == 'infra-setup' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -92,10 +91,10 @@ jobs:
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
         
   # =======================================================
-  # JOB 2: BUILD & PUSH DOCKER IMAGE
+  # JOB 2: BUILD & PUSH DOTNET DOCKER IMAGE
   # =======================================================
-  build-push:
-    if: ${{ github.event.inputs.runJob == '' || github.event.inputs.runJob == 'build-push' }}
+  build-push-dotnet-docker:
+    needs: infra-setup
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -140,7 +139,7 @@ jobs:
   # JOB 3: BUILD & PUSH ANGULAR OUTPUT
   # =======================================================
   frontend-deploy:
-    if: ${{ github.event.inputs.runJob == '' || github.event.inputs.runJob == 'frontend-deploy' }}
+    needs: build-push-dotnet-docker
     runs-on: ubuntu-latest
 
     permissions:
@@ -162,7 +161,7 @@ jobs:
   # JOB 4: SERVICE-DEPLOY (ECS Service)
   # =======================================================
   service-deploy:
-    if: ${{ github.event.inputs.runJob == '' || github.event.inputs.runJob == 'service-deploy' }}
+    needs: frontend-deploy
     runs-on: ubuntu-latest
     
     permissions:
