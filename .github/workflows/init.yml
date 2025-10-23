@@ -142,6 +142,11 @@ jobs:
   frontend-deploy:
     if: ${{ github.event.inputs.runJob == '' || github.event.inputs.runJob == 'frontend-deploy' }}
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      actions: write
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -154,7 +159,7 @@ jobs:
           client-payload: '{ "git_branch": "${{ github.event.inputs.git_branch || github.ref_name }}" }'
 
   # =======================================================
-  # JOB 3: SERVICE-DEPLOY (ECS Service)
+  # JOB 4: SERVICE-DEPLOY (ECS Service)
   # =======================================================
   service-deploy:
     if: ${{ github.event.inputs.runJob == '' || github.event.inputs.runJob == 'service-deploy' }}
