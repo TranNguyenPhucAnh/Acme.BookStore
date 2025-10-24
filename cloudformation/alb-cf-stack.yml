@@ -4,37 +4,30 @@ Description: Load Balancer, S3, and CloudFront Distribution Infrastructure
 Parameters:
   ProjectName:
     Type: String
-    Default: bookstore-demo
     Description: Prefix used for all exported resource names.
   
   AppDomain:
     Type: String
-    Default: bookstore-demo.online
     Description: The primary domain name for the application (e.g., bookstore-demo.online).
     
   AppPort:
     Type: Number
-    Default: 8080
     Description: The port the Dotnet container listens on.
 
-  HostedZoneId: 
+  HostedZoneId:
     Type: String
-    Default: Z00108562GUIWSZXR6B6E
     Description: Hosted Zone ID for the AppDomain (bookstore-demo.online).
 
-  CloudfrontHostedZoneId: 
+  CloudfrontHostedZoneId:
     Type: String
-    Default: Z2FDTNDATAQYW2
     Description: Hosted Zone ID of Cloudfront.
   
   ALBCertificateArn:
     Type: String
-    Default: arn:aws:acm:ap-southeast-1:211125699268:certificate/5a8c4030-882d-44de-9b02-a28e1cc5ceca
     Description: ARN of the SSL/TLS certificate for the ALB HTTPS listener.
     
   CloudFrontCertificateArn:
     Type: String
-    Default: arn:aws:acm:us-east-1:211125699268:certificate/e393ede3-6f85-4876-9fdd-f20a03c3ebc2
     Description: ARN of the SSL/TLS certificate created in us-east-1 for CloudFront.
 
 Resources:
