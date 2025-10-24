@@ -48,14 +48,8 @@ jobs:
             --stack-name ${{ env.PROJECT_NAME }}-Network-Stack \
             --query "Stacks[0].Outputs[?ExportName=='${{ env.PROJECT_NAME }}-VPCId'].OutputValue" \
             --output text)
-
-          ECR_REPO_NAME=$(aws cloudformation describe-stacks \
-            --stack-name ${{ env.PROJECT_NAME }}-Compute-Stack \
-            --query "Stacks[0].Outputs[?ExportName=='${{ env.PROJECT_NAME }}-MainECRRepositoryName'].OutputValue" \
-            --output text)
             
           echo "VPC_ID=$VPC_ID" >> $GITHUB_ENV # Lưu VPC_ID vào môi trường
-          echo "ECR_REPO_NAME=$ECR_REPO_NAME" >> $GITHUB_ENV
 
       - name: 2. Deploy SECURITY Stack
         run: |
