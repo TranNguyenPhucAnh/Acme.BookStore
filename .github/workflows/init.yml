@@ -56,8 +56,6 @@ jobs:
                 VPCCIDR=${{ env.VPCCIDR }} \
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
             
-      - name: 2. Deploy SECURITY Stack
-        run: |
           VPC_ID=$(aws cloudformation describe-stacks \
             --stack-name ${{ env.PROJECT_NAME }}-Network-Stack \
             --query "Stacks[0].Outputs[?ExportName=='${{ env.PROJECT_NAME }}-VPCId'].OutputValue" \
@@ -65,6 +63,8 @@ jobs:
             
             echo "VPC_ID=$VPC_ID" >> $GITHUB_ENV # Lưu VPC_ID vào môi trường
 
+      - name: 2. Deploy SECURITY Stack
+        run: |
           aws cloudformation deploy \
             --template-file ${{ env.CFN_MODULES_PATH }}/security-stack.yml \
             --stack-name ${{ env.PROJECT_NAME }}-Security-Stack \
