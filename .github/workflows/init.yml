@@ -8,10 +8,6 @@ on:
         required: true
         default: 'aws'
 
-permissions:
-  contents: write    # cần thiết để được phép gửi repository_dispatch event
-  actions: write     # tùy optional, nhưng khuyến nghị thêm
-
 env:
   AWS_REGION: ap-southeast-1
   PROJECT_NAME: bookstore-demo
@@ -122,14 +118,44 @@ jobs:
   build-push-dotnet-docker:
     needs: infra-setup
     runs-on: ubuntu-latest
-    
     steps:
-      - name: Dispatch dotnet build/push workflow
-        uses: peter-evans/repository-dispatch@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          event-type: deploy_dotnet
-          client-payload: '{ "git_branch": "${{ github.ref_name }}" }'
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Set ECR URL and Image URI
+        id: ecr
+        run: |
+          # Lấy ID tài khoản AWS để tạo URI ECR
+          AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' --output text)
+          ECR_URI="$AWS_ACCOUNT_ID.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPO_NAME }}"
+          
+          echo "ECR_URI=$ECR_URI" >> $GITHUB_ENV
+          echo "IMAGE_URI=$ECR_URI:dotnet-${{ github.ref_name }}" >> $GITHUB_ENV
+          
+      - name: Login to Amazon ECR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.ECR_URI }}
+          username: AWS
+          # Lấy token login từ ECR
+          password: ${{ steps.ecr.outputs.token }}
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: src/Acme.BookStore.HttpApi.Host/Dockerfile
+          push: true
+          tags: ${{ env.IMAGE_URI }}
+          platforms: linux/amd64
+          # Thêm cache nếu cần (type=gha)
           
   # =======================================================
   # JOB 3: BUILD & PUSH ANGULAR OUTPUT
@@ -141,13 +167,24 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Dispatch deploy_frontend event to angular.yml
-        uses: peter-evans/repository-dispatch@v3
+        
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          event-type: deploy_frontend
-          client-payload: '{ "git_branch": "${{ github.event.inputs.git_branch || github.ref_name }}" }'
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v1
+        
+      - name: Build DB Migrator Docker image
+        # Giả định context là thư mục gốc và Dockerfile nằm ở đường dẫn tương ứng
+        run: docker build -f src/Acme.BookStore.DbMigrator/Dockerfile.local -t ${{ env.ECR_URI }}:db-migrator-${{ github.ref_name }} .
+
+      - name: Push migration image to ECR
+        run: docker push ${{ env.ECR_URI }}:db-migrator-${{ github.ref_name }}
 
   # =======================================================
   # JOB 4: SERVICE-DEPLOY (ECS Service)
@@ -155,7 +192,11 @@ jobs:
   service-deploy:
     needs: frontend-deploy
     runs-on: ubuntu-latest
-        
+
+    permissions:
+      contents: write    # cần thiết để được phép gửi repository_dispatch event
+      actions: write     # tùy optional, nhưng khuyến nghị thêm
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
