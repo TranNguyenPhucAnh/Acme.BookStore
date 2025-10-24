@@ -46,6 +46,15 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Get AWS export parameters from AWS Cloudformation
+        run: |
+            VPC_ID=$(aws cloudformation describe-stacks \
+            --stack-name ${{ env.PROJECT_NAME }}-Network-Stack \
+            --query "Stacks[0].Outputs[?ExportName=='${{ env.PROJECT_NAME }}-VPCId'].OutputValue" \
+            --output text)
+            
+            echo "VPC_ID=$VPC_ID" >> $GITHUB_ENV # Lưu VPC_ID vào môi trường
+
       - name: 1. Deploy NETWORK Stack
         run: |
           aws cloudformation deploy \
@@ -63,7 +72,7 @@ jobs:
             --stack-name ${{ env.PROJECT_NAME }}-Security-Stack \
             --parameter-overrides \
                 ProjectName=${{ env.PROJECT_NAME }} \
-                VPCId=${{ env.VPCCIDR }} \
+                VPCId=${{ env.VPC_ID }} \
                 AppPort=${{ env.APP_PORT }} \
                 MysqlPort=${{ env.MYSQL_PORT }} \
                 SigningCertificateSecretArn=${{ env.SIGN_CERT_SECRET_ARN }} \
