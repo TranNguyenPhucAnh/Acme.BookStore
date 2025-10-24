@@ -7,6 +7,7 @@ on:
         description: 'Branch to build'
         required: true
         default: 'aws'
+        
   repository_dispatch:
     types: [deploy_dotnet]
 
@@ -17,7 +18,9 @@ jobs:
     env:
       AWS_REGION: ap-southeast-1
       PROJECT_NAME: bookstore-demo
-
+      DOTNET_TASK_DEF: ecs-task-def.json
+      RENDERED_DOTNET_TASK_DEF: ecs-task-def.rendered.json
+      
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -64,7 +67,7 @@ jobs:
 
       - name: Render ECS task definition
         run: |
-          cat ecs-task-def.json | \
+          cat ${{ env.DOTNET_TASK_DEF }} | \
             sed "s|\${TASK_DEF}|${TASK_DEF}|g" | 
             sed "s|\${DB_ENDPOINT}|${DB_ENDPOINT}|g" | \
             sed "s|\${DB_PORT}|${DB_PORT}|g" | \
@@ -73,7 +76,7 @@ jobs:
             sed "s|\${IMAGE_URI}|${IMAGE_URI}|g" | \
             sed "s|\${TASK_ROLE_ARN}|${TASK_ROLE_ARN}|g" | \
             sed "s|\${TASK_EXECUTION_ROLE_ARN}|${TASK_EXECUTION_ROLE_ARN}|g" | \
-            > ecs-task-def.rendered.json
+            > ${{ env.RENDERED_DOTNET_TASK_DEF }}
 
       - name: Login to Amazon ECR
         id: ecr-login
@@ -89,7 +92,7 @@ jobs:
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
-          task-definition: ecs-task-def.rendered.json
+          task-definition: ${{ env.RENDERED_DOTNET_TASK_DEF }}
           container-name: dotnet
           image: ${{ env.ECR_URI }}:dotnet-${{ env.BRANCH_NAME }}
 
