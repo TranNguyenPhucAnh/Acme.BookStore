@@ -10,7 +10,7 @@ Parameters:
   
   # Import VPC ID t? network-stack
   VPCId:
-    Type: AWS::EC2::VPC::Id
+    Type: String
     Description: VPC ID imported from the network-stack.
   
   # Tham s? ?? ??nh ngh?a Port c?a ?ng d?ng
