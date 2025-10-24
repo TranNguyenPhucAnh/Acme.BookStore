@@ -7,7 +7,6 @@ Description: Security Infrastructure (SG, IAM Roles, Secrets Manager)
 Parameters:
   ProjectName:
     Type: String
-    Default: bookstore-demo
   
   # Import VPC ID t? network-stack
   VPCId:
@@ -17,21 +16,17 @@ Parameters:
   # Tham s? ?? ??nh ngh?a Port c?a ?ng d?ng
   AppPort:
     Type: Number
-    Default: 8080
   
   # Tham s? ?? ??nh ngh?a Port c?a RDS
   MysqlPort:
     Type: Number
-    Default: 3306
 
   SigningCertificateSecretArn:
     Type: String
-    Default: arn:aws:secretsmanager:ap-southeast-1:211125699268:secret:sign.pfx.b64-*
     Description: ARN of the Secrets Manager secret for OpenIddict Signing Certificate.
 
   EncryptionCertificateSecretArn:
     Type: String
-    Default: arn:aws:secretsmanager:ap-southeast-1:211125699268:secret:enc.pfx.b64-*
     Description: ARN of the Secrets Manager secret for OpenIddict Encryption Certificate.
 
 ### =================================================================
