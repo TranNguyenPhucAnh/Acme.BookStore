@@ -4,12 +4,10 @@ Description: Compute Infrastructure (ECR, ECS Cluster, and Task Definitions)
 Parameters:
   ProjectName:
     Type: String
-    Default: bookstore-demo
     Description: Prefix used for all exported resource names.
   
   AppPort:
     Type: Number
-    Default: 8080
     Description: The port the Dotnet container listens on.
   
   DBUsername:
