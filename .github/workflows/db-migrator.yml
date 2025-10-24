@@ -70,7 +70,7 @@ jobs:
 
       - name: Render ECS task definition
         run: |
-          cat db-migrator-task-def.json | \
+          cat ${{ env.DB_MIGRATOR_TASK_DEF }} | \
             sed "s|\${TASK_DEF}|${TASK_DEF}|g" | 
             sed "s|\${DB_ENDPOINT}|${DB_ENDPOINT}|g" | \
             sed "s|\${DB_PORT}|${DB_PORT}|g" | \
