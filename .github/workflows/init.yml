@@ -16,7 +16,6 @@ env:
   AWS_REGION: ap-southeast-1
   PROJECT_NAME: bookstore-demo
   DB_USERNAME: admin
-  APP_PORT: 8080
   CFN_MODULES_PATH: ./cloudformation/
 
 jobs:
@@ -37,6 +36,15 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Get AWS export parameters from AWS Cloudformation
+        run: |
+            VPC_ID=$(aws cloudformation describe-stacks \
+            --stack-name ${{ env.PROJECT_NAME }}-Network-Stack \
+            --query "Stacks[0].Outputs[?ExportName=='${{ env.PROJECT_NAME }}-VPCId'].OutputValue" \
+            --output text)
+            
+            echo "VPC_ID=$VPC_ID" >> $GITHUB_ENV # Lưu VPC_ID vào môi trường
+
       - name: 1. Deploy NETWORK Stack
         run: |
           aws cloudformation deploy \
@@ -44,13 +52,6 @@ jobs:
             --stack-name ${{ env.PROJECT_NAME }}-Network-Stack \
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
             
-          VPC_ID=$(aws cloudformation describe-stacks \
-            --stack-name ${{ env.PROJECT_NAME }}-Network-Stack \
-            --query "Stacks[0].Outputs[?ExportName=='${{ env.PROJECT_NAME }}-VPCId'].OutputValue" \
-            --output text)
-            
-          echo "VPC_ID=$VPC_ID" >> $GITHUB_ENV # Lưu VPC_ID vào môi trường
-
       - name: 2. Deploy SECURITY Stack
         run: |
           aws cloudformation deploy \
