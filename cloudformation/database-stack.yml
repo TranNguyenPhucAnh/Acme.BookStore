@@ -4,12 +4,12 @@ Description: Database Infrastructure (RDS MySQL Instance)
 Parameters:
   ProjectName:
     Type: String
-    Default: bookstore-demo
     Description: Prefix used for all exported resource names.
+    
   DBUsername:
     Type: String
-    Default: admin
     Description: Master username for the RDS instance.
+    
   DBPassword:
     Type: String
     NoEcho: true
@@ -63,5 +63,3 @@ Outputs:
     Value: !GetAtt BookStoreDBInstance.Endpoint.Port
     Export:
       Name: !Sub "${ProjectName}-DBEndpointPort"
-
-
