@@ -4,12 +4,10 @@ Description: ECS Service and Auto Scaling for the Dotnet application (Modular De
 Parameters:
   ProjectName:
     Type: String
-    Default: bookstore-demo
     Description: Prefix used for all resource names and ImportValue names.
 
   AppPort:
     Type: Number
-    Default: 8080
     Description: The port the Dotnet container listens on.
 
 Resources:
@@ -61,4 +59,3 @@ Outputs:
     Value: !Ref DotnetService
     Export:
       Name: !Sub "${ProjectName}-DotnetServiceArn"
-
