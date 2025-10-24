@@ -7,11 +7,10 @@ Description: Staging Network Infrastructure (VPC, Subnets, Routes, IGW, NAT Gate
 Parameters:
   VPCCIDR:
     Type: String
-    Default: 10.0.0.0/16
     Description: CIDR block for the VPC.
+    
   ProjectName:
     Type: String
-    Default: bookstore-demo
     Description: Name tag prefix for all resources.
 
 ### =================================================================
