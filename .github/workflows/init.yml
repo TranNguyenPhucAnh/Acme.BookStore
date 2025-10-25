@@ -129,6 +129,7 @@ jobs:
   # JOB 2: BUILD & PUSH ANGULAR OUTPUT & IMAGES TO AWS
   # =======================================================
   build-push:
+    needs: infra-setup
     runs-on: ubuntu-latest
 
     permissions:
