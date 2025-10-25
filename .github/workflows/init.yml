@@ -31,7 +31,7 @@ jobs:
   infra-setup:
     runs-on: ubuntu-latest
     outputs:
-      ecr_repo_name: ${{ steps.get-ecr.outputs.ecr_repo_name }}
+      ecr_repo_uri: ${{ steps.get-ecr-uri.outputs.ecr_repo_uri }}
 
     steps:
       - name: Checkout code
@@ -52,7 +52,7 @@ jobs:
             --parameter-overrides \
                 ProjectName=${{ env.PROJECT_NAME }} \
                 VPCCIDR=${{ env.VPCCIDR }} \
-            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
+            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM 
             
           VPC_ID=$(aws cloudformation describe-stacks \
             --stack-name ${{ env.PROJECT_NAME }}-Network-Stack \
@@ -73,7 +73,7 @@ jobs:
                 MysqlPort=${{ env.MYSQL_PORT }} \
                 SigningCertificateSecretArn=${{ env.SIGN_CERT_SECRET_ARN }} \
                 EncryptionCertificateSecretArn=${{ env.ENCRYPT_CERT_SECRET_ARN }} \
-            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
+            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM 
             
       - name: 3. Deploy DATABASE Stack
         run: |
@@ -84,10 +84,10 @@ jobs:
                 ProjectName=${{ env.PROJECT_NAME }} \
                 DBUsername=${{ env.DB_USERNAME }} \
                 DBPassword=${{ secrets.MYSQL_BOOKSTORE_DB_PASSWORD }} \
-            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
+            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM 
 
       - name: 4. Deploy COMPUTE Stack (Tạo ECR/Cluster/TaskDefs)
-        id: get-ecr
+        id: get-ecr-uri
         run: |
           aws cloudformation deploy \
             --template-file ${{ env.CFN_MODULES_PATH }}/compute-stack.yml \
@@ -98,14 +98,17 @@ jobs:
                 DBUsername=${{ env.DB_USERNAME }} \
                 DBPassword=${{ secrets.MYSQL_BOOKSTORE_DB_PASSWORD }} \
                 BranchName=${{ github.ref_name }} \
-            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
+            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM 
             
           ECR_REPO_NAME=$(aws cloudformation describe-stacks \
             --stack-name ${{ env.PROJECT_NAME }}-Compute-Stack \
             --query "Stacks[0].Outputs[?ExportName=='${{ env.PROJECT_NAME }}-MainECRRepositoryName'].OutputValue" \
             --output text)
             
-          echo "ecr_repo_name=$ECR_REPO_NAME" >> $GITHUB_OUTPUT
+          AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' --output text)
+          ECR_URI="$AWS_ACCOUNT_ID.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/$ECR_REPO_NAME"
+
+          echo "ECR_URI=$ECR_URI" >> $GITHUB_OUTPUT
 
       - name: 5. Deploy LOAD BALANCER / CLOUDFRONT Stack
         run: |
@@ -120,7 +123,7 @@ jobs:
                 CloudfrontHostedZoneId=${{ env.CLOUDFRONT_HOSTED_ZONE_ID }} \
                 ALBCertificateArn=${{ env.ALB_CERT_ARN }} \
                 CloudFrontCertificateArn=${{ env.CLOUDFRONT_CERT_ARN }} \
-            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
+            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM 
         
   # =======================================================
   # JOB 2: BUILD & PUSH DOTNET DOCKER IMAGE
@@ -142,10 +145,7 @@ jobs:
       - name: Set ECR URL and Image URI
         id: ecr
         run: |
-          # Lấy ID tài khoản AWS để tạo URI ECR
-          AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' --output text)
-          ECR_REPO_NAME="${{ needs.infra-setup.outputs.ecr_repo_name }}"
-          ECR_URI="$AWS_ACCOUNT_ID.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/$ECR_REPO_NAME"
+          ECR_URI="${{ needs.infra-setup.outputs.ecr_repo_uri }}"
           
           echo "ECR_URI=$ECR_URI" >> $GITHUB_ENV
           echo "IMAGE_URI=$ECR_URI:dotnet-${{ github.ref_name }}" >> $GITHUB_ENV
@@ -172,7 +172,7 @@ jobs:
   # JOB 3: BUILD & PUSH ANGULAR OUTPUT
   # =======================================================
   frontend-deploy:
-    needs: build-push-dotnet-docker
+    needs: infra-setup
     runs-on: ubuntu-latest
 
     steps:
@@ -192,7 +192,11 @@ jobs:
         
       - name: Build DB Migrator Docker image
         # Giả định context là thư mục gốc và Dockerfile nằm ở đường dẫn tương ứng
-        run: docker build -f src/Acme.BookStore.DbMigrator/Dockerfile.local -t ${{ env.ECR_URI }}:db-migrator-${{ github.ref_name }} .
+        run: |
+          ECR_URI="${{ needs.infra-setup.outputs.ecr_repo_uri }}"
+          echo "ECR_URI=$ECR_URI" >> $GITHUB_ENV
+
+          docker build -f src/Acme.BookStore.DbMigrator/Dockerfile.local -t ${{ env.ECR_URI }}:db-migrator-${{ github.ref_name }} .
 
       - name: Push migration image to ECR
         run: docker push ${{ env.ECR_URI }}:db-migrator-${{ github.ref_name }}
@@ -234,4 +238,4 @@ jobs:
             --parameter-overrides \
                 ProjectName=${{ env.PROJECT_NAME }} \
                 AppPort=${{ env.APP_PORT }} \
-            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
+            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM 
