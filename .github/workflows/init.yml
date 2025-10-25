@@ -87,6 +87,7 @@ jobs:
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
 
       - name: 4. Deploy COMPUTE Stack (Tạo ECR/Cluster/TaskDefs)
+        id: get-ecr
         run: |
           aws cloudformation deploy \
             --template-file ${{ env.CFN_MODULES_PATH }}/compute-stack.yml \
