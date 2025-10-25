@@ -126,61 +126,9 @@ jobs:
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM 
         
   # =======================================================
-  # JOB 2: BUILD & PUSH DOTNET & DB-MIGRATOR IMAGES
+  # JOB 2: BUILD & PUSH ANGULAR OUTPUT & IMAGES TO AWS
   # =======================================================
-  build-push-images:
-    needs: infra-setup
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Set ECR URL and Image URI
-        id: ecr
-        run: |
-          ECR_URI="${{ needs.infra-setup.outputs.ecr_repo_uri }}"
-          
-          echo "ECR_URI=$ECR_URI" >> $GITHUB_ENV
-          echo "DOTNET_IMAGE_URI=$ECR_URI:dotnet-${{ github.ref_name }}" >> $GITHUB_ENV
-          echo "DB_MIGRATOR_IMAGE_URI=$ECR_URI:db-migrator-${{ github.ref_name }}" >> $GITHUB_ENV
-
-      - name: Login to Amazon ECR
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.ECR_URI }}
-          username: AWS
-          # Lấy token login từ ECR
-          password: ${{ steps.ecr.outputs.token }}
-
-      - name: Build and Push Dotnet Docker Image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: src/Acme.BookStore.HttpApi.Host/Dockerfile
-          push: true
-          tags: ${{ env.DOTNET_IMAGE_URI }}
-          platforms: linux/amd64
-          # Thêm cache nếu cần (type=gha)
-
-      - name: Build DB Migrator Docker image
-        # Giả định context là thư mục gốc và Dockerfile nằm ở đường dẫn tương ứng
-        run: docker build -f src/Acme.BookStore.DbMigrator/Dockerfile.local -t ${{ env.DB_MIGRATOR_IMAGE_URI }} .
-
-      - name: Push migration image to ECR
-        run: docker push ${{ env.DB_MIGRATOR_IMAGE_URI }}
-        
-  # =======================================================
-  # JOB 3: COMPILE & PUSH ANGULAR OUTPUT TO S3 BUCKET
-  # =======================================================
-  compile-push-angular:
-    needs: build-push-images
+  build-push:
     runs-on: ubuntu-latest
 
     permissions:
@@ -204,12 +152,26 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           event-type: deploy_frontend # Tên sự kiện đã định nghĩa
           client-payload: '{ "ref": "${{ github.ref }}", "sha": "${{ github.sha }}" }'
+          
+      - name: Trigger DB Migration Workflow
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          event-type: deploy_migration
+          client-payload: '{ "ref": "${{ github.ref }}", "sha": "${{ github.sha }}" }'
+          
+      - name: Trigger Dotnet Workflow
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          event-type: deploy_dotnet
+          client-payload: '{ "ref": "${{ github.ref }}", "sha": "${{ github.sha }}" }'
 
   # =======================================================
-  # JOB 4: SERVICE-DEPLOY (ECS Service)
+  # JOB 3: SERVICE-DEPLOY (ECS Service)
   # =======================================================
   service-deploy:
-    needs: compile-push-angular
+    needs: build-push
     runs-on: ubuntu-latest
     
     steps:
