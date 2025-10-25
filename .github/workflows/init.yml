@@ -30,7 +30,9 @@ jobs:
   # =======================================================
   infra-setup:
     runs-on: ubuntu-latest
-    
+    outputs:
+      ecr_repo_name: ${{ steps.get-ecr.outputs.ecr_repo_name }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -102,7 +104,7 @@ jobs:
             --query "Stacks[0].Outputs[?ExportName=='${{ env.PROJECT_NAME }}-MainECRRepositoryName'].OutputValue" \
             --output text)
             
-          echo "ECR_REPO_NAME=$ECR_REPO_NAME" >> $GITHUB_ENV
+          echo "ecr_repo_name=$ECR_REPO_NAME" >> $GITHUB_OUTPUT
 
       - name: 5. Deploy LOAD BALANCER / CLOUDFRONT Stack
         run: |
@@ -141,11 +143,12 @@ jobs:
         run: |
           # Lấy ID tài khoản AWS để tạo URI ECR
           AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' --output text)
-          ECR_URI="$AWS_ACCOUNT_ID.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPO_NAME }}"
+          ECR_REPO_NAME="${{ needs.infra-setup.outputs.ecr_repo_name }}"
+          ECR_URI="$AWS_ACCOUNT_ID.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/$ECR_REPO_NAME"
           
           echo "ECR_URI=$ECR_URI" >> $GITHUB_ENV
           echo "IMAGE_URI=$ECR_URI:dotnet-${{ github.ref_name }}" >> $GITHUB_ENV
-          
+
       - name: Login to Amazon ECR
         uses: docker/login-action@v3
         with:
