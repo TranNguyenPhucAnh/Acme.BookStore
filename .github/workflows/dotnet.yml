@@ -78,6 +78,7 @@ jobs:
             sed "s|\${TASK_EXECUTION_ROLE_ARN}|${TASK_EXECUTION_ROLE_ARN}|g" | \
             > ${{ env.RENDERED_DOTNET_TASK_DEF }}
 
+            echo "${{ env.RENDERED_DOTNET_TASK_DEF }}"
       - name: Login to Amazon ECR
         id: ecr-login
         uses: aws-actions/amazon-ecr-login@v1
