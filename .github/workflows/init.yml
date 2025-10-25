@@ -96,6 +96,13 @@ jobs:
                 DBPassword=${{ secrets.MYSQL_BOOKSTORE_DB_PASSWORD }} \
                 BranchName=${{ github.ref_name }} \
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
+            
+          ECR_REPO_NAME=$(aws cloudformation describe-stacks \
+            --stack-name ${{ env.PROJECT_NAME }}-Compute-Stack \
+            --query "Stacks[0].Outputs[?ExportName=='${{ env.PROJECT_NAME }}-MainECRRepositoryName'].OutputValue" \
+            --output text)
+            
+          echo "ECR_REPO_NAME=$ECR_REPO_NAME" >> $GITHUB_ENV
 
       - name: 5. Deploy LOAD BALANCER / CLOUDFRONT Stack
         run: |
