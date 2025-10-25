@@ -108,7 +108,7 @@ jobs:
           AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' --output text)
           ECR_URI="$AWS_ACCOUNT_ID.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/$ECR_REPO_NAME"
 
-          echo "ECR_URI=$ECR_URI" >> $GITHUB_OUTPUT
+          echo "ecr_repo_uri=$ECR_URI" >> $GITHUB_OUTPUT
 
       - name: 5. Deploy LOAD BALANCER / CLOUDFRONT Stack
         run: |
