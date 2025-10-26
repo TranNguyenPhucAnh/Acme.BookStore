@@ -130,6 +130,11 @@ jobs:
   # =======================================================
   build-push:
     needs: infra-setup
+
+    permissions:
+      contents: write    # cần thiết để được phép gửi repository_dispatch event
+      actions: write     # tùy optional, nhưng khuyến nghị thêm
+      
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
