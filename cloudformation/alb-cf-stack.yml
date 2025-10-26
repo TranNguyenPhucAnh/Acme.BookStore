@@ -266,3 +266,8 @@ Outputs:
     Export:
       Name: !Sub "${ProjectName}-FrontendBucketName"
 
+  CloudFrontDistributionId:
+    Description: The ID of the CloudFront distribution
+    Value: !Ref CloudFrontDistribution
+    Export:
+      Name: !Sub "${ProjectName}-CloudFrontDistributionId"
