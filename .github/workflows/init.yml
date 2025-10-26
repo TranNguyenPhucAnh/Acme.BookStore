@@ -124,18 +124,19 @@ jobs:
                 ALBCertificateArn=${{ env.ALB_CERT_ARN }} \
                 CloudFrontCertificateArn=${{ env.CLOUDFRONT_CERT_ARN }} \
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM 
-        
+
   # =======================================================
-  # JOB 2: BUILD & PUSH ANGULAR OUTPUT & IMAGES TO AWS
+  # JOB 2: BUILD & PUSH IMAGES & COMPILED ANGULAR
   # =======================================================
   build-push:
     needs: infra-setup
-    runs-on: ubuntu-latest
-
+    
     permissions:
       contents: write    # cần thiết để được phép gửi repository_dispatch event
       actions: write     # tùy optional, nhưng khuyến nghị thêm
-
+      
+    runs-on: ubuntu-latest
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -153,45 +154,17 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           event-type: deploy_frontend # Tên sự kiện đã định nghĩa
           client-payload: '{ "ref": "${{ github.ref }}", "sha": "${{ github.sha }}" }'
-          
+
       - name: Trigger DB Migration Workflow
         uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           event-type: deploy_migration
           client-payload: '{ "ref": "${{ github.ref }}", "sha": "${{ github.sha }}" }'
-          
+
       - name: Trigger Dotnet Workflow
         uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           event-type: deploy_dotnet
           client-payload: '{ "ref": "${{ github.ref }}", "sha": "${{ github.sha }}" }'
-
-  # =======================================================
-  # JOB 3: SERVICE-DEPLOY (ECS Service)
-  # =======================================================
-  service-deploy:
-    needs: build-push
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: 6. Deploy ECS SERVICE Stack
-        run: |
-          aws cloudformation deploy \
-            --template-file ${{ env.CFN_MODULES_PATH }}/service-stack.yml \
-            --stack-name ${{ env.PROJECT_NAME }}-Service-Stack \
-            --parameter-overrides \
-                ProjectName=${{ env.PROJECT_NAME }} \
-                AppPort=${{ env.APP_PORT }} \
-            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM 
