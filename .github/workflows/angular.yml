@@ -62,7 +62,18 @@ jobs:
           aws s3 cp ./angular/dist/BookStore/getEnvConfig s3://$BUCKET_NAME/getEnvConfig \
                 --content-type application/json \
                 --metadata-directive REPLACE
-                
+
+      - name: Invalidate CloudFront cache
+        run: |
+          # Lấy distribution id, ví dụ từ output CloudFormation nếu có step trước
+          DISTRIBUTION_ID=$(aws cloudformation list-exports \
+            --query "Exports[?Name=='${{ env.PROJECT_NAME }}-CloudFrontDistributionId'].Value" \
+            --output text --region ${{ env.AWS_REGION }})
+          if [ -z "$DISTRIBUTION_ID" ]; then
+            echo "ERROR: CloudFront DistributionId is empty!"; exit 1;
+          fi
+          aws cloudfront create-invalidation --distribution-id $DISTRIBUTION_ID --paths "/*"
+               
       - name: Success Notification
         if: success()
         run: echo "Build & Upload succeeded!"
