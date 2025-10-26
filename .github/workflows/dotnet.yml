@@ -42,7 +42,7 @@ jobs:
 
       - name: Get Dynamic Infrastructure Parameters (from CFN Exports)
         run: |
-          TASK_DEF="${{ env.PROJECT_NAME }}-DotnetTaskDefArn"
+          TASK_DEF="${{ env.PROJECT_NAME }}-Dotnet-TaskDef"
           DB_ENDPOINT=$(aws cloudformation list-exports --query "Exports[?Name=='${{ env.PROJECT_NAME }}-DBEndpointAddress'].Value" --output text --region ${{ env.AWS_REGION }})
           DB_PORT=$(aws cloudformation list-exports --query "Exports[?Name=='${{ env.PROJECT_NAME }}-DBEndpointPort'].Value" --output text --region ${{ env.AWS_REGION }})
           TASK_ROLE_ARN=$(aws cloudformation list-exports --query "Exports[?Name=='${{ env.PROJECT_NAME }}-ECSTaskToReadBookStoreSecretsRoleArn'].Value" --output text --region ${{ env.AWS_REGION }})
