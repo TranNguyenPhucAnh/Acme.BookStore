@@ -42,16 +42,16 @@ jobs:
 
       - name: Get Dynamic Infrastructure Parameters (from CFN Exports)
         run: |
-          TASK_DEF=$"{{ env.PROJECT_NAME }}-DotnetTaskDefArn"
-          DB_ENDPOINT=$(aws cloudformation list-exports --query "Exports[?Name=='${{env.PROJECT_NAME}}-DBEndpointAddress'].Value" --output text --region ${{ env.AWS_REGION }})
-          DB_PORT=$(aws cloudformation list-exports --query "Exports[?Name=='${{env.PROJECT_NAME}}-DBEndpointPort'].Value" --output text --region ${{ env.AWS_REGION }})
-          TASK_ROLE_ARN=$(aws cloudformation list-exports --query "Exports[?Name=='${{env.PROJECT_NAME}}-ECSTaskToReadBookStoreSecretsRoleArn'].Value" --output text --region ${{ env.AWS_REGION }})
-          TASK_EXECUTION_ROLE_ARN=$(aws cloudformation list-exports --query "Exports[?Name=='${{env.PROJECT_NAME}}-ECSTaskExecutionRoleArn'].Value" --output text --region ${{ env.AWS_REGION }})
-          ECR_REPOSITORY_NAME=$(aws cloudformation list-exports --query "Exports[?Name=='${{env.PROJECT_NAME}}-MainECRRepositoryName'].Value" --output text --region ${{ env.AWS_REGION }})
+          TASK_DEF="${{ env.PROJECT_NAME }}-DotnetTaskDefArn"
+          DB_ENDPOINT=$(aws cloudformation list-exports --query "Exports[?Name=='${{ env.PROJECT_NAME }}-DBEndpointAddress'].Value" --output text --region ${{ env.AWS_REGION }})
+          DB_PORT=$(aws cloudformation list-exports --query "Exports[?Name=='${{ env.PROJECT_NAME }}-DBEndpointPort'].Value" --output text --region ${{ env.AWS_REGION }})
+          TASK_ROLE_ARN=$(aws cloudformation list-exports --query "Exports[?Name=='${{ env.PROJECT_NAME }}-ECSTaskToReadBookStoreSecretsRoleArn'].Value" --output text --region ${{ env.AWS_REGION }})
+          TASK_EXECUTION_ROLE_ARN=$(aws cloudformation list-exports --query "Exports[?Name=='${{ env.PROJECT_NAME }}-ECSTaskExecutionRoleArn'].Value" --output text --region ${{ env.AWS_REGION }})
+          ECR_REPOSITORY_NAME=$(aws cloudformation list-exports --query "Exports[?Name=='${{ env.PROJECT_NAME }}-MainECRRepositoryName'].Value" --output text --region ${{ env.AWS_REGION }})
           AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' --output text)
           ECR_URI="$AWS_ACCOUNT_ID.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/$ECR_REPOSITORY_NAME"
-          ECS_SERVICE=$"{{ env.PROJECT_NAME }}-Dotnet-Service"
-          ECS_CLUSTER=$"{{ env.PROJECT_NAME }}-ECSCluster"
+          ECS_SERVICE="${{ env.PROJECT_NAME }}-Dotnet-Service"
+          ECS_CLUSTER="${{ env.PROJECT_NAME }}-ECSCluster"
 
           echo "TASK_DEF=$TASK_DEF" >> $GITHUB_ENV
           echo "DB_ENDPOINT=$DB_ENDPOINT" >> $GITHUB_ENV
@@ -60,7 +60,7 @@ jobs:
           echo "DB_PASSWORD=${{ secrets.MYSQL_BOOKSTORE_DB_PASSWORD }}" >> $GITHUB_ENV
           echo "TASK_ROLE_ARN=$TASK_ROLE_ARN" >> $GITHUB_ENV
           echo "TASK_EXECUTION_ROLE_ARN=$TASK_EXECUTION_ROLE_ARN" >> $GITHUB_ENV
-          echo "IMAGE_URI=$ECR_URI:dotnet-${{ env.BRANCH_NAME }}" >> $GITHUB_ENV
+          echo "IMAGE_URI=$ECR_URI:dotnet-${{ github.ref_name }}" >> $GITHUB_ENV
           echo "ECR_URI=$ECR_URI" >> $GITHUB_ENV
           echo "ECS_SERVICE=$ECS_SERVICE" >> $GITHUB_ENV
           echo "ECS_CLUSTER=$ECS_CLUSTER" >> $GITHUB_ENV
@@ -78,7 +78,8 @@ jobs:
             sed "s|\${TASK_EXECUTION_ROLE_ARN}|${TASK_EXECUTION_ROLE_ARN}|g" | \
             > ${{ env.RENDERED_DOTNET_TASK_DEF }}
 
-            echo "${{ env.RENDERED_DOTNET_TASK_DEF }}"
+            cat ecs-task-def.rendered.json
+
       - name: Login to Amazon ECR
         id: ecr-login
         uses: aws-actions/amazon-ecr-login@v1
