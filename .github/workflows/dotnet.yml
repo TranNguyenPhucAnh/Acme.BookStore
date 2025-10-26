@@ -45,7 +45,7 @@ jobs:
           TASK_DEF="${{ env.PROJECT_NAME }}-Dotnet-TaskDef"
           DB_ENDPOINT=$(aws cloudformation list-exports --query "Exports[?Name=='${{ env.PROJECT_NAME }}-DBEndpointAddress'].Value" --output text --region ${{ env.AWS_REGION }})
           DB_PORT=$(aws cloudformation list-exports --query "Exports[?Name=='${{ env.PROJECT_NAME }}-DBEndpointPort'].Value" --output text --region ${{ env.AWS_REGION }})
-          TASK_ROLE_ARN=$(aws cloudformation list-exports --query "Exports[?Name=='${{ env.PROJECT_NAME }}-ECSTaskToReadBookStoreSecretsRoleArn'].Value" --output text --region ${{ env.AWS_REGION }})
+          TASK_ROLE_ARN=$(aws cloudformation list-exports --query "Exports[?Name=='${{ env.PROJECT_NAME }}-ECSTaskToReadSecretsRoleArn'].Value" --output text --region ${{ env.AWS_REGION }})
           TASK_EXECUTION_ROLE_ARN=$(aws cloudformation list-exports --query "Exports[?Name=='${{ env.PROJECT_NAME }}-ECSTaskExecutionRoleArn'].Value" --output text --region ${{ env.AWS_REGION }})
           ECR_REPOSITORY_NAME=$(aws cloudformation list-exports --query "Exports[?Name=='${{ env.PROJECT_NAME }}-MainECRRepositoryName'].Value" --output text --region ${{ env.AWS_REGION }})
           AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' --output text)
