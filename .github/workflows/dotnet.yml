@@ -51,7 +51,7 @@ jobs:
           AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' --output text)
           ECR_URI="$AWS_ACCOUNT_ID.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/$ECR_REPOSITORY_NAME"
           ECS_SERVICE="${{ env.PROJECT_NAME }}-Dotnet-Service"
-          ECS_CLUSTER="${{ env.PROJECT_NAME }}-ECSCluster"
+          ECS_CLUSTER="${{ env.PROJECT_NAME }}-Cluster"
 
           echo "TASK_DEF=$TASK_DEF" >> $GITHUB_ENV
           echo "DB_ENDPOINT=$DB_ENDPOINT" >> $GITHUB_ENV
