@@ -140,6 +140,29 @@ Resources:
         - Key: Name
           Value: !Sub "${ProjectName}-RDSMysqlSG"
 
+  NatInstanceSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VPCId
+      GroupDescription: Security Group for fck-nat instances
+      # Cho phép lưu lượng Inbound từ Private Subnets (từ mọi port)
+      SecurityGroupIngress:
+        - IpProtocol: -1 # All protocols
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 10.0.10.0/24 # Private Subnet A
+        - IpProtocol: -1 # All protocols
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 10.0.20.0/24 # Private Subnet B
+      # Cho phép lưu lượng Outbound ra Internet
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-NatInstanceSG"
+
   # ------------------------------
   # Security Group Rules t?ch ri?ng
   # ------------------------------
