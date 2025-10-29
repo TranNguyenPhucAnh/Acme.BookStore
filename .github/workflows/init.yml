@@ -33,8 +33,10 @@ jobs:
   infra-setup:
     runs-on: ubuntu-latest
     outputs:
-      ecr_repo_uri: ${{ steps.get-ecr-uri.outputs.ecr_repo_uri }}
-
+      db_instance_identifier: ${{ steps.get-db-ins-id.outputs.db_instance_identifier }}
+      ecr_repo_uri: ${{ steps.get-compute-outputs.outputs.ecr_repo_uri }}
+      ecs_cluster_name: ${{ steps.get-compute-outputs.outputs.ecs_cluster_name }}
+      
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -80,6 +82,7 @@ jobs:
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM 
             
       - name: 3. Deploy DATABASE Stack
+        id: get-db-ins-id
         run: |
           aws cloudformation deploy \
             --template-file ${{ env.CFN_MODULES_PATH }}/database-stack.yml \
@@ -88,10 +91,17 @@ jobs:
                 ProjectName=${{ env.PROJECT_NAME }} \
                 DBUsername=${{ env.DB_USERNAME }} \
                 DBPassword=${{ secrets.MYSQL_BOOKSTORE_DB_PASSWORD }} \
-            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM 
+            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM
+
+          DB_INSTANCE_IDENTIFIER=$(aws cloudformation describe-stacks \
+            --stack-name ${{ env.PROJECT_NAME }}-Database-Stack \
+            --query "Stacks[0].Outputs[?ExportName=='${{ env.PROJECT_NAME }}-DBInstanceIdentifier'].OutputValue" \
+            --output text)
+
+          echo "db_instance_identifier=$DB_INSTANCE_IDENTIFIER" >> $GITHUB_OUTPUT
 
       - name: 4. Deploy COMPUTE Stack (Tạo ECR/Cluster/TaskDefs)
-        id: get-ecr-uri
+        id: get-compute-outputs
         run: |
           aws cloudformation deploy \
             --template-file ${{ env.CFN_MODULES_PATH }}/compute-stack.yml \
@@ -112,7 +122,13 @@ jobs:
           AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' --output text)
           ECR_URI="$AWS_ACCOUNT_ID.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/$ECR_REPO_NAME"
 
+          ECS_CLUSTER_NAME=$(aws cloudformation describe-stacks \
+            --stack-name ${{ env.PROJECT_NAME }}-Compute-Stack \
+            --query "Stacks[0].Outputs[?ExportName=='${{ env.PROJECT_NAME }}-ECSClusterName'].OutputValue" \
+            --output text)
+
           echo "ecr_repo_uri=$ECR_URI" >> $GITHUB_OUTPUT
+          echo "ecs_cluster_name=$ECS_CLUSTER_NAME" >> $GITHUB_OUTPUT
 
       - name: 5. Deploy LOAD BALANCER / CLOUDFRONT Stack
         run: |
@@ -198,4 +214,28 @@ jobs:
             --parameter-overrides \
                 ProjectName=${{ env.PROJECT_NAME }} \
                 AppPort=${{ env.APP_PORT }} \
+            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM
+
+          ECS_SERVICE_NAME=$(aws cloudformation describe-stacks \
+            --stack-name ${{ env.PROJECT_NAME }}-Service-Stack \
+            --query "Stacks[0].Outputs[?ExportName=='${{ env.PROJECT_NAME }}-DotnetServiceName'].OutputValue" \
+            --output text)
+
+          echo "ECS_SERVICE_NAME=$ECS_SERVICE_NAME" >> $GITHUB_ENV
+            
+      - name: 7. Deploy AUTOMATION Stack
+        run: |
+          DB_INSTANCE_IDENTIFIER="${{ needs.infra-setup.outputs.db_instance_identifier }}"
+          ECS_CLUSTER_NAME="${{ needs.infra-setup.outputs.ecs_cluster_name }}"
+
+          echo "DB_INSTANCE_IDENTIFIER=$DB_INSTANCE_IDENTIFIER" >> $GITHUB_ENV
+          echo "ECS_CLUSTER_NAME=$ECS_CLUSTER_NAME" >> $GITHUB_ENV
+
+          aws cloudformation deploy \
+            --template-file ${{ env.CFN_MODULES_PATH }}/automation-stack.yml \
+            --stack-name ${{ env.PROJECT_NAME }}-Automation-Stack \
+            --parameter-overrides \
+                DBInstanceIdentifier=${{ env.DB_INSTANCE_IDENTIFIER }} \
+                ECSClusterName=${{ env.ECS_CLUSTER_NAME }} \
+                ECSServiceName=${{ env.ECS_SERVICE_NAME }} \
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM
