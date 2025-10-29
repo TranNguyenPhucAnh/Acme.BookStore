@@ -1,0 +1,180 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Automation Services Uptime (RDS & ECS)
+
+Parameters:
+  # Tên logic của RDS Instance mà bạn muốn Stop/Start
+  DBInstanceIdentifier:
+    Type: String
+    Description: The DB Instance Identifier of the MySQL instance to start and stop.
+  ECSClusterName:
+    Type: String
+    Description: The ECS Cluster to start and stop.
+  ECSServiceName:
+    Type: String
+    Description: The ECS Service to start and stop.
+
+  Resources:
+  # -------------------------------------------------------------
+  # A. IAM Role for Lambda
+  # -------------------------------------------------------------
+  RDSSchedulerLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole # Cho phép ghi log
+      Policies:
+        - PolicyName: RDS-Stop-Start-Policy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+            # 1. RDS Permissions
+              - Effect: Allow
+                Action:
+                  - 'rds:StopDBInstance' # Quyền dừng
+                  - 'rds:StartDBInstance' # Quyền khởi động
+                Resource: !Sub 'arn:aws:rds:${AWS::Region}:${AWS::AccountId}:db:${DBInstanceIdentifier}' # Chỉ áp dụng cho Instance cụ thể
+            # 2. ECS Permissions
+              - Effect: Allow
+                Action:
+                  - 'ecs:UpdateService' # Quyền để thay đổi DesiredCount
+                # Sử dụng Resource ARN cho Service ECS của bạn
+                # Bạn cần biết tên Service ECS (có thể dùng !Sub)
+                Resource: !Sub 'arn:aws:ecs:${AWS::Region}:${AWS::AccountId}:service/${ECSClusterName}/${ECSServiceName}'
+  # -------------------------------------------------------------
+  # B. Lambda Function
+  # -------------------------------------------------------------
+  RDSSchedulerLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${AWS::StackName}-RDSScheduler'
+      Handler: index.handler
+      Role: !GetAtt RDSSchedulerLambdaRole.Arn
+      Runtime: python3.9 # Hoặc phiên bản Python mới nhất
+      Timeout: 60
+      Environment:
+        Variables:
+          DB_ID: !Ref DBInstanceIdentifier
+          CLUSTER_NAME: !Ref ECSClusterName # Thêm biến môi trường
+          SERVICE_NAME: !Ref ECSServiceName
+      Code:
+        # Code Python để gọi API RDS dựa trên tham số 'Action'
+        ZipFile: |
+          import json
+          import os
+          import boto3
+          
+          rds = boto3.client('rds')
+          ecs = boto3.client('ecs') # Khởi tạo client ECS
+          DB_ID = os.environ['DB_ID']
+          CLUSTER_NAME = os.environ['CLUSTER_NAME']
+          SERVICE_NAME = os.environ['SERVICE_NAME']
+          
+          def handler(event, context):
+              action = event['action']
+              
+              if action == 'START_RDS':
+                  print(f"Starting DB Instance: {DB_ID}")
+                  rds.start_db_instance(DBInstanceIdentifier=DB_ID)
+                  return "DB Instance Started"
+              elif action == 'STOP_RDS':
+                  print(f"Stopping DB Instance: {DB_ID}")
+                  rds.stop_db_instance(DBInstanceIdentifier=DB_ID)
+                  return "DB Instance Stopped"
+              # Logic ECS
+              elif action == 'SCALE_IN':
+                  print(f"Scaling in ECS Service: {SERVICE_NAME} to 0 tasks")
+                  ecs.update_service(
+                      cluster=CLUSTER_NAME,
+                      service=SERVICE_NAME,
+                      desiredCount=0 # Scale về 0
+                  )
+                  return "ECS Service Scaled In (0 Tasks)"
+
+              elif action == 'SCALE_OUT':
+                  print(f"Scaling out ECS Service: {SERVICE_NAME} to 1 task")
+                  ecs.update_service(
+                      cluster=CLUSTER_NAME,
+                      service=SERVICE_NAME,
+                      desiredCount=1 # Scale về 1 (hoặc số lượng tối thiểu bạn cần)
+                  )
+                  return "ECS Service Scaled Out (1 Task)"
+              else:
+                  return "Invalid Action"
+                  
+  # Cần cấp quyền EventBridge gọi Lambda
+  RDSSchedulerLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: 'lambda:InvokeFunction'
+      FunctionName: !GetAtt RDSSchedulerLambdaFunction.Arn
+      Principal: events.amazonaws.com
+
+  # -------------------------------------------------------------
+  # C. EventBridge (CloudWatch Events) Rules
+  # -------------------------------------------------------------
+  # 1. RDS STOP RULE (8:00 PM)
+  RDSSchedulerRuleStop:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: 'Stop RDS at 8:00 PM daily'
+      ScheduleExpression: 'cron(0 13 * * ? *)' # 20:00 (8 PM) hàng ngày (+7 UTC)
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt RDSSchedulerLambdaFunction.Arn
+          Id: 'StopLambdaTarget'
+          InputTransformer:
+            InputPathsMap:
+              action: '$.action'
+            InputTemplate: '{"action": "STOP"}' # Gửi tham số STOP tới Lambda
+            
+  # 2. RDS START RULE (8:00 AM)
+  RDSSchedulerRuleStart:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: 'Start RDS at 8:00 AM daily'
+      ScheduleExpression: 'cron(0 1 * * ? *)' # 8:00 (8 AM) hàng ngày (+7 UTC)
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt RDSSchedulerLambdaFunction.Arn
+          Id: 'StartLambdaTarget'
+          InputTransformer:
+            InputPathsMap:
+              action: '$.action'
+            InputTemplate: '{"action": "START"}' # Gửi tham số START tới Lambda
+
+  # 3. SCALE IN RULE (8:00 PM VN - Scale về 0 Task)
+  ECSSchedulerRuleScaleIn:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: 'Scale in ECS Service at 8:00 PM VN (13:00 UTC)'
+      ScheduleExpression: 'cron(0 13 * * ? *)' 
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt RDSSchedulerLambdaFunction.Arn
+          Id: 'ScaleInLambdaTarget'
+          InputTransformer:
+            InputPathsMap:
+              action: '$.action'
+            InputTemplate: '{"action": "SCALE_IN"}'
+            
+  # 4. SCALE OUT RULE (8:00 AM VN - Scale về 1 Task)
+  ECSSchedulerRuleScaleOut:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: 'Scale out ECS Service at 8:00 AM VN (01:00 UTC)'
+      ScheduleExpression: 'cron(0 1 * * ? *)' 
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt RDSSchedulerLambdaFunction.Arn
+          Id: 'ScaleOutLambdaTarget'
+          InputTransformer:
+            InputPathsMap:
+              action: '$.action'
+            InputTemplate: '{"action": "SCALE_OUT"}'
