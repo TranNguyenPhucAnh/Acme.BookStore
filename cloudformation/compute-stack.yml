@@ -46,13 +46,13 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub "/ecs/${ProjectName}-dotnet"
-      RetentionInDays: 7
+      RetentionInDays: 3
 
   ECSLogGroupDbMigrator:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub "/ecs/${ProjectName}-db-migrator"
-      RetentionInDays: 7
+      RetentionInDays: 3
 
   DotnetTaskDefinition:
     Type: AWS::ECS::TaskDefinition
@@ -61,8 +61,8 @@ Resources:
       RequiresCompatibilities:
         - FARGATE
       NetworkMode: awsvpc
-      Cpu: 512
-      Memory: 1024
+      Cpu: 256
+      Memory: 512
       ExecutionRoleArn:
         Fn::ImportValue:
           Fn::Sub: "${ProjectName}-ECSTaskExecutionRoleArn"
