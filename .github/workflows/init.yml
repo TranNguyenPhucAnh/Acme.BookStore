@@ -12,6 +12,8 @@ env:
   AWS_REGION: ap-southeast-1
   PROJECT_NAME: bookstore-demo
   VPCCIDR: 10.0.0.0/16
+  FCK_NAT_AMI_ID: ami-0d85a08ac9c089c1d
+  NAT_INSTANCE_TYPE: t4g.nano
   APP_DOMAIN: bookstore-demo.online
   HOSTED_ZONE_ID: Z00108562GUIWSZXR6B6E
   CLOUDFRONT_HOSTED_ZONE_ID: Z2FDTNDATAQYW2
@@ -52,6 +54,8 @@ jobs:
             --parameter-overrides \
                 ProjectName=${{ env.PROJECT_NAME }} \
                 VPCCIDR=${{ env.VPCCIDR }} \
+                FckNatAmiId=${{ env.FCK_NAT_AMI_ID }} \
+                InstanceType=${{ env.NAT_INSTANCE_TYPE }} \
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM 
             
           VPC_ID=$(aws cloudformation describe-stacks \
