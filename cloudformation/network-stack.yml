@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: Staging Network Infrastructure (VPC, Subnets, Routes, IGW, NAT Gateways for HA)
+Description: Staging Network Infrastructure (VPC, Subnets, Routes, IGW, NAT Instances for HA)
 
 ### =================================================================
 ### PARAMETERS
@@ -12,6 +12,17 @@ Parameters:
   ProjectName:
     Type: String
     Description: Name tag prefix for all resources.
+
+  # Bổ sung: AMI ID cho fck-nat Instance (thay đổi theo Region)
+  FckNatAmiId:
+    Type: String
+    Description: The latest fck-nat AMI ID for this region.
+    # Default: ami-0d85a08ac9c089c1d # Ví dụ, thay thế bằng AMI ID thực tế của fck-nat
+  
+  InstanceType:
+    Type: String
+    Description: EC2 instance type for the NAT instance.
+    # Default: t4g.nano # Rất rẻ và đủ dùng cho staging
 
 ### =================================================================
 ### RESOURCES
@@ -92,9 +103,35 @@ Resources:
           Value: !Sub "${ProjectName}-Private-B"
 
   # -------------------------------------------------------------
-  # 4. ELASTIC IP & NAT GATEWAYS (B? SUNG)
+  # 4. SECURITY GROUP cho fck-nat
   # -------------------------------------------------------------
-  # Elastic IP cho NAT Gateway A
+  NatInstanceSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VPC
+      GroupDescription: Security Group for fck-nat instances
+      # Cho phép lưu lượng Inbound từ Private Subnets (từ mọi port)
+      SecurityGroupIngress:
+        - IpProtocol: -1 # All protocols
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 10.0.10.0/24 # Private Subnet A
+        - IpProtocol: -1 # All protocols
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 10.0.20.0/24 # Private Subnet B
+      # Cho phép lưu lượng Outbound ra Internet
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-NatInstanceSG"
+
+# -------------------------------------------------------------
+# 5. ELASTIC IP & FCK-NAT INSTANCES (THAY THẾ NAT GATEWAY)
+# -------------------------------------------------------------
+# Elastic IP cho NAT Instance A
   EIPForNATA:
     Type: AWS::EC2::EIP
     Properties:
@@ -103,17 +140,29 @@ Resources:
         - Key: Name
           Value: !Sub "${ProjectName}-NATA-EIP"
           
-  # NAT Gateway A (??t trong Public Subnet A)
-  NATGatewayA:
-    Type: AWS::EC2::NatGateway
+  # fck-nat Instance A (Đặt trong Public Subnet A)
+  NatInstanceA:
+    Type: AWS::EC2::Instance
     Properties:
-      AllocationId: !GetAtt EIPForNATA.AllocationId
+      InstanceType: !Ref InstanceType
+      ImageId: !Ref FckNatAmiId
       SubnetId: !Ref PublicSubnetA
+      SecurityGroupIds:
+        - !Ref NatInstanceSG
+      # Tắt Source/Destination Check (Quan trọng cho NAT)
+      SourceDestCheck: 'false'
       Tags:
         - Key: Name
-          Value: !Sub "${ProjectName}-NATA"
+          Value: !Sub "${ProjectName}-fck-nat-A"
 
-  # Elastic IP cho NAT Gateway B
+  # Gán EIP cho Instance A
+  EIPAssocA:
+    Type: AWS::EC2::EIPAssociation
+    Properties:
+      AllocationId: !GetAtt EIPForNATA.AllocationId
+      InstanceId: !Ref NatInstanceA
+      
+  # Elastic IP cho NAT Instance B
   EIPForNATB:
     Type: AWS::EC2::EIP
     Properties:
@@ -122,18 +171,29 @@ Resources:
         - Key: Name
           Value: !Sub "${ProjectName}-NATB-EIP"
           
-  # NAT Gateway B (??t trong Public Subnet B)
-  NATGatewayB:
-    Type: AWS::EC2::NatGateway
+  # fck-nat Instance B (Đặt trong Public Subnet B)
+  NatInstanceB:
+    Type: AWS::EC2::Instance
     Properties:
-      AllocationId: !GetAtt EIPForNATB.AllocationId
+      InstanceType: !Ref InstanceType
+      ImageId: !Ref FckNatAmiId
       SubnetId: !Ref PublicSubnetB
+      SecurityGroupIds:
+        - !Ref NatInstanceSG
+      # Tắt Source/Destination Check (Quan trọng cho NAT)
+      SourceDestCheck: 'false'
       Tags:
         - Key: Name
-          Value: !Sub "${ProjectName}-NATB"
-
+          Value: !Sub "${ProjectName}-fck-nat-B"
+          
+  # Gán EIP cho Instance B
+  EIPAssocB:
+    Type: AWS::EC2::EIPAssociation
+    Properties:
+      AllocationId: !GetAtt EIPForNATB.AllocationId
+      InstanceId: !Ref NatInstanceB
   # -------------------------------------------------------------
-  # 5. PUBLIC ROUTE TABLE & ROUTES (Kh?ng thay ??i)
+  # 6. PUBLIC ROUTE TABLE & ROUTES
   # -------------------------------------------------------------
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
@@ -164,7 +224,7 @@ Resources:
       RouteTableId: !Ref PublicRouteTable
 
   # -------------------------------------------------------------
-  # 6. PRIVATE ROUTE TABLES & ROUTES (C?P NH?T ?? d?ng NAT)
+  # 7. PRIVATE ROUTE TABLES & ROUTES
   # -------------------------------------------------------------
   PrivateRouteTableA: # Private RT cho AZ-A
     Type: AWS::EC2::RouteTable
@@ -182,21 +242,21 @@ Resources:
         - Key: Name
           Value: !Sub "${ProjectName}-Private-RT-B"
 
-  # Route cho Private Subnet A tr? t?i NAT Gateway A
+  # Route cho Private Subnet A tr? t?i NAT Instance A
   PrivateRouteA:
     Type: AWS::EC2::Route
     Properties:
       RouteTableId: !Ref PrivateRouteTableA
       DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId: !Ref NATGatewayA
+      InstanceId: !Ref NatInstanceA
 
-  # Route cho Private Subnet B tr? t?i NAT Gateway B
+  # Route cho Private Subnet B tr? t?i NAT Instance B
   PrivateRouteB:
     Type: AWS::EC2::Route
     Properties:
       RouteTableId: !Ref PrivateRouteTableB
       DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId: !Ref NATGatewayB
+      InstanceId: !Ref NatInstanceB
 
   # G?n Route Table v?o Private Subnets (C?P NH?T)
   PrivateSubnetARouteTableAssociation:
@@ -238,4 +298,3 @@ Outputs:
     Value: !Join [ ",", [!Ref PublicSubnetA, !Ref PublicSubnetB, !Ref PrivateSubnetA, !Ref PrivateSubnetB] ]
     Export:
       Name: !Sub "${ProjectName}-AllSubnetIds"
-
