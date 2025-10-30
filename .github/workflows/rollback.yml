@@ -56,6 +56,12 @@ jobs:
           aws s3 rm s3://$BUCKET_NAME --recursive
           echo "Emptied S3 bucket $BUCKET_NAME"
 
+      # Delete Automation Stack
+      - name: Delete Automation Stack
+        run: |
+          aws cloudformation delete-stack --stack-name ${{ env.PROJECT_NAME }}-Automation-Stack
+          aws cloudformation wait stack-delete-complete --stack-name ${{ env.PROJECT_NAME }}-Automation-Stack
+
       # Delete ECS Service Stack
       - name: Delete ECS Service Stack
         run: |
