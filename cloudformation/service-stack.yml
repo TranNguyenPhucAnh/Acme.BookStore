@@ -61,7 +61,7 @@ Outputs:
       Name: !Sub "${ProjectName}-DotnetServiceArn"
       
   DotnetServiceName:
-    Description: Name of the ECS Dotnet Service
-    Value: !Ref DotnetService # Tham chiếu ServiceName đã được định nghĩa là !Sub "${ProjectName}-Dotnet-Service"
-    Export:
-      Name: !Sub "${ProjectName}-DotnetServiceName"
+    Description: Name of the ECS Dotnet Service
+    Value: !Ref DotnetService # Tham chiếu ServiceName đã được định nghĩa là !Sub "${ProjectName}-Dotnet-Service"
+    Export:
+      Name: !Sub "${ProjectName}-DotnetServiceName"
