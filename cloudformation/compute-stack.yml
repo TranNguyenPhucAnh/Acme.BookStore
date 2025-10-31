@@ -148,10 +148,10 @@ Outputs:
       Name: !Sub "${ProjectName}-ECSClusterArn"
       
   ECSClusterName:
-    Description: Name of the ECS Cluster.
-    Value: !Sub "${ProjectName}-Cluster" # Tham chiếu giá trị đã định nghĩa trong ClusterName
-    Export:
-      Name: !Sub "${ProjectName}-ECSClusterName"
+    Description: Name of the ECS Cluster.
+    Value: !Sub "${ProjectName}-Cluster" # Tham chiếu giá trị đã định nghĩa trong ClusterName
+    Export:
+      Name: !Sub "${ProjectName}-ECSClusterName"
 
   DotnetTaskDefinitionArn:
     Description: ARN of the Dotnet ECS Task Definition
