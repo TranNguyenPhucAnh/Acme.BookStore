@@ -64,8 +64,8 @@ Outputs:
     Export:
       Name: !Sub "${ProjectName}-DBEndpointPort"
       
-  RDSDBInstanceIdentifier:
-    Description: The unique identifier name for the RDS instance.
-    Value: !Sub "${ProjectName}-DB" # Tham chiếu giá trị đã định nghĩa trong DBInstanceIdentifier
-    Export:
-      Name: !Sub "${ProjectName}-DBInstanceIdentifier"
+  DBInstanceIdentifier:
+    Description: The unique identifier name for the RDS instance.
+    Value: !Ref BookStoreDBInstance
+    Export:
+      Name: !Sub "${ProjectName}-DBInstanceIdentifier"
