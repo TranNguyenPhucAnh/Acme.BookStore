@@ -64,7 +64,7 @@ Outputs:
     Export:
       Name: !Sub "${ProjectName}-DBEndpointPort"
       
-  DBInstanceIdentifier:
+  RDSDBInstanceIdentifier:
     Description: The unique identifier name for the RDS instance.
     Value: !Sub "${ProjectName}-DB" # Tham chiếu giá trị đã định nghĩa trong DBInstanceIdentifier
     Export:
