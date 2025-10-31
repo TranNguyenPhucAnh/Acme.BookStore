@@ -95,7 +95,7 @@ jobs:
 
           DB_INSTANCE_IDENTIFIER=$(aws cloudformation describe-stacks \
             --stack-name ${{ env.PROJECT_NAME }}-Database-Stack \
-            --query "Stacks[0].Outputs[?ExportName=='${{ env.PROJECT_NAME }}-RDSDBInstanceIdentifier'].OutputValue" \
+            --query "Stacks[0].Outputs[?ExportName=='${{ env.PROJECT_NAME }}-DBInstanceIdentifier'].OutputValue" \
             --output text)
 
           echo "db_instance_identifier=$DB_INSTANCE_IDENTIFIER" >> $GITHUB_OUTPUT
