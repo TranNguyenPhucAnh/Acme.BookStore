@@ -54,7 +54,7 @@ namespace Acme.BookStore;
 
 public class BookStoreHttpApiHostModule : AbpModule
 {
-    public async override void PreConfigureServices(ServiceConfigurationContext context)
+    public override void PreConfigureServices(ServiceConfigurationContext context)
     {
         var hostingEnvironment = context.Services.GetHostingEnvironment();
         var configuration = context.Services.GetConfiguration();
@@ -76,11 +76,12 @@ public class BookStoreHttpApiHostModule : AbpModule
                 options.AddDevelopmentEncryptionAndSigningCertificate = false;
             });
 
+            var encSecret = Environment.GetEnvironmentVariable("ENC_PFX_B64");
+            var signSecret = Environment.GetEnvironmentVariable("SIGN_PFX_B64");
+            var awsSecrets = new Tuple<string, string>(encSecret, signSecret);
 
-            PreConfigure<OpenIddictServerBuilder>(async serverBuilder =>
+            PreConfigure<OpenIddictServerBuilder>(serverBuilder =>
             {
-                var awsSecrets = await GetAWSSecrets();
-
                 // In production, it is recommended to use two RSA certificates, one for encryption, one for signing
                 Console.WriteLine("Start executing AddProductionEncryptionAndSigningCertificate");
 
@@ -96,48 +97,6 @@ public class BookStoreHttpApiHostModule : AbpModule
                 //serverBuilder.SetRefreshTokenLifetime(TimeSpan.FromDays(365));
             });
         }
-    }
-
-    private static async Task<Tuple<string, string>> GetAWSSecrets()
-    {
-        string encyptionSecretName = "enc.pfx.b64";
-        string signingSecretName = "sign.pfx.b64";
-        string region = "ap-southeast-1";
-
-        IAmazonSecretsManager client = new AmazonSecretsManagerClient(RegionEndpoint.GetBySystemName(region));
-
-        GetSecretValueRequest requestEnc = new GetSecretValueRequest
-        {
-            SecretId = encyptionSecretName,
-            VersionStage = "AWSCURRENT", // VersionStage defaults to AWSCURRENT if unspecified.
-        };
-
-        GetSecretValueRequest requestSign = new GetSecretValueRequest
-        {
-            SecretId = signingSecretName,
-            VersionStage = "AWSCURRENT", // VersionStage defaults to AWSCURRENT if unspecified.
-        };
-
-        GetSecretValueResponse responseEnc;
-        GetSecretValueResponse responseSign;
-
-        try
-        {
-            responseEnc = await client.GetSecretValueAsync(requestEnc);
-            responseSign = await client.GetSecretValueAsync(requestSign);
-        }
-        catch (Exception e)
-        {
-            throw e;
-        }
-
-        string secretEnc = responseEnc.SecretString;
-        string secretSign = responseSign.SecretString;
-
-        Console.WriteLine("AWS Secret retrieved enc.pfx.b64: " + secretEnc);
-        Console.WriteLine("AWS Secret retrieved sign.pfx.b64: " + secretSign);
-
-        return new Tuple<string, string>(secretEnc, secretSign);
     }
 
     public override void ConfigureServices(ServiceConfigurationContext context)
