@@ -13,7 +13,7 @@ Parameters:
     Type: String
     Description: The ECS Service to start and stop.
 
-  Resources:
+Resources:
   # -------------------------------------------------------------
   # A. IAM Role for Lambda
   # -------------------------------------------------------------
