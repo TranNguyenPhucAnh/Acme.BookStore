@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Amazon;
+using Amazon.SecretsManager;
+using Amazon.SecretsManager.Model;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -19,6 +22,10 @@ public class Program
 
         try
         {
+            var awsSecrets = await GetAWSSecrets();
+            Environment.SetEnvironmentVariable("ENC_PFX_B64", awsSecrets.Item1);
+            Environment.SetEnvironmentVariable("SIGN_PFX_B64", awsSecrets.Item2);
+
             Log.Information("Starting Acme.BookStore.HttpApi.Host.");
             var builder = WebApplication.CreateBuilder(args);
             builder.Host
@@ -27,11 +34,11 @@ public class Program
                 .UseSerilog((context, services, loggerConfiguration) =>
                 {
                     loggerConfiguration
-                    #if DEBUG
+#if DEBUG
                         .MinimumLevel.Debug()
-                    #else
+#else
                         .MinimumLevel.Information()
-                    #endif
+#endif
                         .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
                         .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
                         .Enrich.FromLogContext()
@@ -59,5 +66,47 @@ public class Program
         {
             Log.CloseAndFlush();
         }
+    }
+    
+    private static async Task<Tuple<string, string>> GetAWSSecrets()
+    {
+        string encyptionSecretName = "enc.pfx.b64";
+        string signingSecretName = "sign.pfx.b64";
+        string region = "ap-southeast-1";
+
+        IAmazonSecretsManager client = new AmazonSecretsManagerClient(RegionEndpoint.GetBySystemName(region));
+
+        GetSecretValueRequest requestEnc = new GetSecretValueRequest
+        {
+            SecretId = encyptionSecretName,
+            VersionStage = "AWSCURRENT", // VersionStage defaults to AWSCURRENT if unspecified.
+        };
+
+        GetSecretValueRequest requestSign = new GetSecretValueRequest
+        {
+            SecretId = signingSecretName,
+            VersionStage = "AWSCURRENT", // VersionStage defaults to AWSCURRENT if unspecified.
+        };
+
+        GetSecretValueResponse responseEnc;
+        GetSecretValueResponse responseSign;
+
+        try
+        {
+            responseEnc = await client.GetSecretValueAsync(requestEnc);
+            responseSign = await client.GetSecretValueAsync(requestSign);
+        }
+        catch (Exception e)
+        {
+            throw e;
+        }
+
+        string secretEnc = responseEnc.SecretString;
+        string secretSign = responseSign.SecretString;
+
+        Console.WriteLine("AWS Secret retrieved enc.pfx.b64: " + secretEnc);
+        Console.WriteLine("AWS Secret retrieved sign.pfx.b64: " + secretSign);
+
+        return new Tuple<string, string>(secretEnc, secretSign);
     }
 }
