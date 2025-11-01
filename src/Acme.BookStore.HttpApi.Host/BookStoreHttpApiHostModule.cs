@@ -76,12 +76,17 @@ public class BookStoreHttpApiHostModule : AbpModule
                 options.AddDevelopmentEncryptionAndSigningCertificate = false;
             });
 
-            var awsSecrets = await GetAWSSecrets();
 
-            PreConfigure<OpenIddictServerBuilder>(serverBuilder =>
+            PreConfigure<OpenIddictServerBuilder>(async serverBuilder =>
             {
+                var awsSecrets = await GetAWSSecrets();
+
                 // In production, it is recommended to use two RSA certificates, one for encryption, one for signing
+                Console.WriteLine("Start executing AddProductionEncryptionAndSigningCertificate");
+
                 OpenIddictServerBuilderExtension.AddProductionEncryptionAndSigningCertificate(serverBuilder, awsSecrets, configuration);
+
+                Console.WriteLine("End executing AddProductionEncryptionAndSigningCertificate");
 
                 serverBuilder.SetIssuer(new Uri(configuration["AuthServer:Authority"]!));
                 // Increased the lifetime of authorization code and access token
