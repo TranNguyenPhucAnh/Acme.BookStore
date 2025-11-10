@@ -15,15 +15,15 @@ env:
   FCK_NAT_AMI_ID: ami-02a52449447725fc8 #arm64
   NAT_INSTANCE_TYPE: t4g.nano
   APP_DOMAIN: bookstore-demo.online
-  HOSTED_ZONE_ID: Z00108562GUIWSZXR6B6E
+  HOSTED_ZONE_ID: Z01268791Q1AY3MI5G3XM
   CLOUDFRONT_HOSTED_ZONE_ID: Z2FDTNDATAQYW2
-  ALB_CERT_ARN: arn:aws:acm:ap-southeast-1:211125699268:certificate/5a8c4030-882d-44de-9b02-a28e1cc5ceca
-  CLOUDFRONT_CERT_ARN: arn:aws:acm:us-east-1:211125699268:certificate/e393ede3-6f85-4876-9fdd-f20a03c3ebc2
+  ALB_CERT_ARN: arn:aws:acm:ap-southeast-1:408279620390:certificate/e3c7c7d2-819a-4acd-88c5-cb4406f30683
+  CLOUDFRONT_CERT_ARN: arn:aws:acm:us-east-1:408279620390:certificate/2374ad50-af94-4716-aa87-b08b5b38b306
   DB_USERNAME: admin
   APP_PORT: 8080
   MYSQL_PORT: 3306
-  SIGN_CERT_SECRET_ARN: arn:aws:secretsmanager:ap-southeast-1:211125699268:secret:sign.pfx.b64-*
-  ENCRYPT_CERT_SECRET_ARN: arn:aws:secretsmanager:ap-southeast-1:211125699268:secret:enc.pfx.b64-*
+  SIGN_CERT_SECRET_ARN: arn:aws:secretsmanager:ap-southeast-1:408279620390:secret:sign.pfx.b64-*
+  ENCRYPT_CERT_SECRET_ARN: arn:aws:secretsmanager:ap-southeast-1:408279620390:secret:enc.pfx.b64-*
   CFN_MODULES_PATH: ./cloudformation/
 
 jobs:
