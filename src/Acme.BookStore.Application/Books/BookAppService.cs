@@ -305,11 +305,11 @@ public class BookAppService :
                     _logger.LogWarning($"File {files[i].FileName} is empty. Skipping.");
                     continue; // Skip empty files
                 }
-                var client = new AmazonS3Client("REDACTED", "ywno5QQsiwjlS2mWotGdlMji23aU0TbdvA7mTdfJ", RegionEndpoint.APSoutheast1);
+                var client = new AmazonS3Client("AKIAV6D24TMTLRUEUKML", "Y+I2LjLJVhpbRnN+KkfNuZO27+W9nJbxLL4S6M87", RegionEndpoint.APSoutheast1);
 
                 var putRequest = new PutObjectRequest
                 {
-                    BucketName = "abp-book-store-uploaded-documents",
+                    BucketName = "abp-book-store-upload-documents",
                     Key = $"uploads/book-{Guid.NewGuid().ToString()}-{files[i].FileName}",
                     ContentType = files[i].ContentType,
                     InputStream = files[i].OpenReadStream()
@@ -325,7 +325,7 @@ public class BookAppService :
 
                 await client.PutObjectAsync(putRequest);
 
-                _logger.LogInformation($"File {files[i].FileName} has been uploaded to S3 abp-book-store-uploaded-documents bucket.");
+                _logger.LogInformation($"File {files[i].FileName} has been uploaded to S3 abp-book-store-upload-documents bucket.");
             }
         }
         catch (AmazonS3Exception ex)
@@ -339,11 +339,11 @@ public class BookAppService :
 
     public async Task<FileContentResult> DownloadSample()
     {
-        var client = new AmazonS3Client("REDACTED", "ywno5QQsiwjlS2mWotGdlMji23aU0TbdvA7mTdfJ", RegionEndpoint.APSoutheast1);
+        var client = new AmazonS3Client("AKIAV6D24TMTLRUEUKML", "Y+I2LjLJVhpbRnN+KkfNuZO27+W9nJbxLL4S6M87", RegionEndpoint.APSoutheast1);
 
         var request = new GetObjectRequest
         {
-            BucketName = "abp-book-store-uploaded-documents",
+            BucketName = "abp-book-store-upload-documents",
             Key = "uploads/Mastering_ABP_Framework.pdf" //include prefix
         };
 
@@ -379,7 +379,7 @@ public class BookAppService :
             };
         }
 
-        var client = new AmazonS3Client("REDACTED", "ywno5QQsiwjlS2mWotGdlMji23aU0TbdvA7mTdfJ", RegionEndpoint.APSoutheast1);
+        var client = new AmazonS3Client("AKIAV6D24TMTLRUEUKML", "Y+I2LjLJVhpbRnN+KkfNuZO27+W9nJbxLL4S6M87", RegionEndpoint.APSoutheast1);
 
         var memoryStreams = new List<(string fileName, MemoryStream stream)>();
 
@@ -393,7 +393,7 @@ public class BookAppService :
 
             var request = new GetObjectRequest
             {
-                BucketName = "abp-book-store-uploaded-documents",
+                BucketName = "abp-book-store-upload-documents",
                 Key = media.ObjectKey
             };
 
@@ -454,11 +454,11 @@ public class BookAppService :
             return string.Empty;
         }
 
-        var client = new AmazonS3Client("REDACTED", "ywno5QQsiwjlS2mWotGdlMji23aU0TbdvA7mTdfJ", RegionEndpoint.APSoutheast1);
+        var client = new AmazonS3Client("AKIAV6D24TMTLRUEUKML", "Y+I2LjLJVhpbRnN+KkfNuZO27+W9nJbxLL4S6M87", RegionEndpoint.APSoutheast1);
 
         var preSignedUrl = client.GetPreSignedURL(new GetPreSignedUrlRequest
         {
-            BucketName = "abp-book-store-uploaded-documents",
+            BucketName = "abp-book-store-upload-documents",
             Key = bookMedia.ObjectKey,
             Expires = DateTime.UtcNow.AddMinutes(10)
         });
@@ -651,10 +651,10 @@ public class BookAppService :
         {
             if (!media.ObjectKey.IsNullOrEmpty())
             {
-                var client = new AmazonS3Client("REDACTED", "ywno5QQsiwjlS2mWotGdlMji23aU0TbdvA7mTdfJ", RegionEndpoint.APSoutheast1);
+                var client = new AmazonS3Client("AKIAV6D24TMTLRUEUKML", "Y+I2LjLJVhpbRnN+KkfNuZO27+W9nJbxLL4S6M87", RegionEndpoint.APSoutheast1);
                 await client.DeleteObjectAsync(new DeleteObjectRequest
                 {
-                    BucketName = "abp-book-store-uploaded-documents",
+                    BucketName = "abp-book-store-upload-documents",
                     Key = media.ObjectKey
                 });
             }
