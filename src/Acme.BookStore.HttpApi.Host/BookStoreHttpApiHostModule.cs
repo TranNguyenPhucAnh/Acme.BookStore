@@ -1,9 +1,6 @@
 using Acme.BookStore.BackgroundWorker;
 using Acme.BookStore.EntityFrameworkCore;
 using Acme.BookStore.HealthChecks;
-using Amazon;
-using Amazon.SecretsManager;
-using Amazon.SecretsManager.Model;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Extensions.DependencyInjection;
@@ -18,7 +15,6 @@ using OpenIddict.Validation.AspNetCore;
 using System;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using Volo.Abp;
 using Volo.Abp.Account;
 using Volo.Abp.Account.Web;
@@ -58,6 +54,8 @@ public class BookStoreHttpApiHostModule : AbpModule
     {
         var hostingEnvironment = context.Services.GetHostingEnvironment();
         var configuration = context.Services.GetConfiguration();
+        
+        BookStoreConfigurations.SetConfiguration(configuration);
 
         PreConfigure<OpenIddictBuilder>(builder =>
         {
