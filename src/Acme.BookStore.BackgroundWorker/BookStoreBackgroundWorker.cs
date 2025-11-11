@@ -123,12 +123,13 @@ namespace Acme.BookStore.BackgroundWorker
                                 files[type] = await _authorAppService.ExportAsync();
                                 break;
 
-                            // thêm case khác nếu có loại report mới
+                                // thêm case khác nếu có loại report mới
                         }
                     }
 
                     var model = new EmailTemplateModel
                     {
+                        DistributionDomainName = BookStoreConfigurations.AwsCloudFrontDomain,
                         Year = DateTime.UtcNow.Year,
                         LocalizedMessage = "Please find the attachment in this email."
                     };
