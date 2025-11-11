@@ -36,7 +36,7 @@
                     <!-- Header -->
                     <tr>
                         <td class="header">
-                            <img src="https://d5jju7xs6oeup.cloudfront.net/logo-light.png"
+                            <img src="{{ model.distributionDomainName }}/logo-light.png"
                                 alt="Company Logo" />
                         </td>
                     </tr>
@@ -49,7 +49,7 @@
                     <!-- Footer -->
                     <tr>
                         <td class="footer">
-                            <p>&copy; {{model.year}} Book Store Demo. All rights reserved.</p>
+                            <p>&copy; {{ model.year }} Book Store Demo. All rights reserved.</p>
                             <p>
                                 <a href="https://bookstore-demo.online">Visit my demo</a> | 
                                 <a href="mailto:phucanhatt@gmail.com">Contact Me</a> | 
