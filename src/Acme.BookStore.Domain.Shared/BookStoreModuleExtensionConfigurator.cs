@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using Volo.Abp.ObjectExtending;
+﻿using Volo.Abp.ObjectExtending;
 using Volo.Abp.Threading;
 
 namespace Acme.BookStore;
