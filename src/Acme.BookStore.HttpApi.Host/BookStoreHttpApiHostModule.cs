@@ -32,6 +32,8 @@ using Volo.Abp.Security.Claims;
 using Volo.Abp.Swashbuckle;
 using Volo.Abp.UI.Navigation.Urls;
 using Volo.Abp.VirtualFileSystem;
+using Volo.Abp.Caching.StackExchangeRedis;
+using Volo.Abp.Caching;
 
 namespace Acme.BookStore;
 
@@ -45,7 +47,8 @@ namespace Acme.BookStore;
     typeof(AbpSwashbuckleModule),
     typeof(AbpAspNetCoreSerilogModule),
     typeof(BookStoreBackgroundWorkerModule),
-    typeof(AbpAspNetCoreSignalRModule)
+    typeof(AbpAspNetCoreSignalRModule),
+    typeof(AbpCachingStackExchangeRedisModule)
     )]
 
 public class BookStoreHttpApiHostModule : AbpModule
@@ -121,6 +124,7 @@ public class BookStoreHttpApiHostModule : AbpModule
         ConfigureAuthentication(context);
         ConfigureUrls(configuration);
         ConfigureBundles();
+        ConfigureRedis(context, configuration);
         ConfigureConventionalControllers();
         ConfigureHealthChecks(context);
         ConfigureSwagger(context, configuration);
@@ -161,6 +165,27 @@ public class BookStoreHttpApiHostModule : AbpModule
                 }
             );
         });
+    }
+
+    private void ConfigureRedis(ServiceConfigurationContext context, IConfiguration configuration)
+    {
+        var redisIsEnabled = configuration.GetValue<bool>("Redis:IsEnabled");
+        if (redisIsEnabled)
+        {
+            var redisConfiguration = configuration.GetValue<string>("Redis:Configuration");
+
+            // 1. Kích hoạt và cấu hình Redis Cache
+            Configure<AbpDistributedCacheOptions>(options =>
+            {
+                options.KeyPrefix = "BookStore:"; // Đặt tiền tố cho tất cả các key cache
+            });
+
+            // 2. Đăng ký dịch vụ Redis Cache (sẽ tự động đọc từ phần "Redis" trong appsettings.json)
+            context.Services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = redisConfiguration;
+            });
+        }
     }
 
     private void ConfigureVirtualFileSystem(ServiceConfigurationContext context)
