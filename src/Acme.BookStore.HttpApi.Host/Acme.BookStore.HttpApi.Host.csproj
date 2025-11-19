@@ -24,6 +24,7 @@
     <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
     <PackageReference Include="Serilog.Sinks.Async" Version="2.1.0" />
     <PackageReference Include="AWSSDK.SecretsManager" Version="4.0.1.6" />
+    <PackageReference Include="Volo.Abp.Caching.StackExchangeRedis" Version="9.1.0" />
   </ItemGroup>
 
   <ItemGroup>

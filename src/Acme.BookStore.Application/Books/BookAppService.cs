@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -24,6 +25,7 @@ using System.Threading.Tasks;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
+using Volo.Abp.Caching;
 using Volo.Abp.Data;
 using Volo.Abp.Domain.Entities;
 using Volo.Abp.Domain.Repositories;
@@ -51,6 +53,8 @@ public class BookAppService :
     private readonly IValidator<BookDto> _validator;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IRepository<BookMedias, Guid> _bookMediaRepository;
+    private readonly IDistributedCache<BookDto, Guid> _cache;
+    private readonly IDistributedCache<PagedResultDto<BookDto>, BookGetListInput> _bookListCache;
 
     public BookAppService(
         IRepository<Book, Guid> repository,
@@ -60,7 +64,9 @@ public class BookAppService :
         INotificationAppService notificationAppService,
         IValidator<BookDto> validator,
         IHttpContextAccessor httpContextAccessor,
-        IRepository<BookMedias, Guid> bookMediaRepository
+        IRepository<BookMedias, Guid> bookMediaRepository,
+        IDistributedCache<BookDto, Guid> cache,
+        IDistributedCache<PagedResultDto<BookDto>, BookGetListInput> bookListCache
         )
         : base(repository)
     {
@@ -71,6 +77,8 @@ public class BookAppService :
         _validator = validator;
         _httpContextAccessor = httpContextAccessor;
         _bookMediaRepository = bookMediaRepository;
+        _cache = cache;
+        _bookListCache = bookListCache;
 
         GetPolicyName = BookStorePermissions.Books.Default;
         GetListPolicyName = BookStorePermissions.Books.Default;
@@ -96,28 +104,52 @@ public class BookAppService :
 
     public override async Task<BookDto> GetAsync(Guid id)
     {
+        return await _cache.GetOrAddAsync(
+            id, //Cache key
+            async () => await GetFromDatabaseAsync(id),
+            () => new DistributedCacheEntryOptions
+            {
+                AbsoluteExpiration = DateTimeOffset.Now.AddHours(1)
+            }
+        ); 
+    }
+
+    protected virtual async Task<BookDto> GetFromDatabaseAsync(Guid bookId)
+    {
         //Get the IQueryable<Book> from the repository
         var queryable = await Repository.GetQueryableAsync();
 
         //Prepare a query to join books and authors
         var query = from book in queryable
                     join author in await _authorRepository.GetQueryableAsync() on book.AuthorId equals author.Id
-                    where book.Id == id
+                    where book.Id == bookId
                     select new { book, author };
 
         //Execute the query and get the book with author
         var queryResult = await AsyncExecuter.FirstOrDefaultAsync(query);
         if (queryResult == null)
         {
-            throw new EntityNotFoundException(typeof(Book), id);
+            throw new EntityNotFoundException(typeof(Book), bookId);
         }
 
         var bookDto = ObjectMapper.Map<Book, BookDto>(queryResult.book);
         bookDto.AuthorName = queryResult.author.Name;
         return bookDto;
     }
-
+    
     public override async Task<PagedResultDto<BookDto>> GetListAsync(BookGetListInput input)
+    {
+        return await _bookListCache.GetOrAddAsync(
+            input, //Cache key
+            async () => await GetListFromDatabaseAsync(input),
+            () => new DistributedCacheEntryOptions
+            {
+                AbsoluteExpiration = DateTimeOffset.Now.AddHours(1)
+            }
+        ); 
+    }
+
+    protected virtual async Task<PagedResultDto<BookDto>> GetListFromDatabaseAsync(BookGetListInput input)
     {
         var query = await GetListWithoutPaginationAsync(input);
 
