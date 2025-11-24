@@ -6,6 +6,7 @@ using ClosedXML.Excel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -15,6 +16,7 @@ using System.Linq.Dynamic.Core;
 using System.Threading.Tasks;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
+using Volo.Abp.Caching;
 using Volo.Abp.Data;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Users;
@@ -28,7 +30,8 @@ public class AuthorAppService(
     ICurrentUser currentUser,
     INotificationAppService notificationAppService,
     IRepository<Book, Guid> bookRepository,
-    ILogger<AuthorAppService> logger
+    ILogger<AuthorAppService> logger,
+    IDistributedCache<AuthorDto, Guid> cache
     ) : BookStoreAppService, IAuthorAppService
 {
     private readonly IAuthorRepository _authorRepository = authorRepository;
@@ -37,8 +40,21 @@ public class AuthorAppService(
     private readonly INotificationAppService _notificationAppService = notificationAppService;
     private readonly IRepository<Book, Guid> _bookRepository = bookRepository;
     private readonly ILogger<AuthorAppService> _logger = logger;
+    private readonly IDistributedCache<AuthorDto, Guid> _cache = cache;
 
     public async Task<AuthorDto> GetAsync(Guid id)
+    {
+        return await _cache.GetOrAddAsync(
+            id, //Cache key
+            async () => await GetFromDatabaseAsync(id),
+            () => new DistributedCacheEntryOptions
+            {
+                AbsoluteExpiration = DateTimeOffset.Now.AddHours(1)
+            }
+        ); 
+    }
+
+    protected virtual async Task<AuthorDto> GetFromDatabaseAsync(Guid id)
     {
         var author = await _authorRepository.GetAsync(id);
         return ObjectMapper.Map<Author, AuthorDto>(author);
