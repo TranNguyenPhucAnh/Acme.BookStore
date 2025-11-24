@@ -3,12 +3,12 @@
 const baseUrl = 'http://localhost:4200';
 
 const oAuthConfig = {
-  issuer: 'https://localhost:44374/',
+  issuer: 'http://localhost:44374/',
   redirectUri: baseUrl,
   clientId: 'BookStore_App',
   responseType: 'code',
   scope: 'offline_access BookStore',
-  requireHttps: true,
+  requireHttps: false,
 };
 
 export const environment = {
@@ -20,7 +20,7 @@ export const environment = {
   oAuthConfig,
   apis: {
     default: {
-      url: 'https://localhost:44374',
+      url: 'http://localhost:44374',
       rootNamespace: 'Acme.BookStore',
     },
     AbpAccountPublic: {
