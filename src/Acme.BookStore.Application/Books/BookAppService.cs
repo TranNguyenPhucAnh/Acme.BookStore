@@ -54,7 +54,6 @@ public class BookAppService :
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IRepository<BookMedias, Guid> _bookMediaRepository;
     private readonly IDistributedCache<BookDto, Guid> _cache;
-    private readonly IDistributedCache<PagedResultDto<BookDto>, BookGetListInput> _bookListCache;
 
     public BookAppService(
         IRepository<Book, Guid> repository,
@@ -65,8 +64,7 @@ public class BookAppService :
         IValidator<BookDto> validator,
         IHttpContextAccessor httpContextAccessor,
         IRepository<BookMedias, Guid> bookMediaRepository,
-        IDistributedCache<BookDto, Guid> cache,
-        IDistributedCache<PagedResultDto<BookDto>, BookGetListInput> bookListCache
+        IDistributedCache<BookDto, Guid> cache
         )
         : base(repository)
     {
@@ -78,7 +76,6 @@ public class BookAppService :
         _httpContextAccessor = httpContextAccessor;
         _bookMediaRepository = bookMediaRepository;
         _cache = cache;
-        _bookListCache = bookListCache;
 
         GetPolicyName = BookStorePermissions.Books.Default;
         GetListPolicyName = BookStorePermissions.Books.Default;
@@ -116,6 +113,8 @@ public class BookAppService :
 
     protected virtual async Task<BookDto> GetFromDatabaseAsync(Guid bookId)
     {
+        _logger.LogInformation("----- Book From DB -----");
+
         //Get the IQueryable<Book> from the repository
         var queryable = await Repository.GetQueryableAsync();
 
@@ -138,18 +137,6 @@ public class BookAppService :
     }
     
     public override async Task<PagedResultDto<BookDto>> GetListAsync(BookGetListInput input)
-    {
-        return await _bookListCache.GetOrAddAsync(
-            input, //Cache key
-            async () => await GetListFromDatabaseAsync(input),
-            () => new DistributedCacheEntryOptions
-            {
-                AbsoluteExpiration = DateTimeOffset.Now.AddHours(1)
-            }
-        ); 
-    }
-
-    protected virtual async Task<PagedResultDto<BookDto>> GetListFromDatabaseAsync(BookGetListInput input)
     {
         var query = await GetListWithoutPaginationAsync(input);
 
