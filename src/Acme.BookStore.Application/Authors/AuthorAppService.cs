@@ -31,8 +31,7 @@ public class AuthorAppService(
     INotificationAppService notificationAppService,
     IRepository<Book, Guid> bookRepository,
     ILogger<AuthorAppService> logger,
-    IDistributedCache<AuthorDto, Guid> cache,
-    IDistributedCache<PagedResultDto<AuthorDto>, GetAuthorListDto> authorListCache
+    IDistributedCache<AuthorDto, Guid> cache
     ) : BookStoreAppService, IAuthorAppService
 {
     private readonly IAuthorRepository _authorRepository = authorRepository;
@@ -42,7 +41,6 @@ public class AuthorAppService(
     private readonly IRepository<Book, Guid> _bookRepository = bookRepository;
     private readonly ILogger<AuthorAppService> _logger = logger;
     private readonly IDistributedCache<AuthorDto, Guid> _cache = cache;
-    private readonly IDistributedCache<PagedResultDto<AuthorDto>, GetAuthorListDto> _authorListCache = authorListCache;
 
     public async Task<AuthorDto> GetAsync(Guid id)
     {
@@ -63,18 +61,6 @@ public class AuthorAppService(
     }
 
     public async Task<PagedResultDto<AuthorDto>> GetListAsync(GetAuthorListDto input)
-    {
-        return await _authorListCache.GetOrAddAsync(
-            input, //Cache key
-            async () => await GetListFromDatabaseAsync(input),
-            () => new DistributedCacheEntryOptions
-            {
-                AbsoluteExpiration = DateTimeOffset.Now.AddHours(1)
-            }
-        );
-    }
-    
-    protected virtual async Task<PagedResultDto<AuthorDto>> GetListFromDatabaseAsync(GetAuthorListDto input)
     {
         var authors = await _authorRepository.GetQueryableAsync();
 
