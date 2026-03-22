@@ -16,10 +16,10 @@ modular CloudFormation stacks.
 ## Architecture
 
 ### AWS infrastructure
-![AWS infrastructure](docs/aws-infrastructure.png)
+![AWS infrastructure](docs/aws-infrastructure.svg)
 
 ### CI/CD pipeline
-![CI/CD pipeline](docs/cicd-pipeline.png)
+![CI/CD pipeline](docs/cicd-pipeline.svg)
 
 ### Infrastructure stacks (CloudFormation)
 
