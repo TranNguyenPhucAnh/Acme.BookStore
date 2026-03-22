@@ -49,32 +49,30 @@ All infrastructure is split into **7 independent CloudFormation stacks**, each o
 
 Two pipelines run independently for the API and Angular frontend:
 
-### ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?logo=githubactions&logoColor=white&style=flat-square) Infrastructure deploy
-Triggered on push to `aws` — deploys CloudFormation stacks in dependency order and pushes Docker images to ECR.
+| Pipeline | Trigger | What it does |
+|----------|---------|-------------|
+| ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?logo=githubactions&logoColor=white&style=flat-square) **Infrastructure** | Push to `aws` | Deploys 7 CloudFormation stacks in dependency order, pushes Docker images to ECR |
+| ![Jenkins](https://img.shields.io/badge/Jenkins-D24939?logo=jenkins&logoColor=white&style=flat-square) **Application** | Manual / webhook | Full app lifecycle — see steps below |
 
-### ![Jenkins](https://img.shields.io/badge/Jenkins-D24939?logo=jenkins&logoColor=white&style=flat-square) Application deploy
-Self-hosted on Docker, exposed via Cloudflare Tunnel. Handles the full app lifecycle:
+**Jenkins application pipeline (in order):**
 
-1. **DbMigrator** — runs as an isolated ECS task, applies schema migrations before the API starts
-2. **API** — builds Docker image, runs container with certs mounted
-3. **Angular** — `yarn build:prod` inside `node:18-alpine`, syncs dist to S3
-4. **Alerts** — sends email on failure via Jenkins `post { failure }` block
+| Step | What happens |
+|------|-------------|
+| 1️⃣ DbMigrator | Isolated ECS one-off task — applies schema migrations before API starts |
+| 2️⃣ API | Builds Docker image, runs container with RSA certs mounted |
+| 3️⃣ Angular | `yarn build:prod` inside `node:18-alpine`, syncs `dist/` to S3 |
+| 4️⃣ Alerts | Email on failure via `post { failure }` — exposed via Cloudflare Tunnel |
 
 ---
 
-## Key design decisions
+## Design decisions note
 
-### 💰 NAT instances over managed NAT Gateway
-Replaced AWS-managed NAT Gateway with [fck-nat](https://github.com/AndrewGuenther/fck-nat), reducing networking costs by **~85%** in staging (~$30–35/month saved at low traffic).
-
-### 🔄 Separate DbMigrator task
-Database schema migrations run as an isolated ECS one-off task before the API service starts — keeping migrations atomic, auditable, and decoupled from the API container lifecycle.
-
-### 🔐 Secrets via environment injection
-RDS credentials (`DB_ENDPOINT`, `DB_USER`, `DB_PASSWORD`) are resolved at deploy time from CloudFormation outputs and injected into ECS task definitions. No hardcoded values anywhere in the codebase.
-
-### 📜 OpenIddict certificate management
-RSA signing and encryption certificates for the OpenID Connect server are stored as Jenkins credentials and mounted into the API container at runtime — no `.pfx` files committed to the repo.
+| Decision | Why it matters |
+|----------|---------------|
+| 💰 **[fck-nat](https://github.com/AndrewGuenther/fck-nat) over NAT Gateway** | Cuts networking costs by **~85%** (~$30–35/month saved) — same HA behaviour, fraction of the price |
+| 🔄 **Separate DbMigrator task** | Migrations run as an isolated ECS task before the API starts — atomic, auditable, and decoupled from the API container lifecycle |
+| 🔐 **Secrets via CF output injection** | `DB_ENDPOINT`, `DB_USER`, `DB_PASSWORD` resolved from CloudFormation outputs at deploy time — no hardcoded values in the codebase |
+| 📜 **OpenIddict cert management** | RSA signing + encryption certs stored as Jenkins credentials, mounted at runtime — no `.pfx` files committed to the repo |
 
 ---
 
