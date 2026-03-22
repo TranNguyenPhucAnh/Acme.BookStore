@@ -65,7 +65,7 @@ Two pipelines run independently for the API and Angular frontend:
 
 ---
 
-## Key design decisions
+## Design decisions note
 
 | Decision | Why it matters |
 |----------|---------------|
