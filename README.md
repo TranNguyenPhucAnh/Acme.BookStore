@@ -1,67 +1,103 @@
 # ABP Framework — AWS Cloud Migration
 
-A full-stack web application built with **ABP Framework (.NET 9 / Angular / MySQL)**,
-used as a realistic workload to explore cloud infrastructure and DevOps practices
-on AWS. The focus of this project is **infrastructure and deployment**, not
-application feature development.
+> A full-stack web application built with ABP Framework, used as a realistic workload to explore production-grade AWS infrastructure and DevOps practices. The focus is **infrastructure and deployment** — not application features.
 
-> Live branch: `aws` | Region: `ap-southeast-1`
+![Branch](https://img.shields.io/badge/branch-aws-blue?logo=git&logoColor=white)
+![Region](https://img.shields.io/badge/AWS-ap--southeast--1-FF9900?logo=amazonaws&logoColor=white)
+![.NET](https://img.shields.io/badge/.NET_9-512BD4?logo=dotnet&logoColor=white)
+![Angular](https://img.shields.io/badge/Angular-DD0031?logo=angular&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-4479A1?logo=mysql&logoColor=white)
+![Terraform](https://img.shields.io/badge/IaC-CloudFormation-FF9900?logo=amazonaws&logoColor=white)
+
+---
 
 ## What this project covers
 
-The ABP BookStore app is containerized and deployed to AWS through a dual CI/CD
-pipeline (GitHub Actions + Jenkins), with infrastructure managed entirely via
-modular CloudFormation stacks.
+The ABP BookStore app is containerized and deployed to AWS through a dual CI/CD pipeline — **GitHub Actions** for infrastructure, **Jenkins** for application — with all cloud resources managed as modular CloudFormation stacks.
+
+---
 
 ## Architecture
 
 ### AWS infrastructure
+
 ![AWS infrastructure](docs/aws-infrastructure.svg)
 
 ### CI/CD pipeline
+
 ![CI/CD pipeline](docs/cicd-pipeline.svg)
 
-### Infrastructure stacks (CloudFormation)
+---
+
+## Infrastructure stacks
+
+All infrastructure is split into **7 independent CloudFormation stacks**, each owning a distinct layer. This makes updates safer and rollbacks scoped to a single concern.
 
 | Stack | Resources |
 |---|---|
-| Network | VPC, multi-AZ public/private subnets, IGW, route tables, NAT instances |
-| Security | IAM roles, security groups, Secrets Manager |
-| Database | RDS MySQL instance (private subnet) |
-| Compute | ECR repository, ECS Cluster, task definitions |
-| Delivery | ALB, S3 bucket, CloudFront distribution |
-| App service | ECS Fargate service + auto scaling policies |
-| Automation | Scheduled Lambda to start/stop RDS & ECS outside working hours |
+| 🌐 **Network** | VPC, multi-AZ subnets, IGW, route tables, NAT instances |
+| 🔒 **Security** | IAM roles, security groups, Secrets Manager |
+| 🗄️ **Database** | RDS MySQL (private subnet) |
+| ⚙️ **Compute** | ECR, ECS Cluster, task definitions |
+| 🚀 **Delivery** | ALB, S3, CloudFront distribution |
+| 📦 **App service** | ECS Fargate service + auto scaling |
+| ⏰ **Automation** | Lambda scheduler — start/stop RDS & ECS off-hours |
 
-### CI/CD pipeline
+---
 
-Two pipelines run in parallel for the API and Angular frontend:
+## CI/CD pipelines
 
-- **GitHub Actions** — builds Docker images, pushes to ECR, triggers ECS deployment
-- **Jenkins** (self-hosted on Docker, exposed via Cloudflare Tunnel) — handles
-  DB migration via a dedicated ECS `DbMigrator` task, then builds and runs the
-  API container; sends email alerts on failure
+Two pipelines run independently for the API and Angular frontend:
 
-### Key design decisions
+### ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?logo=githubactions&logoColor=white&style=flat-square) Infrastructure deploy
+Triggered on push to `aws` — deploys CloudFormation stacks in dependency order and pushes Docker images to ECR.
 
-**NAT instances over managed NAT Gateway** — replaced AWS NAT Gateway with
-[fck-nat](https://github.com/AndrewGuenther/fck-nat), reducing networking costs
-by ~85% in staging.
+### ![Jenkins](https://img.shields.io/badge/Jenkins-D24939?logo=jenkins&logoColor=white&style=flat-square) Application deploy
+Self-hosted on Docker, exposed via Cloudflare Tunnel. Handles the full app lifecycle:
 
-**Separate DbMigrator task** — database schema migrations run as an isolated
-ECS task before the API service starts, keeping migrations atomic and auditable.
+1. **DbMigrator** — runs as an isolated ECS task, applies schema migrations before the API starts
+2. **API** — builds Docker image, runs container with certs mounted
+3. **Angular** — `yarn build:prod` inside `node:18-alpine`, syncs dist to S3
+4. **Alerts** — sends email on failure via Jenkins `post { failure }` block
 
-**Secrets via environment injection** — RDS credentials (`DB_ENDPOINT`,
-`DB_USER`, `DB_PASSWORD`) are resolved at deploy time from CloudFormation
-outputs and injected into ECS task definitions, avoiding hardcoded values.
+---
 
-**OpenIddict certificate management** — RSA signing and encryption certificates
-for the OpenID Connect server are managed as Jenkins credentials and mounted
-into the API container at runtime.
+## Key design decisions
+
+### 💰 NAT instances over managed NAT Gateway
+Replaced AWS-managed NAT Gateway with [fck-nat](https://github.com/AndrewGuenther/fck-nat), reducing networking costs by **~85%** in staging (~$30–35/month saved at low traffic).
+
+### 🔄 Separate DbMigrator task
+Database schema migrations run as an isolated ECS one-off task before the API service starts — keeping migrations atomic, auditable, and decoupled from the API container lifecycle.
+
+### 🔐 Secrets via environment injection
+RDS credentials (`DB_ENDPOINT`, `DB_USER`, `DB_PASSWORD`) are resolved at deploy time from CloudFormation outputs and injected into ECS task definitions. No hardcoded values anywhere in the codebase.
+
+### 📜 OpenIddict certificate management
+RSA signing and encryption certificates for the OpenID Connect server are stored as Jenkins credentials and mounted into the API container at runtime — no `.pfx` files committed to the repo.
+
+---
+
+## Tech stack
+
+![AWS ECS](https://img.shields.io/badge/ECS_Fargate-FF9900?logo=amazonaws&logoColor=white)
+![AWS ECR](https://img.shields.io/badge/ECR-FF9900?logo=amazonaws&logoColor=white)
+![CloudFront](https://img.shields.io/badge/CloudFront-FF9900?logo=amazonaws&logoColor=white)
+![RDS](https://img.shields.io/badge/RDS_MySQL-4479A1?logo=mysql&logoColor=white)
+![S3](https://img.shields.io/badge/S3-569A31?logo=amazons3&logoColor=white)
+![CloudFormation](https://img.shields.io/badge/CloudFormation-FF9900?logo=amazonaws&logoColor=white)
+![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?logo=githubactions&logoColor=white)
+![Jenkins](https://img.shields.io/badge/Jenkins-D24939?logo=jenkins&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
+![Angular](https://img.shields.io/badge/Angular-DD0031?logo=angular&logoColor=white)
+![dotnet](https://img.shields.io/badge/.NET_9-512BD4?logo=dotnet&logoColor=white)
+
+---
 
 ## Local development
 
-**Prerequisites:** .NET 9 SDK, Node 18+, Docker
+**Prerequisites:** .NET 9 SDK · Node 18+ · Docker
+
 ```bash
 # Install ABP client-side libs
 abp install-libs
@@ -73,8 +109,19 @@ docker-compose up
 dotnet run --project src/Acme.BookStore.DbMigrator
 ```
 
+> For the OpenIddict signing certificate, generate a local `.pfx` with:
+> ```bash
+> dotnet dev-certs https -v -ep openiddict.pfx -p <your-password>
+> ```
+
+---
+
 ## Cost notes
 
-This is a staging environment. The uptime automation stack shuts down RDS and
-ECS services outside working hours. Replacing NAT Gateway with fck-nat saves
-roughly $30–35/month at low traffic.
+This is a staging environment designed to minimize spend:
+
+| Optimization | Saving |
+|---|---|
+| fck-nat instead of NAT Gateway | ~$30–35/month |
+| Lambda uptime scheduler (off-hours shutdown) | ~40–50% of ECS + RDS cost |
+| ECS Fargate (no idle EC2) | pay-per-use only |
