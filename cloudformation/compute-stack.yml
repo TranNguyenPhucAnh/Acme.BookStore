@@ -22,6 +22,34 @@ Parameters:
   BranchName:
     Type: String
     Description: Current build branch.
+
+  CertPassphrase:
+    Type: String
+    NoEcho: true
+    
+  SignCertPassword:
+    Type: String
+    NoEcho: true
+    
+  EncCertPassword:
+    Type: String
+    NoEcho: true
+    
+  StringEncryptionKey:
+    Type: String
+    NoEcho: true
+    
+  SmtpPassword:
+    Type: String
+    NoEcho: true
+    
+  AwsAccessKey:
+    Type: String
+    NoEcho: true
+    
+  AwsSecretKey:
+    Type: String
+    NoEcho: true
     
 Resources:
   MainECRRepository:
@@ -92,6 +120,20 @@ Resources:
                   DBEndpointPort:
                     Fn::ImportValue:
                       Fn::Sub: "${ProjectName}-DBEndpointPort"
+            - Name: AuthServer__CertificatePassPhrase
+              Value: !Ref CertPassphrase
+            - Name: OpenIddict__SigningCertificate__Password
+              Value: !Ref SignCertPassword
+            - Name: OpenIddict__EncryptionCertificate__Password
+              Value: !Ref EncCertPassword
+            - Name: StringEncryption__DefaultPassPhrase
+              Value: !Ref StringEncryptionKey
+            - Name: Settings__Abp.Mailing.Smtp.Password
+              Value: !Ref SmtpPassword
+            - Name: Aws__AccessKey
+              Value: !Ref AwsAccessKey
+            - Name: Aws__SecretKey
+              Value: !Ref AwsSecretKey
           Essential: true
       Tags:
         - Key: Name

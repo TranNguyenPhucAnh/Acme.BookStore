@@ -112,7 +112,14 @@ jobs:
                 DBUsername=${{ env.DB_USERNAME }} \
                 DBPassword=${{ secrets.MYSQL_BOOKSTORE_DB_PASSWORD }} \
                 BranchName=${{ github.ref_name }} \
-            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM 
+                CertPassphrase=${{ secrets.CERT_PASSPHRASE }} \
+                SignCertPassword=${{ secrets.SIGN_CERT_PASSWORD }} \
+                EncCertPassword=${{ secrets.ENC_CERT_PASSWORD }} \
+                StringEncryptionKey=${{ secrets.STRING_ENCRYPTION_KEY }} \
+                SmtpPassword=${{ secrets.SMTP_PASSWORD }} \
+                AppAwsAccessKey=${{ secrets.AWS_ACCESS_KEY_ID }} \
+                AppAwsSecretKey=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
+            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM
             
           ECR_REPO_NAME=$(aws cloudformation describe-stacks \
             --stack-name ${{ env.PROJECT_NAME }}-Compute-Stack \
