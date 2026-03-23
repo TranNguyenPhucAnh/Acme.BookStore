@@ -31,10 +31,12 @@ RUN apt-get update && apt-get install -y curl \
     && apt-get install -y nodejs \
     && npm install -g npm@latest
 
-RUN dotnet tool install -g Volo.Abp.Studio.Cli \
+RUN dotnet tool uninstall -g Volo.Abp.Cli 2>/dev/null || true \
+    && dotnet tool uninstall -g Volo.Abp.Studio.Cli 2>/dev/null || true \
+    && dotnet tool install -g Volo.Abp.Cli --version 9.1.0 \
     && export PATH="/root/.dotnet/tools:${PATH}" \
     && abp install-libs
-
+    
 WORKDIR "/src/src/Acme.BookStore.HttpApi.Host"
 
 RUN dotnet build "./Acme.BookStore.HttpApi.Host.csproj" -c $BUILD_CONFIGURATION -o /app/build
