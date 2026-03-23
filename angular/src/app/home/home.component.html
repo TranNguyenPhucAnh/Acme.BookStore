@@ -19,15 +19,15 @@
             Books & Authors show paginated data, can do basic CRUD.
           </p>
           <p>Any CRUD action will notify user via email & notification.</p>
-          <a [routerLink]="['/books']" class="btn btn-brand mb-4">Go to "Books"</a>
-          <a [routerLink]="['/authors']" class="btn btn-brand mb-4 home-buttons">Go to "Authors"</a>
+          <a (click)="navigateTo('/books')" class="btn btn-brand mb-4">Go to "Books"</a>
+          <a (click)="navigateTo('/authors')" class="btn btn-brand mb-4 home-buttons">Go to "Authors"</a>
 
           <h4>Feature Management is used to toggle content by country.</h4>
-          <a [routerLink]="['/feature-managements']" class="btn btn-brand mb-4">Go to "Feature Management"</a>
+          <a (click)="navigateTo('/feature-managements')" class="btn btn-brand mb-4">Go to "Feature Management"</a>
 
           <h4>Schedulers</h4>
           <p class="text-muted mb-2">A cron-based quartz that CC email with attachment to users.</p>
-          <a [routerLink]="['/schedulers']" class="btn btn-primary soft mb-4">Go to "Schedulers"</a>
+          <a (click)="navigateTo('/schedulers')" class="btn btn-brand mb-4">Go to "Feature Management"</a>
 
           <h4>Notification</h4>
           <p class="text-muted mb-2">Navbar has an icon showing notification list.</p>
