@@ -89,8 +89,8 @@ Resources:
       RequiresCompatibilities:
         - FARGATE
       NetworkMode: awsvpc
-      Cpu: 256
-      Memory: 512
+      Cpu: 512
+      Memory: 1024
       ExecutionRoleArn:
         Fn::ImportValue:
           Fn::Sub: "${ProjectName}-ECSTaskExecutionRoleArn"
@@ -134,7 +134,30 @@ Resources:
               Value: !Ref AwsAccessKey
             - Name: Aws__SecretKey
               Value: !Ref AwsSecretKey
+          DependsOn:
+            - ContainerName: redis
+              Condition: START
           Essential: true
+          
+        - Name: redis
+          Image: redis:7-alpine
+          Essential: false
+          PortMappings:
+            - ContainerPort: 6379
+              HostPort: 6379
+              Protocol: tcp
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref ECSLogGroupDotnet
+              awslogs-region: !Sub "${AWS::Region}"
+              awslogs-stream-prefix: redis
+          Command:
+            - redis-server
+            - --maxmemory
+            - 256mb
+            - --maxmemory-policy
+            - allkeys-lru
       Tags:
         - Key: Name
           Value: !Sub "${ProjectName}-Dotnet-TaskDef"
