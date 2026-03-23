@@ -31,7 +31,7 @@ RUN apt-get update && apt-get install -y curl \
     && apt-get install -y nodejs \
     && npm install -g npm@latest
 
-RUN dotnet tool install -g Volo.Abp.Cli
+RUN dotnet tool install -g Volo.Abp.Cli --version 8.3.4
 
 ENV PATH="/root/.dotnet/tools:${PATH}"
 
