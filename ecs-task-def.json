@@ -4,10 +4,17 @@
         {
             "cpu": 0,
             "environment": [
-                {
-                    "name": "ConnectionStrings__Default",
-                    "value": "Server=${DB_ENDPOINT};Port=${DB_PORT};Database=BookStore;Uid=${DB_USER};Pwd=${DB_PASSWORD};"
-                }
+              {
+                "name": "ConnectionStrings__Default",
+                "value": "Server=${DB_ENDPOINT};Port=${DB_PORT};Database=BookStore;Uid=${DB_USER};Pwd=${DB_PASSWORD};"
+              },
+              { "name": "AuthServer__CertificatePassPhrase",                    "value": "${CERT_PASSPHRASE}" },
+              { "name": "OpenIddict__SigningCertificate__Password",             "value": "${SIGN_CERT_PASSWORD}" },
+              { "name": "OpenIddict__EncryptionCertificate__Password",          "value": "${ENC_CERT_PASSWORD}" },
+              { "name": "StringEncryption__DefaultPassPhrase",                  "value": "${STRING_ENCRYPTION_KEY}" },
+              { "name": "Settings__Abp.Mailing.Smtp.Password",                  "value": "${SMTP_PASSWORD}" },
+              { "name": "Aws__AccessKey",                                       "value": "${AWS_ACCESS_KEY_ID}" },
+              { "name": "Aws__SecretKey",                                       "value": "${AWS_SECRET_ACCESS_KEY}" }
             ],
             "essential": true,
             "image": "${IMAGE_URI}",
