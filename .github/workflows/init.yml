@@ -117,8 +117,8 @@ jobs:
                 EncCertPassword=${{ secrets.ENC_CERT_PASSWORD }} \
                 StringEncryptionKey=${{ secrets.STRING_ENCRYPTION_KEY }} \
                 SmtpPassword=${{ secrets.SMTP_PASSWORD }} \
-                AppAwsAccessKey=${{ secrets.AWS_ACCESS_KEY_ID }} \
-                AppAwsSecretKey=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
+                AwsAccessKey=${{ secrets.AWS_ACCESS_KEY_ID }} \
+                AwsSecretKey=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM
             
           ECR_REPO_NAME=$(aws cloudformation describe-stacks \
