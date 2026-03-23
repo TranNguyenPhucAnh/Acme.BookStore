@@ -211,6 +211,7 @@ jobs:
           push: true
           tags: ${{ env.DOTNET_IMAGE_URI }}
           platforms: linux/amd64
+          no-cache: true
           # Thêm cache nếu cần (type=gha)
           
       - name: 6. Deploy ECS SERVICE Stack
