@@ -29,10 +29,6 @@ export class HomeComponent implements OnInit {
     this.envUrl = this.envService.getEnvironment().apis.default.url;
   }
 
-  navigateTo(path: string): void {
-    window.open(path, '_blank');
-  }
-
   download() : void {
     this.bookService.downloadSample().subscribe((val) => {
         this.abpWindowService.downloadBlob(val.body, DateHelper.toFileName(val.headers.get('Content-Disposition')));
