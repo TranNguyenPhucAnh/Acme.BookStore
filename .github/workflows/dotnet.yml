@@ -64,6 +64,13 @@ jobs:
           echo "ECR_URI=$ECR_URI" >> $GITHUB_ENV
           echo "ECS_SERVICE=$ECS_SERVICE" >> $GITHUB_ENV
           echo "ECS_CLUSTER=$ECS_CLUSTER" >> $GITHUB_ENV
+          echo "CERT_PASSPHRASE=${{ secrets.CERT_PASSPHRASE }}" >> $GITHUB_ENV
+          echo "SIGN_CERT_PASSWORD=${{ secrets.SIGN_CERT_PASSWORD }}" >> $GITHUB_ENV
+          echo "ENC_CERT_PASSWORD=${{ secrets.ENC_CERT_PASSWORD }}" >> $GITHUB_ENV
+          echo "STRING_ENCRYPTION_KEY=${{ secrets.STRING_ENCRYPTION_KEY }}" >> $GITHUB_ENV
+          echo "SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }}" >> $GITHUB_ENV
+          echo "AWS_ACCESS_KEY=${{ secrets.AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
+          echo "AWS_SECRET_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
 
       - name: Render ECS task definition
         run: |
@@ -76,6 +83,13 @@ jobs:
           sed -i "s|\${IMAGE_URI}|${IMAGE_URI}|g" ${{ env.RENDERED_DOTNET_TASK_DEF }}
           sed -i "s|\${TASK_ROLE_ARN}|${TASK_ROLE_ARN}|g" ${{ env.RENDERED_DOTNET_TASK_DEF }}
           sed -i "s|\${TASK_EXECUTION_ROLE_ARN}|${TASK_EXECUTION_ROLE_ARN}|g" ${{ env.RENDERED_DOTNET_TASK_DEF }}
+          sed -i "s|\${CERT_PASSPHRASE}|${CERT_PASSPHRASE}|g"             ${{ env.RENDERED_DOTNET_TASK_DEF }}
+          sed -i "s|\${SIGN_CERT_PASSWORD}|${SIGN_CERT_PASSWORD}|g"       ${{ env.RENDERED_DOTNET_TASK_DEF }}
+          sed -i "s|\${ENC_CERT_PASSWORD}|${ENC_CERT_PASSWORD}|g"         ${{ env.RENDERED_DOTNET_TASK_DEF }}
+          sed -i "s|\${STRING_ENCRYPTION_KEY}|${STRING_ENCRYPTION_KEY}|g" ${{ env.RENDERED_DOTNET_TASK_DEF }}
+          sed -i "s|\${SMTP_PASSWORD}|${SMTP_PASSWORD}|g"                 ${{ env.RENDERED_DOTNET_TASK_DEF }}
+          sed -i "s|\${AWS_ACCESS_KEY}|${AWS_ACCESS_KEY}|g"               ${{ env.RENDERED_DOTNET_TASK_DEF }}
+          sed -i "s|\${AWS_SECRET_KEY}|${AWS_SECRET_KEY}|g"               ${{ env.RENDERED_DOTNET_TASK_DEF }}
 
       - name: Login to Amazon ECR
         id: ecr-login
