@@ -31,9 +31,11 @@ RUN apt-get update && apt-get install -y curl \
     && apt-get install -y nodejs \
     && npm install -g npm@latest
 
-RUN dotnet tool install -g Volo.Abp.Studio.Cli \
-    && export PATH="/root/.dotnet/tools:${PATH}" \
-    && abp install-libs
+RUN dotnet tool install -g Volo.Abp.Cli --version 8.3.4
+
+ENV PATH="/root/.dotnet/tools:${PATH}"
+
+RUN abp install-libs
 
 WORKDIR "/src/src/Acme.BookStore.HttpApi.Host"
 
