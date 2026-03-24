@@ -26,9 +26,9 @@ jobs:
           ref: ${{ inputs.git_branch || github.ref_name }}
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: 18
+          node-version: 24
 
       - name: Enable corepack and setup Yarn
         run: corepack enable yarn
