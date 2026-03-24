@@ -23,7 +23,7 @@ The ABP BookStore app is containerized and deployed to AWS entirely via **GitHub
 
 ![AWS infrastructure](docs/aws-infrastructure.svg)
 
-### CI/CD pipeline
+### CI/CD pipelines
 
 ![CI/CD pipeline](docs/cicd-pipeline.svg)
 
