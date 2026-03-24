@@ -16,5 +16,5 @@ public class BookStoreBrandingProvider : DefaultBrandingProvider
     }
 
     //change document title in BrandingProvider & localization files added "AppName" key
-    public override string AppName => "Phuc Anh's Demo Project"; //_localizer["Anh's Demo App"];
+    public override string AppName => "Anh's Demo Project"; //_localizer["Anh's Demo App"];
 }
