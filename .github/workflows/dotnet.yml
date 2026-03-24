@@ -93,7 +93,9 @@ jobs:
 
       - name: Login to Amazon ECR
         id: ecr-login
-        uses: aws-actions/amazon-ecr-login@v1
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          mask-password: 'false'
 
       - name: Build Docker image
         run: docker build -f src/Acme.BookStore.HttpApi.Host/Dockerfile -t ${{ env.ECR_URI }}:dotnet-${{ env.BRANCH_NAME }} .
@@ -110,7 +112,7 @@ jobs:
           image: ${{ env.ECR_URI }}:dotnet-${{ env.BRANCH_NAME }}
 
       - name: Deploy ECS Service
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
           service: ${{ env.ECS_SERVICE }}
