@@ -83,8 +83,10 @@ jobs:
 
       - name: Login to Amazon ECR
         id: ecr
-        uses: aws-actions/amazon-ecr-login@v1
-        
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          mask-password: 'false'
+
       - name: Build DB Migrator Docker image
         # Giả định context là thư mục gốc và Dockerfile nằm ở đường dẫn tương ứng
         run: docker build -f src/Acme.BookStore.DbMigrator/Dockerfile.local -t ${{ env.ECR_URI }}:db-migrator-${{ env.BRANCH_NAME }} .
