@@ -1,60 +1,90 @@
 {
-    "family": "${TASK_DEF}",
-    "containerDefinitions": [
+  "family": "${TASK_DEF}",
+  "cpu": "512",
+  "memory": "1024",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "taskRoleArn": "${TASK_ROLE_ARN}",
+  "executionRoleArn": "${TASK_EXECUTION_ROLE_ARN}",
+  "runtimePlatform": {
+    "cpuArchitecture": "X86_64",
+    "operatingSystemFamily": "LINUX"
+  },
+  "volumes": [],
+  "placementConstraints": [],
+  "containerDefinitions": [
+    {
+      "name": "dotnet",
+      "image": "${IMAGE_URI}",
+      "cpu": 0,
+      "essential": true,
+      "portMappings": [
         {
-            "cpu": 0,
-            "environment": [
-              {
-                "name": "ConnectionStrings__Default",
-                "value": "Server=${DB_ENDPOINT};Port=${DB_PORT};Database=BookStore;Uid=${DB_USER};Pwd=${DB_PASSWORD};"
-              },
-              { "name": "AuthServer__CertificatePassPhrase",                    "value": "${CERT_PASSPHRASE}" },
-              { "name": "OpenIddict__SigningCertificate__Password",             "value": "${SIGN_CERT_PASSWORD}" },
-              { "name": "OpenIddict__EncryptionCertificate__Password",          "value": "${ENC_CERT_PASSWORD}" },
-              { "name": "StringEncryption__DefaultPassPhrase",                  "value": "${STRING_ENCRYPTION_KEY}" },
-              { "name": "Settings__Abp.Mailing.Smtp.Password",                  "value": "${SMTP_PASSWORD}" },
-              { "name": "Aws__AccessKey",                                       "value": "${AWS_ACCESS_KEY_ID}" },
-              { "name": "Aws__SecretKey",                                       "value": "${AWS_SECRET_ACCESS_KEY}" }
-            ],
-            "essential": true,
-            "image": "${IMAGE_URI}",
-            "logConfiguration": {
-                "logDriver": "awslogs",
-                "options": {
-                    "awslogs-group": "/ecs/${TASK_DEF}",
-                    "awslogs-create-group": "true",
-                    "awslogs-region": "ap-southeast-1",
-                    "awslogs-stream-prefix": "ecs"
-                },
-                "secretOptions": []
-            },
-            "mountPoints": [],
-            "name": "dotnet",
-            "portMappings": [
-                {
-                    "appProtocol": "http",
-                    "containerPort": 8080,
-                    "hostPort": 8080,
-                    "name": "http",
-                    "protocol": "tcp"
-                }
-            ],
-            "systemControls": [],
-            "volumesFrom": []
+          "appProtocol": "http",
+          "containerPort": 8080,
+          "hostPort": 8080,
+          "name": "http",
+          "protocol": "tcp"
         }
-    ],
-    "taskRoleArn": "${TASK_ROLE_ARN}",
-    "executionRoleArn": "${TASK_EXECUTION_ROLE_ARN}",
-    "networkMode": "awsvpc",
-    "volumes": [],
-    "placementConstraints": [],
-    "requiresCompatibilities": [
-        "FARGATE"
-    ],
-    "cpu": "256",
-    "memory": "512",
-    "runtimePlatform": {
-        "cpuArchitecture": "X86_64",
-        "operatingSystemFamily": "LINUX"
+      ],
+      "dependsOn": [
+        {
+          "containerName": "redis",
+          "condition": "START"
+        }
+      ],
+      "environment": [
+        { "name": "ConnectionStrings__Default", "value": "Server=${DB_ENDPOINT};Port=${DB_PORT};Database=BookStore;Uid=${DB_USER};Pwd=${DB_PASSWORD};" },
+        { "name": "AuthServer__CertificatePassPhrase",           "value": "${CERT_PASSPHRASE}" },
+        { "name": "OpenIddict__SigningCertificate__Password",    "value": "${SIGN_CERT_PASSWORD}" },
+        { "name": "OpenIddict__EncryptionCertificate__Password", "value": "${ENC_CERT_PASSWORD}" },
+        { "name": "StringEncryption__DefaultPassPhrase",         "value": "${STRING_ENCRYPTION_KEY}" },
+        { "name": "Settings__Abp.Mailing.Smtp.Password",         "value": "${SMTP_PASSWORD}" },
+        { "name": "Aws__AccessKey",                              "value": "${AWS_ACCESS_KEY_ID}" },
+        { "name": "Aws__SecretKey",                              "value": "${AWS_SECRET_ACCESS_KEY}" }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/${TASK_DEF}",
+          "awslogs-create-group": "true",
+          "awslogs-region": "ap-southeast-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "mountPoints": [],
+      "systemControls": [],
+      "volumesFrom": []
+    },
+    {
+      "name": "redis",
+      "image": "redis:7-alpine",
+      "cpu": 0,
+      "essential": false,
+      "portMappings": [
+        {
+          "containerPort": 6379,
+          "hostPort": 6379,
+          "protocol": "tcp"
+        }
+      ],
+      "command": [
+        "redis-server",
+        "--maxmemory", "256mb",
+        "--maxmemory-policy", "allkeys-lru"
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/${TASK_DEF}",
+          "awslogs-create-group": "true",
+          "awslogs-region": "ap-southeast-1",
+          "awslogs-stream-prefix": "redis"
+        }
+      },
+      "mountPoints": [],
+      "systemControls": [],
+      "volumesFrom": []
     }
+  ]
 }
