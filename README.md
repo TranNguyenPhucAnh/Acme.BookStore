@@ -13,7 +13,7 @@
 
 ## What this project covers
 
-The ABP BookStore app is containerized and deployed to AWS through a dual CI/CD pipeline — **GitHub Actions** for infrastructure, **Jenkins** for application — with all cloud resources managed as modular CloudFormation stacks.
+The ABP BookStore app is containerized and deployed to AWS entirely via **GitHub Actions**, with all cloud resources managed as modular CloudFormation stacks. Jenkins was used during local Docker development on the `develop` branch and is not part of the AWS deployment pipeline.
 
 ---
 
@@ -47,21 +47,23 @@ All infrastructure is split into **7 independent CloudFormation stacks**, each o
 
 ## CI/CD pipelines
 
-Two pipelines run independently for the API and Angular frontend:
+Three GitHub Actions workflows handle the full deployment lifecycle on the `aws` branch:
 
-| Pipeline | Trigger | What it does |
+| Workflow | Trigger | What it does |
 |----------|---------|-------------|
-| ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?logo=githubactions&logoColor=white&style=flat-square) **Infrastructure** | Push to `aws` | Deploys 7 CloudFormation stacks in dependency order, pushes Docker images to ECR |
-| ![Jenkins](https://img.shields.io/badge/Jenkins-D24939?logo=jenkins&logoColor=white&style=flat-square) **Application** | Manual / webhook | Full app lifecycle — see steps below |
+| ![GitHub Actions](https://img.shields.io/badge/init.yaml-2088FF?logo=githubactions&logoColor=white&style=flat-square) **Infrastructure init** | Manual (`workflow_dispatch`) | Deploys all 7 CloudFormation stacks in dependency order — run once to bootstrap the environment |
+| ![GitHub Actions](https://img.shields.io/badge/dotnet.yaml-2088FF?logo=githubactions&logoColor=white&style=flat-square) **API deploy** | Manual / `repository_dispatch` | Builds & pushes Docker image to ECR, renders ECS task definition, deploys to Fargate |
+| ![GitHub Actions](https://img.shields.io/badge/db--migrator.yaml-2088FF?logo=githubactions&logoColor=white&style=flat-square) **DB migration** | Manual / `repository_dispatch` | Builds migrator image, runs as isolated ECS one-off task before API starts |
 
-**Jenkins application pipeline (in order):**
+**Deployment order (in sequence):**
 
 | Step | What happens |
 |------|-------------|
-| 1️⃣ DbMigrator | Isolated ECS one-off task — applies schema migrations before API starts |
-| 2️⃣ API | Builds Docker image, runs container with RSA certs mounted |
-| 3️⃣ Angular | `yarn build:prod` inside `node:18-alpine`, syncs `dist/` to S3 |
-| 4️⃣ Alerts | Email on failure via `post { failure }` — exposed via Cloudflare Tunnel |
+| 1️⃣ DB migration | ECS one-off task — applies schema migrations, exits when done |
+| 2️⃣ API deploy | Builds .NET image, registers new ECS task definition, force-deploys service |
+| 3️⃣ Angular deploy | `yarn build:prod`, syncs `dist/` to S3, invalidates CloudFront cache |
+
+> **Jenkins** appears in the repo (`Jenkinsfile-API`, `Jenkinsfile-Angular`) as a reference for local Docker development on the `develop` branch — it is not used in the AWS deployment pipeline.
 
 ---
 
