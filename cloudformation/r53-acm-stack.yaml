@@ -1,0 +1,73 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Route53 Hosted Zone + ACM Certificates (ALB + CloudFront)
+
+Parameters:
+  ProjectName:
+    Type: String
+  AppDomain:
+    Type: String
+
+Resources:
+  # ── Hosted Zone ──────────────────────────────────────────
+  HostedZone:
+    Type: AWS::Route53::HostedZone
+    Properties:
+      Name: !Ref AppDomain
+
+  MXRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref HostedZone
+      Name: !Ref AppDomain
+      Type: MX
+      TTL: "300"
+      ResourceRecords:
+        - "1 smtp.google.com"
+
+  # ── ALB Cert (ap-southeast-1) ────────────────────────────
+  ALBCertificate:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      DomainName: !Ref AppDomain
+      SubjectAlternativeNames:
+        - !Sub "*.${AppDomain}"
+      ValidationMethod: DNS
+      DomainValidationOptions:
+        - DomainName: !Ref AppDomain
+          HostedZoneId: !Ref HostedZone
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-alb-cert"
+
+  # ── CloudFront Cert (us-east-1) ──────────────────────────
+  CloudFrontCertificate:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      DomainName: !Ref AppDomain
+      SubjectAlternativeNames:
+        - !Sub "*.${AppDomain}"
+      ValidationMethod: DNS
+      DomainValidationOptions:
+        - DomainName: !Ref AppDomain
+          HostedZoneId: !Ref HostedZone
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-cloudfront-cert"
+
+Outputs:
+  HostedZoneId:
+    Value: !Ref HostedZone
+    Export:
+      Name: !Sub "${ProjectName}-HostedZoneId"
+  NameServers:
+    Value: !Join [", ", !GetAtt HostedZone.NameServers]
+    Export:
+      Name: !Sub "${ProjectName}-NameServers"
+  ALBCertificateArn:
+    Value: !Ref ALBCertificate
+    Export:
+      Name: !Sub "${ProjectName}-ALBCertArn"
+  CloudFrontCertificateArn:
+    Value: !Ref CloudFrontCertificate
+    Export:
+      Name: !Sub "${ProjectName}-CloudFrontCertArn"
