@@ -15,10 +15,7 @@ env:
   FCK_NAT_AMI_ID: ami-02a52449447725fc8 #arm64
   NAT_INSTANCE_TYPE: t4g.nano
   APP_DOMAIN: bookstore-demo.online
-  HOSTED_ZONE_ID: Z01268791Q1AY3MI5G3XM
   CLOUDFRONT_HOSTED_ZONE_ID: Z2FDTNDATAQYW2
-  ALB_CERT_ARN: arn:aws:acm:ap-southeast-1:408279620390:certificate/e3c7c7d2-819a-4acd-88c5-cb4406f30683
-  CLOUDFRONT_CERT_ARN: arn:aws:acm:us-east-1:408279620390:certificate/2374ad50-af94-4716-aa87-b08b5b38b306
   DB_USERNAME: admin
   APP_PORT: 8080
   MYSQL_PORT: 3306
@@ -47,7 +44,53 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
-
+          
+      - name: 0a. Deploy ROUTE53 + ALB CERT Stack (ap-southeast-1)
+        run: |
+          aws cloudformation deploy \
+            --template-file ${{ env.CFN_MODULES_PATH }}/route53-stack.yml \
+            --stack-name ${{ env.PROJECT_NAME }}-Route53-Stack \
+            --region ap-southeast-1 \
+            --parameter-overrides \
+                ProjectName=${{ env.PROJECT_NAME }} \
+                AppDomain=${{ env.APP_DOMAIN }} \
+            --capabilities CAPABILITY_IAM
+      
+          HOSTED_ZONE_ID=$(aws cloudformation describe-stacks \
+            --stack-name ${{ env.PROJECT_NAME }}-Route53-Stack \
+            --region ap-southeast-1 \
+            --query "Stacks[0].Outputs[?ExportName=='${{ env.PROJECT_NAME }}-HostedZoneId'].OutputValue" \
+            --output text)
+      
+          ALB_CERT_ARN=$(aws cloudformation describe-stacks \
+            --stack-name ${{ env.PROJECT_NAME }}-Route53-Stack \
+            --region ap-southeast-1 \
+            --query "Stacks[0].Outputs[?ExportName=='${{ env.PROJECT_NAME }}-ALBCertArn'].OutputValue" \
+            --output text)
+      
+          echo "HOSTED_ZONE_ID=$HOSTED_ZONE_ID" >> $GITHUB_ENV
+          echo "ALB_CERT_ARN=$ALB_CERT_ARN" >> $GITHUB_ENV
+      
+      - name: 0b. Deploy CLOUDFRONT CERT Stack (us-east-1)
+        run: |
+          aws cloudformation deploy \
+            --template-file ${{ env.CFN_MODULES_PATH }}/cloudfront-cert-stack.yml \
+            --stack-name ${{ env.PROJECT_NAME }}-CloudFrontCert-Stack \
+            --region us-east-1 \
+            --parameter-overrides \
+                ProjectName=${{ env.PROJECT_NAME }} \
+                AppDomain=${{ env.APP_DOMAIN }} \
+                HostedZoneId=${{ env.HOSTED_ZONE_ID }} \
+            --capabilities CAPABILITY_IAM
+      
+          CLOUDFRONT_CERT_ARN=$(aws cloudformation describe-stacks \
+            --stack-name ${{ env.PROJECT_NAME }}-CloudFrontCert-Stack \
+            --region us-east-1 \
+            --query "Stacks[0].Outputs[?ExportName=='${{ env.PROJECT_NAME }}-CloudFrontCertArn'].OutputValue" \
+            --output text)
+      
+          echo "CLOUDFRONT_CERT_ARN=$CLOUDFRONT_CERT_ARN" >> $GITHUB_ENV
+    
       - name: 1. Deploy NETWORK Stack
         run: |
           aws cloudformation deploy \
