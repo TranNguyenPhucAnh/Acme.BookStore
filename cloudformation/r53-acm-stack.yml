@@ -1,5 +1,6 @@
+# route53-stack.yml — chỉ có hosted zone + MX + ALB cert
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Route53 Hosted Zone + ACM Certificates (ALB + CloudFront)
+Description: Route53 Hosted Zone + ALB ACM Certificate
 
 Parameters:
   ProjectName:
@@ -8,7 +9,6 @@ Parameters:
     Type: String
 
 Resources:
-  # ── Hosted Zone ──────────────────────────────────────────
   HostedZone:
     Type: AWS::Route53::HostedZone
     Properties:
@@ -24,7 +24,6 @@ Resources:
       ResourceRecords:
         - "1 smtp.google.com"
 
-  # ── ALB Cert (ap-southeast-1) ────────────────────────────
   ALBCertificate:
     Type: AWS::CertificateManager::Certificate
     Properties:
@@ -39,21 +38,6 @@ Resources:
         - Key: Name
           Value: !Sub "${ProjectName}-alb-cert"
 
-  # ── CloudFront Cert (us-east-1) ──────────────────────────
-  CloudFrontCertificate:
-    Type: AWS::CertificateManager::Certificate
-    Properties:
-      DomainName: !Ref AppDomain
-      SubjectAlternativeNames:
-        - !Sub "*.${AppDomain}"
-      ValidationMethod: DNS
-      DomainValidationOptions:
-        - DomainName: !Ref AppDomain
-          HostedZoneId: !Ref HostedZone
-      Tags:
-        - Key: Name
-          Value: !Sub "${ProjectName}-cloudfront-cert"
-
 Outputs:
   HostedZoneId:
     Value: !Ref HostedZone
@@ -67,7 +51,3 @@ Outputs:
     Value: !Ref ALBCertificate
     Export:
       Name: !Sub "${ProjectName}-ALBCertArn"
-  CloudFrontCertificateArn:
-    Value: !Ref CloudFrontCertificate
-    Export:
-      Name: !Sub "${ProjectName}-CloudFrontCertArn"
