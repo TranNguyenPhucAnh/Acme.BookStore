@@ -19,8 +19,6 @@ env:
   DB_USERNAME: admin
   APP_PORT: 8080
   MYSQL_PORT: 3306
-  SIGN_CERT_SECRET_ARN: arn:aws:secretsmanager:ap-southeast-1:408279620390:secret:sign.pfx.b64-*
-  ENCRYPT_CERT_SECRET_ARN: arn:aws:secretsmanager:ap-southeast-1:408279620390:secret:enc.pfx.b64-*
   CFN_MODULES_PATH: ./cloudformation/
 
 jobs:
@@ -90,7 +88,32 @@ jobs:
             --output text)
       
           echo "CLOUDFRONT_CERT_ARN=$CLOUDFRONT_CERT_ARN" >> $GITHUB_ENV
-    
+
+      - name: 0c. Deploy SECRETS Stack
+        run: |
+          aws cloudformation deploy \
+            --template-file ${{ env.CFN_MODULES_PATH }}/secrets-stack.yml \
+            --stack-name ${{ env.PROJECT_NAME }}-Secrets-Stack \
+            --region ap-southeast-1 \
+            --parameter-overrides \
+                ProjectName=${{ env.PROJECT_NAME }} \
+                SignCertB64=${{ secrets.SIGN_PFX_B64 }} \
+                EncCertB64=${{ secrets.ENC_PFX_B64 }} \
+            --capabilities CAPABILITY_IAM
+      
+          SIGN_CERT_SECRET_ARN=$(aws cloudformation describe-stacks \
+            --stack-name ${{ env.PROJECT_NAME }}-Secrets-Stack \
+            --query "Stacks[0].Outputs[?ExportName=='${{ env.PROJECT_NAME }}-SignCertSecretArn'].OutputValue" \
+            --output text)
+      
+          ENC_CERT_SECRET_ARN=$(aws cloudformation describe-stacks \
+            --stack-name ${{ env.PROJECT_NAME }}-Secrets-Stack \
+            --query "Stacks[0].Outputs[?ExportName=='${{ env.PROJECT_NAME }}-EncCertSecretArn'].OutputValue" \
+            --output text)
+      
+          echo "SIGN_CERT_SECRET_ARN=$SIGN_CERT_SECRET_ARN" >> $GITHUB_ENV
+          echo "ENCRYPT_CERT_SECRET_ARN=$ENC_CERT_SECRET_ARN" >> $GITHUB_ENV
+      
       - name: 1. Deploy NETWORK Stack
         run: |
           aws cloudformation deploy \
